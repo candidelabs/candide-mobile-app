@@ -1,0 +1,40 @@
+<svg width="1202" height="1828" viewBox="0 0 1202 1828" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="Group">
+        <path id="Path" fill="#d5d5d5" fill-rule="evenodd" stroke="none" d="M 610 679 L 1147 921.867371 L 610 1239 L 72 921 L 610 679 Z"/>
+        <path id="Path-copy" fill="#454a75" fill-rule="evenodd" stroke="none" d="M 610 681 L 1145 922 L 610 1237 L 75 921 L 610 681 Z"/>
+        <path id="path1" fill="#62688f" fill-opacity="0.836391" stroke="none" d="M 1149.599976 921.299988 L 609.799988 25.699951 L 610 1240 Z"/>
+        <filter id="filter1" x="0" y="0" width="1202" height="1828" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="32"/>
+            <feOffset dx="13.314791" dy="4.326238" result="offsetblur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.5"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <path id="path2" fill="#8a92b2" fill-opacity="0.812612" stroke="none" filter="url(#filter1)" d="M 609.799988 25.699951 L 70.100006 921.299988 L 610 1239 Z"/>
+        <filter id="filter2" x="0" y="0" width="1202" height="1828" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="32"/>
+            <feOffset dx="13.314791" dy="4.326238" result="offsetblur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.5"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <path id="path3" fill="#62688f" fill-opacity="0.810098" stroke="none" filter="url(#filter2)" d="M 609.799988 1342.599976 L 609.799988 1784.300049 L 1149.900024 1023.699951 Z"/>
+        <filter id="filter3" x="0" y="0" width="1202" height="1828" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="32"/>
+            <feOffset dx="11.412678" dy="3.708204" result="offsetblur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.5"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <path id="path4" fill="#8a92b2" fill-opacity="0.807143" stroke="none" filter="url(#filter3)" d="M 70.100006 1023.699951 L 609.799988 1784.300049 L 609.799988 1342.599976 Z"/>
+    </g>
+</svg>
