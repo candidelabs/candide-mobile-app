@@ -103,7 +103,7 @@ class _AddressFieldState extends State<AddressField> {
                         },
                       );
                     },
-                    icon: const Icon(FontAwesomeIcons.lightQrcode),
+                    icon: const Icon(FontAwesomeIcons.qrcode),
                   ) : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, // added line
                     mainAxisSize: MainAxisSize.min, // added line

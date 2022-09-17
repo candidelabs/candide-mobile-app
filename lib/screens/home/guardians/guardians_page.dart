@@ -213,7 +213,7 @@ class _GuardianAddCard extends StatelessWidget { // todo move to components
                         ),
                         icon: Container(
                           margin: const EdgeInsets.only(bottom: 3.5),
-                          child: const Icon(FontAwesomeIcons.lightExternalLink, size: 10, color: Colors.lightBlue)
+                          child: const Icon(FontAwesomeIcons.arrowUpRightFromSquare, size: 10, color: Colors.lightBlue)
                         ),
                         label: Text("Learn more about ${type.toLowerCase()}", style: const TextStyle(fontSize: 11, color: Colors.lightBlue)),
                       ),

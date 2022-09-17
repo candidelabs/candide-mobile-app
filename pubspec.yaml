@@ -70,10 +70,6 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
 
-dependency_overrides:
-  font_awesome_flutter:
-    path: D:\Mobile_Apps_Flutter\Dependencies\font_awesome_flutter-master
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

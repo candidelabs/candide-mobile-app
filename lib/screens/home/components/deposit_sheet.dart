@@ -80,7 +80,7 @@ class _DepositSheetState extends State<DepositSheet> {
                             side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 0.7)
                         )),
                       ),
-                      child: const Icon(FontAwesomeIcons.lightShare, color: Colors.black, size: 20,),
+                      child: const Icon(FontAwesomeIcons.share, color: Colors.black, size: 20,),
                     ),
                   ),
                   const SizedBox(width: 5,),
@@ -97,7 +97,7 @@ class _DepositSheetState extends State<DepositSheet> {
                             side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 1.5)
                         )),
                       ),
-                      child: !_addressCopied ? const Icon(FontAwesomeIcons.lightCopy, color: Colors.black, size: 20,)
+                      child: !_addressCopied ? const Icon(FontAwesomeIcons.copy, color: Colors.black, size: 20,)
                       : Row(
                         children: const [
                           Icon(Icons.check, color: Colors.green,),

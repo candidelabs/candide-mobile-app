@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           items: [
             SalomonBottomBarItem(
-              icon: const Icon(FontAwesomeIcons.lightWallet, size: 22,),
+              icon: const Icon(FontAwesomeIcons.wallet, size: 22,),
               title: const Text("Assets"),
               selectedColor: Get.theme.colorScheme.primary,
             ),
@@ -70,12 +70,12 @@ class _HomeScreenState extends State<HomeScreen> {
               selectedColor: const Color(0xff9fd8df),
             ),
             SalomonBottomBarItem(
-              icon: const Icon(FontAwesomeIcons.lightShield, size: 22,),
+              icon: const Icon(FontAwesomeIcons.shield, size: 22,),
               title: const Text("Security"),
               selectedColor: const Color(0xffdf695e),
             ),
             SalomonBottomBarItem(
-              icon: const Icon(FontAwesomeIcons.lightCog, size: 22,),
+              icon: const Icon(FontAwesomeIcons.gear, size: 22,),
               title: const Text("Settings"),
               selectedColor: const Color(0xffebb577),
             ),

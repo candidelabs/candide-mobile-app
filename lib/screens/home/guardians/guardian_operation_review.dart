@@ -59,7 +59,7 @@ class _GuardianOperationReviewState extends State<GuardianOperationReview> {
                           color: Get.theme.cardColor,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(FontAwesomeIcons.lightUser, size: 30,),
+                        child: const Icon(FontAwesomeIcons.user, size: 30,),
                       ),
                       Positioned(
                         right: 0,

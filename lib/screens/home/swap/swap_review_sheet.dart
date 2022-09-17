@@ -90,7 +90,7 @@ class _SwapReviewSheetState extends State<SwapReviewSheet> {
                           ),
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            child: const Icon(FontAwesomeIcons.solidArrowsAltH)
+                            child: const Icon(FontAwesomeIcons.leftRight)
                           )
                         ),
                       ),

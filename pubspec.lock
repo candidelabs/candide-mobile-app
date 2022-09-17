@@ -313,10 +313,10 @@ packages:
   font_awesome_flutter:
     dependency: "direct main"
     description:
-      path: "D:\\Mobile_Apps_Flutter\\Dependencies\\font_awesome_flutter-master"
-      relative: false
-    source: path
-    version: "9.1.0"
+      name: font_awesome_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "10.2.1"
   get:
     dependency: "direct main"
     description:

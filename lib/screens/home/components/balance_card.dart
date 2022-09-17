@@ -64,7 +64,7 @@ class BalanceCard extends StatelessWidget {
                             )
                         ))
                     ),
-                    icon: const Icon(FontAwesomeIcons.lightArrowDown, size: 18,),
+                    icon: const Icon(FontAwesomeIcons.arrowDown, size: 18,),
                     label: Text("Deposit", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),),
                   ),
                 ),
@@ -80,7 +80,7 @@ class BalanceCard extends StatelessWidget {
                           side: BorderSide(color: Get.theme.colorScheme.primary, width: 1.5)
                       )),
                     ),
-                    icon: Icon(FontAwesomeIcons.lightArrowUp, size: 18, color: Get.theme.colorScheme.primary),
+                    icon: Icon(FontAwesomeIcons.arrowUp, size: 18, color: Get.theme.colorScheme.primary),
                     label: Text("Send", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary, fontSize: 13),),
                   ),
                 ),
