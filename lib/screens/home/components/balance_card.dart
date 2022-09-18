@@ -2,8 +2,9 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:math' as math;
 import 'package:get/get.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class BalanceCard extends StatelessWidget {
   final Function(bool) onToggleVisibility;
@@ -36,7 +37,7 @@ class BalanceCard extends StatelessWidget {
                     onToggleVisibility(true);
                   },
                   iconSize: 18,
-                  icon: const Icon(FontAwesomeIcons.solidEye),
+                  icon: const Icon(PhosphorIcons.eye, size: 25,),
                 )
               ],
             ),
@@ -64,7 +65,7 @@ class BalanceCard extends StatelessWidget {
                             )
                         ))
                     ),
-                    icon: const Icon(FontAwesomeIcons.arrowDown, size: 18,),
+                    icon: const Icon(PhosphorIcons.arrowDownLight, size: 19,),
                     label: Text("Deposit", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),),
                   ),
                 ),
@@ -80,7 +81,7 @@ class BalanceCard extends StatelessWidget {
                           side: BorderSide(color: Get.theme.colorScheme.primary, width: 1.5)
                       )),
                     ),
-                    icon: Icon(FontAwesomeIcons.arrowUp, size: 18, color: Get.theme.colorScheme.primary),
+                    icon: Icon(PhosphorIcons.arrowUpLight, size: 19, color: Get.theme.colorScheme.primary),
                     label: Text("Send", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary, fontSize: 13),),
                   ),
                 ),
@@ -96,7 +97,10 @@ class BalanceCard extends StatelessWidget {
                           side: BorderSide(color: Get.theme.colorScheme.primary, width: 1.5)
                       )),
                     ),
-                    icon: Icon(FontAwesomeIcons.expandArrowsAlt, size: 15, color: Get.theme.colorScheme.primary),
+                    icon: Transform.rotate(
+                      angle: (math.pi / 4),
+                      child: Icon(PhosphorIcons.arrowsDownUp, size: 19, color: Get.theme.colorScheme.primary)
+                    ),
                     label: Text("Swap", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary, fontSize: 13),),
                   ),
                 ),

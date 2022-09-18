@@ -8,6 +8,7 @@ import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class GuardianOperationReview extends StatefulWidget {
   final GuardianOperation operation;
@@ -59,7 +60,7 @@ class _GuardianOperationReviewState extends State<GuardianOperationReview> {
                           color: Get.theme.cardColor,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(FontAwesomeIcons.user, size: 30,),
+                        child: const Icon(PhosphorIcons.userLight, size: 30,),
                       ),
                       Positioned(
                         right: 0,

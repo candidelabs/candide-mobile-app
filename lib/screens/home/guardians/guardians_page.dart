@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class GuardiansPage extends StatefulWidget {
   const GuardiansPage({Key? key}) : super(key: key);
@@ -77,7 +78,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 }else{
                   logo = Container(
                       margin: const EdgeInsets.only(right: 10, bottom: 5),
-                      child: const Icon(FontAwesomeIcons.key, size: 25,)
+                      child: const Icon(PhosphorIcons.keyLight, size: 25,)
                   );
                 }
                 return _GuardianCard(
@@ -213,7 +214,7 @@ class _GuardianAddCard extends StatelessWidget { // todo move to components
                         ),
                         icon: Container(
                           margin: const EdgeInsets.only(bottom: 3.5),
-                          child: const Icon(FontAwesomeIcons.arrowUpRightFromSquare, size: 10, color: Colors.lightBlue)
+                          child: const Icon(PhosphorIcons.arrowSquareOutLight, size: 10, color: Colors.lightBlue)
                         ),
                         label: Text("Learn more about ${type.toLowerCase()}", style: const TextStyle(fontSize: 11, color: Colors.lightBlue)),
                       ),
@@ -282,7 +283,7 @@ class _GuardianCard extends StatelessWidget { // todo move to components
                 ),
                 child: Column(
                   children: const [
-                    Icon(FontAwesomeIcons.trash),
+                    Icon(PhosphorIcons.trashLight),
                     SizedBox(height: 5,),
                     Text("Remove"),
                   ],
