@@ -98,7 +98,7 @@ class _CredentialsEntryState extends State<CredentialsEntry> {
               title: const Text("Use biometrics for authentication", textAlign: TextAlign.center, style: TextStyle(fontSize: 14),),
               onChanged: (val) => setState(() => biometricsEnabled = val),
             ),
-          ) : const SizedBox.shrink(),
+          ) : const SizedBox(height: 10,),
           ElevatedButton(
             onPressed: widget.disable ? null : onConfirmPress,
             style: ButtonStyle(
