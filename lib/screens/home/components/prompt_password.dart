@@ -44,7 +44,7 @@ class _PromptPasswordDialogState extends State<PromptPasswordDialog> {
         ElevatedButton(
           onPressed: (){
             if (!(_formKey.currentState?.validate() ?? false)) return;
-            Get.back();
+            Navigator.pop(context);
             widget.onConfirm(password);
           },
           child: Text("Confirm", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),

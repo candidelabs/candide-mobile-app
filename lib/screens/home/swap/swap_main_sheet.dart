@@ -196,7 +196,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),
                         children: [
                           TextSpan(
-                            text: "${double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))} ETH",
+                            text: "${double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))} $baseCurrency",
                             style: const TextStyle(color: Colors.white),
                           )
                         ]
