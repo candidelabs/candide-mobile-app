@@ -4,6 +4,7 @@ import 'package:candide_mobile_app/screens/home/overview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -60,22 +61,22 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           items: [
             SalomonBottomBarItem(
-              icon: const Icon(FontAwesomeIcons.wallet, size: 22,),
+              icon: const Icon(PhosphorIcons.walletLight, size: 25,),
               title: const Text("Assets"),
               selectedColor: Get.theme.colorScheme.primary,
             ),
             SalomonBottomBarItem(
-              icon: const Icon(Icons.grid_view_outlined, size: 22,),
+              icon: const Icon(PhosphorIcons.squaresFourLight, size: 25,),
               title: const Text("DApps"),
               selectedColor: const Color(0xff9fd8df),
             ),
             SalomonBottomBarItem(
-              icon: const Icon(FontAwesomeIcons.shield, size: 22,),
+              icon: const Icon(PhosphorIcons.shieldLight, size: 25,),
               title: const Text("Security"),
               selectedColor: const Color(0xffdf695e),
             ),
             SalomonBottomBarItem(
-              icon: const Icon(FontAwesomeIcons.gear, size: 22,),
+              icon: const Icon(PhosphorIcons.gearLight, size: 25,),
               title: const Text("Settings"),
               selectedColor: const Color(0xffebb577),
             ),

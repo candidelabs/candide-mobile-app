@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -80,7 +81,7 @@ class _DepositSheetState extends State<DepositSheet> {
                             side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 0.7)
                         )),
                       ),
-                      child: const Icon(FontAwesomeIcons.share, color: Colors.black, size: 20,),
+                      child: const Icon(PhosphorIcons.shareLight, color: Colors.black, size: 20,),
                     ),
                   ),
                   const SizedBox(width: 5,),
@@ -97,7 +98,7 @@ class _DepositSheetState extends State<DepositSheet> {
                             side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 1.5)
                         )),
                       ),
-                      child: !_addressCopied ? const Icon(FontAwesomeIcons.copy, color: Colors.black, size: 20,)
+                      child: !_addressCopied ? const Icon(PhosphorIcons.copyLight, color: Colors.black, size: 20,)
                       : Row(
                         children: const [
                           Icon(Icons.check, color: Colors.green,),

@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class AddressField extends StatefulWidget {
   final String hint;
@@ -103,7 +104,7 @@ class _AddressFieldState extends State<AddressField> {
                         },
                       );
                     },
-                    icon: const Icon(FontAwesomeIcons.qrcode),
+                    icon: const Icon(PhosphorIcons.scanBold),
                   ) : Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween, // added line
                     mainAxisSize: MainAxisSize.min, // added line

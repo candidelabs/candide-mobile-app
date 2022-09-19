@@ -53,6 +53,7 @@ dependencies:
   pull_to_refresh: ^2.0.0
   blockies: ^0.1.2
   # Typography
+  phosphor_flutter: ^1.4.0
   font_awesome_flutter: ^10.1.0
   flutter_svg: ^1.1.1+1
   # Misc
