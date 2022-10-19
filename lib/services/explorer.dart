@@ -4,27 +4,42 @@ import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/models/gas.dart';
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:dio/dio.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:wallet_dart/contracts/wallet.dart';
 
 class Explorer {
 
-  static fetchAddressOverview(
-    {required String network,
+  static fetchAddressOverview({
+      required String network,
       required String quoteCurrency,
-      required String timePeriod,
       required String address,
       required List<String> currencyList}) async {
     try{
       var response = await Dio().post("${Env.explorerUri}/v1/address/$address", data: jsonEncode({
         "network": network,
         "quoteCurrency": quoteCurrency,
-        "timePeriod": timePeriod,
         "currencies": currencyList,
       }));
       await AddressData.updateExplorerJson(response.data);
+      //
+      bool proxyDeployed = true;
+      bool managerDeployed = true;
+      bool socialDeployed = true;
+      await Future.wait([
+        Constants.client.getCode(AddressData.wallet.walletAddress).then((value) => proxyDeployed = value.isNotEmpty),
+        Constants.client.getCode(AddressData.wallet.moduleManager).then((value) => managerDeployed = value.isNotEmpty),
+        Constants.client.getCode(AddressData.wallet.socialRecovery).then((value) => socialDeployed = value.isNotEmpty),
+      ]);
+      AddressData.walletStatus = WalletStatus(
+        proxyDeployed: proxyDeployed,
+        managerDeployed: managerDeployed,
+        socialModuleDeployed: socialDeployed,
+        nonce: proxyDeployed ? ((await CWallet.customInterface(AddressData.wallet.walletAddress).nonce()).toInt()) : 0,
+      );
     } on DioError catch(e){
       print("Error occured ${e.type.toString()}");
+      print(e.response?.statusMessage);
     }
   }
 

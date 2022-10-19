@@ -2,20 +2,25 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/models/batch.dart';
+import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
+import 'package:candide_mobile_app/screens/home/components/fee_currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class SendReviewSheet extends StatefulWidget {
   final String from;
   final String to;
   final BigInt value;
   final String currency;
-  final Map fee;
+  final Batch batch;
   final VoidCallback onPressBack;
   final VoidCallback onConfirm;
-  const SendReviewSheet({Key? key, required this.onPressBack, required this.from, required this.to, required this.value, required this.currency, required this.fee, required this.onConfirm}) : super(key: key);
+  const SendReviewSheet({Key? key, required this.onPressBack, required this.from, required this.to, required this.value, required this.currency, required this.batch, required this.onConfirm}) : super(key: key);
 
   @override
   State<SendReviewSheet> createState() => _SendReviewSheetState();
@@ -28,20 +33,51 @@ class _SendReviewSheetState extends State<SendReviewSheet> {
     "fee": "Insufficient balance to cover network fee",
   };
   //
-  @override
-  void initState() {
-    if (widget.currency == widget.fee["currency"]){
-      if (widget.value + widget.fee["value"] > AddressData.getCurrencyBalance(widget.currency)){
+  FeeCurrency? selectDefaultFeeCurrency(List<FeeCurrency> feeCurrencies){
+    FeeCurrency? result;
+    BigInt maxQuoteBalance = BigInt.from(-1);
+    for (FeeCurrency feeCurrency in feeCurrencies){
+      CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == feeCurrency.currency.symbol);
+      if (currencyBalance == null) continue;
+      if (feeCurrency.fee > currencyBalance.balance) continue;
+      if (feeCurrency.currency.symbol == widget.currency){
+        if (feeCurrency.fee + widget.value > currencyBalance.balance) continue;
+      }
+      if (currencyBalance.currentBalanceInQuote > maxQuoteBalance){
+        result = feeCurrency;
+        maxQuoteBalance = currencyBalance.currentBalanceInQuote;
+      }
+    }
+    return result;
+  }
+
+  void validateFeeBalance(){
+    errorMessage = "";
+    BigInt fee = widget.batch.getFee();
+    if (widget.currency == widget.batch.feeCurrency!.currency.symbol){
+      if (widget.value + fee > AddressData.getCurrencyBalance(widget.currency)){
         errorMessage = _errors["fee"]!;
       }
     }else{
       if (widget.value > AddressData.getCurrencyBalance(widget.currency)){
         errorMessage = _errors["balance"]!;
       }else{
-        if (AddressData.getCurrencyBalance(widget.fee["currency"]) < widget.fee["value"]){
+        if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.currency.symbol) < fee){
           errorMessage = _errors["fee"]!;
         }
       }
+    }
+    setState(() {});
+  }
+  //
+  @override
+  void initState() {
+    FeeCurrency? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
+    if (feeCurrency != null){
+      widget.batch.feeCurrency = feeCurrency;
+      validateFeeBalance();
+    }else{
+      errorMessage = _errors["fee"]!;
     }
     super.initState();
   }
@@ -124,18 +160,21 @@ class _SendReviewSheetState extends State<SendReviewSheet> {
                           value: widget.to,
                         ),
                         SummaryTableEntry(
-                          title: "Estimated fee",
-                          value: CurrencyUtils.formatCurrency(widget.fee["value"], widget.fee["currency"]),
-                          //trailing: const Icon(Icons.keyboard_arrow_right_rounded, color: Colors.grey,),
-                          //onPress: (){},
-                        ),
-                        SummaryTableEntry(
                           title: "Network",
                           titleStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color),
                           valueStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color),
                           value: SettingsData.network,
                         ),
                       ],
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: Get.width * 0.03),
+                    child: TokenFeeSelector(
+                      batch: widget.batch,
+                      onFeeCurrencyChange: (FeeCurrency feeCurrency){
+                        validateFeeBalance();
+                      },
                     ),
                   ),
                   const Spacer(),
@@ -179,3 +218,79 @@ class _SendReviewSheetState extends State<SendReviewSheet> {
     );
   }
 }
+
+class TokenFeeSelector extends StatefulWidget {
+  final Batch batch;
+  final Function(FeeCurrency)? onFeeCurrencyChange;
+  const TokenFeeSelector({Key? key, required this.batch, this.onFeeCurrencyChange}) : super(key: key);
+
+  @override
+  State<TokenFeeSelector> createState() => _TokenFeeSelectorState();
+}
+
+class _TokenFeeSelectorState extends State<TokenFeeSelector> {
+
+  showFeeCurrencySelectionModal(){
+    showBarModalBottomSheet(
+      context: context,
+      builder: (context) => SingleChildScrollView(
+        controller: ModalScrollController.of(context),
+        child: FeeCurrenciesSelectionSheet(
+          currencies: widget.batch.feeCurrencies,
+          initialSelection: widget.batch.feeCurrency?.currency.symbol,
+          onSelected: (feeCurrency){
+            setState(() {
+              widget.batch.feeCurrency = feeCurrency;
+            });
+            widget.onFeeCurrencyChange?.call(feeCurrency);
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        onTap: (){
+          showFeeCurrencySelectionModal();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+          child: Row(
+            children: [
+              const SizedBox(width: 5,),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Transaction fee", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),),
+                  SizedBox(
+                    width: Get.width*0.5,
+                    child: Text("pay transaction fees with one of the supported tokens", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, color: Colors.grey, fontSize: 11),)
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Column(
+                children: [
+                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(widget.batch.feeCurrency!.fee, widget.batch.feeCurrency!.currency.symbol) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
+                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(CurrencyUtils.convertToQuote(widget.batch.feeCurrency!.currency.symbol, SettingsData.quoteCurrency, widget.batch.feeCurrency!.fee), SettingsData.quoteCurrency) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+              const SizedBox(width: 5,),
+              const Icon(PhosphorIcons.caretRightBold, size: 15, color: Colors.white,),
+              const SizedBox(width: 5,),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

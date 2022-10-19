@@ -22,19 +22,23 @@ class AddressData {
   static loadExplorerJson(Map? json) async {
     json ??= Hive.box("state").get("address_data");
     if (json == null){
-      walletStatus = WalletStatus(isDeployed: false, nonce: 0);
+      walletStatus = WalletStatus(
+        proxyDeployed: false,
+        managerDeployed: false,
+        socialModuleDeployed: false,
+        nonce: 0,
+      );
       walletBalance = WalletBalance(
         quoteCurrency: "UNI",
         currentBalance: BigInt.zero,
-        previousBalance: BigInt.zero
       );
       currencies = [];
       contacts = [];
       return;
     }
-    if (json["walletStatus"] != null){
+    /*if (json["walletStatus"] != null){
       walletStatus = WalletStatus.fromJson(json["walletStatus"]);
-    }
+    }*/
     //
     if (json["walletBalance"] != null){
       walletBalance = WalletBalance.fromJson(json["walletBalance"]);
@@ -63,6 +67,7 @@ class AddressData {
 
   static loadGuardians() async {
     if (wallet == null) return;
+    if (!walletStatus.socialModuleDeployed) return;
     var json = Hive.box("state").get("guardians_metadata");
     Map<String, List<dynamic>> metadata = {};
     //
@@ -73,16 +78,17 @@ class AddressData {
     }
     //
     guardians.clear();
-    var walletInterface = CWallet.customInterface(wallet.walletAddress);
-    int guardiansCount = (await walletInterface.getGuardiansCount()).toInt();
+    var walletInterface = CWallet.recoveryInterface(wallet.socialRecovery);
+    int guardiansCount = (await walletInterface.friendsCount()).toInt();
     if (guardiansCount > 0){
       var _indexesList = List<int>.generate(guardiansCount, (i) => i);
       await Future.wait(
         _indexesList.map(
-          (e) => walletInterface.getGuardian(BigInt.from(e))
+          (e) => walletInterface.friends(BigInt.from(e))
           .then((value){
             var guardianMetadata = metadata.containsKey(value.hex.toLowerCase()) ? metadata[value.hex.toLowerCase()] : null;
             guardians.add(WalletGuardian(
+              index: e,
               address: value.hex,
               type: guardianMetadata?[0] ?? "unknown",
               creationDate: guardianMetadata?[2],
@@ -139,29 +145,35 @@ class AddressData {
 }
 
 class WalletStatus {
-  bool isDeployed;
+  bool proxyDeployed;
+  bool managerDeployed;
+  bool socialModuleDeployed;
   int nonce;
 
-  WalletStatus({required this.isDeployed, required this.nonce});
+  WalletStatus({
+    required this.proxyDeployed,
+    required this.managerDeployed,
+    required this.socialModuleDeployed,
+    required this.nonce
+  });
 
   WalletStatus.fromJson(Map json)
-      : isDeployed = json['isDeployed'],
+      : proxyDeployed = json['proxyDeployed'],
+        managerDeployed = json['managerDeployed'],
+        socialModuleDeployed = json['socialModuleDeployed'],
         nonce = json['nonce'];
 }
 
 class WalletBalance {
   String quoteCurrency;
   BigInt currentBalance;
-  BigInt previousBalance;
 
   WalletBalance({required this.quoteCurrency,
-    required this.currentBalance,
-    required this.previousBalance});
+    required this.currentBalance});
 
   WalletBalance.fromJson(Map json)
       : quoteCurrency = json['quoteCurrency'],
-        currentBalance = BigInt.parse(json['currentBalance']),
-        previousBalance = BigInt.parse(json['previousBalance']);
+        currentBalance = BigInt.parse(json['currentBalance']);
 }
 
 
@@ -206,23 +218,27 @@ class ContactAddress{
 }
 
 class WalletGuardian {
+  int index;
   String address;
   String type;
   String? email;
   DateTime? creationDate;
 
-  WalletGuardian({required this.address,
+  WalletGuardian({required this.index,
+    required this.address,
     required this.type,
     this.email,
     this.creationDate});
 
   WalletGuardian.fromJson(Map json)
-      : address = json['address'],
+      : index = json['index'],
+        address = json['address'],
         type = json['type'],
         email = json['email'],
         creationDate = json['creationDate'] != null ? DateFormat("dd/MM/yyy").parse(json['creationDate']) : null;
 
   Map<String, dynamic> toJson() => {
+    'index': index,
     'address': address,
     'type': type,
     'email': email,

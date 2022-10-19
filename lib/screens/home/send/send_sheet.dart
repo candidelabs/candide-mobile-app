@@ -1,10 +1,16 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
+import 'dart:typed_data';
+
 import 'package:animations/animations.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/bundler.dart';
-import 'package:candide_mobile_app/controller/hooks/send_hook.dart';
+import 'package:candide_mobile_app/models/batch.dart';
+import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/models/gnosis_transaction.dart';
+import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/controller/send_controller.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
@@ -17,6 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:wallet_dart/wallet/UserOperation.dart';
+import 'package:wallet_dart/wallet/wallet_helpers.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SendSheet extends StatefulWidget {
   const SendSheet({Key? key}) : super(key: key);
@@ -38,6 +46,8 @@ class _SendSheetState extends State<SendSheet> {
   List<UserOperation>? unsignedUserOperations = [];
   Map fee = {};
   double amount = 0;
+  //
+  Batch? sendBatch;
   //
   initPages(){
     pagesList = [
@@ -70,27 +80,37 @@ class _SendSheetState extends State<SendSheet> {
     amount = _amount;
     var cancelLoad = Utils.showLoading();
     //
+    sendBatch = Batch();
+    //
     BigInt value = CurrencyUtils.parseCurrency(amount.toString(), currency);
-    Map data = await SendHook.buildOps(
-      instance: AddressData.wallet,
-      network: SettingsData.network,
-      isDeployed: AddressData.walletStatus.isDeployed,
-      nonce: AddressData.walletStatus.nonce,
-      defaultCurrency: SettingsData.quoteCurrency,
+    GnosisTransaction transaction = SendController.buildTransaction(
       sendCurrency: _currency,
-      toAddress: toAddress,
+      to: toAddress,
       value: value,
     );
-    userOperations = data["userOperations"];
-    fee = data["fee"];
-    cancelLoad();
     //
+    sendBatch!.transactions.add(transaction);
+    //
+    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    if (feeCurrencies == null){
+      // todo handle network errors
+      return;
+    }else{
+      //sendBatch!.feeCurrencies = feeCurrencies;
+      sendBatch!.feeCurrencies = [
+        FeeCurrency(currency: CurrencyMetadata.metadata["ETH"]!, fee: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 500000).getInWei),
+        FeeCurrency(currency: CurrencyMetadata.metadata["UNI"]!, fee: BigInt.from(6000000000000000)),
+        FeeCurrency(currency: CurrencyMetadata.metadata["CTT"]!, fee: BigInt.from(5000000000000000)),
+      ];
+    }
+    //
+    cancelLoad();
     pagesList[2] = SendReviewSheet(
       from: AddressData.wallet.walletAddress.hex,
       to: toAddress,
       currency: currency,
       value: value,
-      fee: fee,
+      batch: sendBatch!,
       onPressBack: (){
         gotoPage(1);
       },
@@ -123,14 +143,6 @@ class _SendSheetState extends State<SendSheet> {
   }
 
   onPressConfirm() async {
-    unsignedUserOperations = await Bundler.requestPaymasterSignature(
-      userOperations,
-      SettingsData.network,
-    );
-    //
-    //unsignedUserOperations = List.from(userOperations); // todo delete
-    //
-    if (unsignedUserOperations == null) return;
     var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
     if (biometricsEnabled){
       String? password = await getPasswordThroughBiometrics();
@@ -154,23 +166,31 @@ class _SendSheetState extends State<SendSheet> {
   }
 
   confirmTransactions(String masterPassword) async {
-    if (!Bundler.verifyUserOperationsWithPaymaster(userOperations, unsignedUserOperations!)) {
-      Get.back();
-      Utils.showError(title: "Error", message: "Transaction corrupted, contact us for help");
-      return;
-    }
-    var signedUserOperations = await Bundler.signUserOperations(
+    Credentials? signer = WalletHelpers.decryptSigner(
       AddressData.wallet,
       masterPassword,
-      SettingsData.network,
-      unsignedUserOperations!,
+      AddressData.wallet.salt,
     );
-
-    if (signedUserOperations == null){
+    if (signer == null){
       Utils.showError(title: "Error", message: "Incorrect password");
       return;
     }
-
+    //
+    Uint8List privateKey = (signer as EthPrivateKey).privateKey;
+    sendBatch!.configureNonces(AddressData.walletStatus.nonce);
+    sendBatch!.signTransactions(privateKey, AddressData.wallet);
+    unsignedUserOperations = await sendBatch!.toUserOperations(
+      AddressData.wallet,
+      proxyDeployed: AddressData.walletStatus.proxyDeployed,
+      managerDeployed: AddressData.walletStatus.managerDeployed,
+    );
+    //
+    var signedUserOperations = await Bundler.signUserOperations(
+      signer,
+      SettingsData.network,
+      unsignedUserOperations!,
+    );
+    //
     BotToast.showText(
       text: "Transaction sent, this might take a minute...",
       textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),

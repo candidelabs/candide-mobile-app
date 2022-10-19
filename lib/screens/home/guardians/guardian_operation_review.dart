@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
@@ -13,9 +14,9 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 class GuardianOperationReview extends StatefulWidget {
   final GuardianOperation operation;
   final String guardian;
-  final Map fee;
+  final Batch batch;
   final VoidCallback onConfirm;
-  const GuardianOperationReview({Key? key, required this.operation, required this.fee, required this.guardian, required this.onConfirm}) : super(key: key);
+  const GuardianOperationReview({Key? key, required this.operation, required this.batch, required this.guardian, required this.onConfirm}) : super(key: key);
 
   @override
   State<GuardianOperationReview> createState() => _GuardianOperationReviewState();
@@ -29,7 +30,9 @@ class _GuardianOperationReviewState extends State<GuardianOperationReview> {
 
   @override
   void initState() {
-    if (widget.operation != GuardianOperation.recover && AddressData.getCurrencyBalance(widget.fee["currency"]) < widget.fee["value"]){
+    String feeCurrency = widget.batch.getFeeCurrency();
+    BigInt fee = widget.batch.getFee();
+    if (widget.operation != GuardianOperation.recover && AddressData.getCurrencyBalance(feeCurrency) < fee){
       errorMessage = _errors["fee"]!;
     }
     super.initState();
@@ -95,9 +98,7 @@ class _GuardianOperationReviewState extends State<GuardianOperationReview> {
                         ),
                         SummaryTableEntry(
                           title: "Estimated fee",
-                          value: CurrencyUtils.formatCurrency(widget.fee["value"], widget.fee["currency"]),
-                          //trailing: const Icon(Icons.keyboard_arrow_right_rounded, color: Colors.grey,),
-                          //onPress: (){},
+                          value: CurrencyUtils.formatCurrency(widget.batch.getFee(), widget.batch.getFeeCurrency()),
                         ),
                         SummaryTableEntry(
                           title: "Network",

@@ -1,10 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/bundler.dart';
-import 'package:candide_mobile_app/controller/explorer.dart';
+import 'package:candide_mobile_app/models/gnosis_transaction.dart';
+import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
+import 'package:wallet_dart/constants/constants.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:wallet_dart/wallet/UserOperation.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
@@ -13,7 +17,90 @@ import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
-class GuardianHook {
+class GuardianController {
+
+  static List<GnosisTransaction> buildDeploymentTransactions({
+    required EthereumAddress walletAddress,
+    required EthereumAddress socialModuleAddress,
+    required Uint8List initCode,
+    required Uint8List salt,
+  }) {
+    GnosisTransaction deploy = GnosisTransaction(
+      id: "social-deploy",
+      to: Constants.singletonFactoryAddress,
+      value: BigInt.zero,
+      data: hexToBytes(EncodeFunctionData.create2Deploy(initCode, salt)),
+      type: GnosisTransactionType.execTransactionFromModule,
+    );
+    GnosisTransaction enable = GnosisTransaction(
+      id: "social-enable",
+      to: walletAddress,
+      value: BigInt.zero,
+      data: hexToBytes(EncodeFunctionData.enableModule(socialModuleAddress)),
+      type: GnosisTransactionType.execTransactionFromModule,
+    );
+    //return [deploy];
+    return [deploy, enable];
+  }
+
+  static List<GnosisTransaction> buildGrantTransactions({
+    required WalletInstance instance,
+    required bool socialModuleDeployed,
+    required bool setup,
+    //
+    required String guardianAddress,
+    required int threshold,
+  }){
+    //
+    List<GnosisTransaction> transactions = [];
+    //
+    List<GnosisTransaction> deploymentTransactions = [];
+    if (!socialModuleDeployed){
+      deploymentTransactions = buildDeploymentTransactions(
+        walletAddress: instance.walletAddress,
+        socialModuleAddress: instance.socialRecovery,
+        initCode: WalletHelpers.getSocialRecoveryInitCode(),
+        salt: keccak256(Uint8List.fromList("${instance.salt}_socialRecovery".codeUnits)),
+      );
+    }
+    //
+    GnosisTransaction grantGuardianTransaction = GnosisTransaction(
+      id: "social-grant",
+      to: instance.socialRecovery,
+      value: BigInt.zero,
+      data: hexToBytes(
+        setup ? EncodeFunctionData.setupSocialRecoveryModule(EthereumAddress.fromHex(guardianAddress), BigInt.from(threshold))
+          : EncodeFunctionData.grantGuardian(EthereumAddress.fromHex(guardianAddress), BigInt.from(threshold))
+      ),
+      type: GnosisTransactionType.execTransactionFromModule,
+    );
+    //
+    transactions.addAll(deploymentTransactions);
+    transactions.add(grantGuardianTransaction);
+    //
+    return transactions;
+  }
+
+  static List<GnosisTransaction> buildRevokeTransactions({
+    required WalletInstance instance,
+    //
+    required int guardianIndex,
+    required int threshold,
+  }){
+    List<GnosisTransaction> transactions = [];
+    //
+    GnosisTransaction revokeGuardianTransaction = GnosisTransaction(
+      id: "social-revoke",
+      to: instance.socialRecovery,
+      value: BigInt.zero,
+      data: hexToBytes(EncodeFunctionData.revokeGuardian(BigInt.from(guardianIndex), BigInt.from(threshold))),
+      type: GnosisTransactionType.execTransactionFromModule,
+    );
+    //
+    transactions.add(revokeGuardianTransaction);
+    //
+    return transactions;
+  }
 
   static Future<Map> buildRecoverOps({
     required EthereumAddress walletAddress,
@@ -36,7 +123,7 @@ class GuardianHook {
     BigInt allowance = BigInt.parse(paymasterStatus?["allowances"][defaultCurrency] ?? '0');
     bool shouldApprovePaymaster = allowance < feeValue;
     //
-    var approvePaymasterOp = shouldApprovePaymaster ? UserOperation.get(
+    /*var approvePaymasterOp = shouldApprovePaymaster ? UserOperation.get(
         sender: walletAddress,
         nonce: nonce,
         verificationGas: gasOverrides.verificationGas,
@@ -48,7 +135,7 @@ class GuardianHook {
           EthereumAddress.fromHex(paymasterStatus?["address"]),
           feeValue
         )
-    ) : null;
+    ) : null;*/
     //
     var grantOp = UserOperation.get(
       sender: walletAddress,
@@ -61,67 +148,9 @@ class GuardianHook {
     );
     //
     List<UserOperation> userOperations = [];
-    if (approvePaymasterOp != null){
+    /*if (approvePaymasterOp != null){
       userOperations.add(approvePaymasterOp);
-    }
-    userOperations.add(grantOp);
-    return {
-      "userOperations": userOperations,
-      "fee": {"currency": defaultCurrency, "value": feeValue}
-    };
-  }
-
-  static Future<Map> buildGrantOps({
-    required WalletInstance instance,
-    required String network,
-    required bool isDeployed,
-    required int nonce,
-    required String defaultCurrency,
-    //
-    required String guardianAddress,
-  }) async {
-    GasEstimate? gasEstimate;
-    Map? paymasterStatus;
-    await Future.wait([
-      Bundler.fetchPaymasterStatus(instance.walletAddress.hex, network).then((value) => paymasterStatus = value),
-      Explorer.fetchGasEstimate(network).then((value) => gasEstimate = value),
-    ]);
-    //
-    GasOverrides gasOverrides = GasOverrides.perform(gasEstimate!);
-    //
-    BigInt feeValue = BigInt.parse(paymasterStatus?["fees"][defaultCurrency] ?? '0');
-    BigInt allowance = BigInt.parse(paymasterStatus?["allowances"][defaultCurrency] ?? '0');
-    bool shouldApprovePaymaster = allowance < feeValue;
-    //
-    var approvePaymasterOp = shouldApprovePaymaster ? UserOperation.get(
-        sender: instance.walletAddress,
-        nonce: nonce,
-        verificationGas: gasOverrides.verificationGas,
-        preVerificationGas: gasOverrides.preVerificationGas,
-        maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas,
-        maxFeePerGas: gasOverrides.maxFeePerGas,
-        initCode: isDeployed ? UserOperation.nullCode : bytesToHex(WalletHelpers.getInitCode(EthereumAddress.fromHex(instance.initOwner), []), include0x: true),
-        callData: EncodeFunctionData.erc20Approve(
-            EthereumAddress.fromHex(CurrencyMetadata.metadata[defaultCurrency]!.address),
-            EthereumAddress.fromHex(paymasterStatus?["address"]),
-            feeValue
-        )
-    ) : null;
-    //
-    var grantOp = UserOperation.get(
-      sender: instance.walletAddress,
-      nonce: nonce + (shouldApprovePaymaster ? 1 : 0),
-      verificationGas: gasOverrides.verificationGas,
-      preVerificationGas: gasOverrides.preVerificationGas,
-      maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas,
-      maxFeePerGas: gasOverrides.maxFeePerGas,
-      callData: EncodeFunctionData.grantGuardian(EthereumAddress.fromHex(guardianAddress))
-    );
-    //
-    List<UserOperation> userOperations = [];
-    if (approvePaymasterOp != null){
-      userOperations.add(approvePaymasterOp);
-    }
+    }*/
     userOperations.add(grantOp);
     return {
       "userOperations": userOperations,
@@ -150,8 +179,9 @@ class GuardianHook {
     BigInt feeValue = BigInt.parse(paymasterStatus?["fees"][defaultCurrency] ?? '0');
     BigInt allowance = BigInt.parse(paymasterStatus?["allowances"][defaultCurrency] ?? '0');
     bool shouldApprovePaymaster = allowance < feeValue;
+    shouldApprovePaymaster = false; // todo check integration
     //
-    var approvePaymasterOp = shouldApprovePaymaster ? UserOperation.get(
+    /*var approvePaymasterOp = shouldApprovePaymaster ? UserOperation.get(
         sender: instance.walletAddress,
         nonce: nonce,
         verificationGas: gasOverrides.verificationGas,
@@ -164,7 +194,7 @@ class GuardianHook {
             EthereumAddress.fromHex(paymasterStatus?["address"]),
             feeValue
         )
-    ) : null;
+    ) : null;*/
     //
     var revokeOp = UserOperation.get(
         sender: instance.walletAddress,
@@ -173,78 +203,17 @@ class GuardianHook {
         preVerificationGas: gasOverrides.preVerificationGas,
         maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas,
         maxFeePerGas: gasOverrides.maxFeePerGas,
-        callData: EncodeFunctionData.revokeGuardian(EthereumAddress.fromHex(guardianAddress))
+        //callData: EncodeFunctionData.revokeGuardian(EthereumAddress.fromHex(guardianAddress))
     );
     //
     List<UserOperation> userOperations = [];
-    if (approvePaymasterOp != null){
+    /*if (approvePaymasterOp != null){
       userOperations.add(approvePaymasterOp);
-    }
+    }*/ // todo check integration
     userOperations.add(revokeOp);
     return {
       "userOperations": userOperations,
       "fee": {"currency": defaultCurrency, "value": feeValue}
     };
-  }
-
-
-  static tryAddingGuardian(String address) async {
-    print("H0");
-    Map data = await buildGrantOps(
-      instance: AddressData.wallet,
-      network: SettingsData.network,
-      isDeployed: AddressData.walletStatus.isDeployed,
-      nonce: AddressData.walletStatus.nonce,
-      defaultCurrency: SettingsData.quoteCurrency,
-      guardianAddress: address,
-    );
-    List<UserOperation> userOperations = data["userOperations"];
-    print("H1");
-    List<UserOperation>? unsignedUserOperations = await Bundler.requestPaymasterSignature(
-      userOperations,
-      SettingsData.network,
-    );
-    print("H2");
-    var signedUserOperations = await Bundler.signUserOperations(
-      AddressData.wallet,
-      "0025Gg!",
-      SettingsData.network,
-      unsignedUserOperations!,
-    );
-    print("H3");
-    RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations!, SettingsData.network);
-    print("H4");
-    print(response?.status);
-  }
-
-  static tryRevokingGuardian(String address) async {
-    print("H0");
-    Map data = await buildRevokeOps(
-      instance: AddressData.wallet,
-      network: SettingsData.network,
-      isDeployed: AddressData.walletStatus.isDeployed,
-      nonce: AddressData.walletStatus.nonce,
-      defaultCurrency: SettingsData.quoteCurrency,
-      guardianAddress: address,
-    );
-    List<UserOperation> userOperations = data["userOperations"];
-    print("H1");
-    List<UserOperation>? unsignedUserOperations = await Bundler.requestPaymasterSignature(
-      userOperations,
-      SettingsData.network,
-    );
-    print("H2");
-    var signedUserOperations = await Bundler.signUserOperations(
-      AddressData.wallet,
-      "0025Gg!",
-      SettingsData.network,
-      unsignedUserOperations!,
-    );
-    print("H3");
-    RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations!, SettingsData.network);
-    if (response == null){
-    }
-    print("H4");
-    print(response?.status);
   }
 }

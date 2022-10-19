@@ -1,12 +1,16 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
+import 'dart:typed_data';
+
 import 'package:animations/animations.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/bundler.dart';
-import 'package:candide_mobile_app/controller/hooks/send_hook.dart';
-import 'package:candide_mobile_app/controller/hooks/swap_hook.dart';
+import 'package:candide_mobile_app/models/batch.dart';
+import 'package:candide_mobile_app/models/gnosis_transaction.dart';
+import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/controller/send_controller.dart';
+import 'package:candide_mobile_app/controller/swap_controller.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
@@ -19,6 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:wallet_dart/wallet/UserOperation.dart';
+import 'package:wallet_dart/wallet/wallet_helpers.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SwapSheet extends StatefulWidget {
   const SwapSheet({Key? key}) : super(key: key);
@@ -42,6 +48,8 @@ class _SwapSheetState extends State<SwapSheet> {
   Map paymasterStatus = {};
   List<UserOperation> userOperations = [];
   List<UserOperation>? unsignedUserOperations = [];
+  //
+  Batch? swapBatch;
   //
   initPages(){
     pagesList = [
@@ -98,31 +106,16 @@ class _SwapSheetState extends State<SwapSheet> {
   onPressSwap() async {
     var cancelLoad = Utils.showLoading();
     BigInt baseValue = CurrencyUtils.parseCurrency(baseAmount.toString(), baseCurrency);
-    userOperations = await SwapHook.buildOps(
-      instance: AddressData.wallet,
-      network: SettingsData.network,
-      isDeployed: AddressData.walletStatus.isDeployed,
-      nonce: AddressData.walletStatus.nonce,
-      defaultCurrency: SettingsData.quoteCurrency,
+    //
+    swapBatch = Batch();
+    //
+    List<GnosisTransaction> transactions = SwapController.buildTransactions(
       baseCurrency: baseCurrency,
       baseCurrencyValue: baseValue,
-      gasEstimate: gasEstimate!,
-      paymasterStatus: paymasterStatus,
-      optimalQuote: quote!,
+      optimalQuote: quote!
     );
-    unsignedUserOperations = await Bundler.requestPaymasterSignature(
-      userOperations,
-      SettingsData.network,
-    );
-    if (unsignedUserOperations == null){
-      cancelLoad();
-      return;
-    }
-    if (!Bundler.verifyUserOperationsWithPaymaster(userOperations, unsignedUserOperations!)) {
-      cancelLoad();
-      Utils.showError(title: "Error", message: "Transaction corrupted, contact us for help");
-      return;
-    }
+    swapBatch!.transactions.addAll(transactions);
+    //
     cancelLoad();
 
     var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
@@ -148,17 +141,26 @@ class _SwapSheetState extends State<SwapSheet> {
   }
 
   confirmTransactions(String masterPassword) async {
-    var signedUserOperations = await Bundler.signUserOperations(
+    Credentials? signer = WalletHelpers.decryptSigner(
       AddressData.wallet,
       masterPassword,
-      SettingsData.network,
-      unsignedUserOperations!,
+      AddressData.wallet.salt,
     );
-
-    if (signedUserOperations == null){
+    if (signer == null){
       Utils.showError(title: "Error", message: "Incorrect password");
       return;
     }
+    //
+    Uint8List privateKey = (signer as EthPrivateKey).privateKey;
+    swapBatch!.configureNonces(AddressData.walletStatus.nonce);
+    swapBatch!.signTransactions(privateKey, AddressData.wallet);
+    unsignedUserOperations = await swapBatch!.toUserOperations(AddressData.wallet);
+    //
+    var signedUserOperations = await Bundler.signUserOperations(
+      signer,
+      SettingsData.network,
+      unsignedUserOperations!,
+    );
 
     BotToast.showText(
       text: "Transaction sent, this might take a minute...",
@@ -168,6 +170,9 @@ class _SwapSheetState extends State<SwapSheet> {
     );
 
     var cancelLoad = Utils.showLoading();
+    cancelLoad();
+    Get.back(result: true);
+    return;
     //
     RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
     if (response?.status == "PENDING"){

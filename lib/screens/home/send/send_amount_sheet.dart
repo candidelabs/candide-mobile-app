@@ -49,7 +49,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: CurrenciesSelectionSheet(
-          currencies: const ["ETH", "UNI"],
+          currencies: const ["ETH", "UNI", "WETH", "CTT"],
           initialSelection: selectedCurrency,
           onSelected: (currency){
             setState(() {

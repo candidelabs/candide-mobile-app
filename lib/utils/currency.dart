@@ -3,13 +3,33 @@
 import 'dart:math';
 
 import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 
 class CurrencyUtils {
   static const int DECIMAL_PLACES = 6;
   static final MULTIPLIER = pow(10, DECIMAL_PLACES);
 
+
+  static BigInt convertToQuote(String base, String quote, BigInt value){
+    if (quote != AddressData.walletBalance.quoteCurrency){
+      throw ArgumentError("Quote currency not supported"); // todo add simple routing
+    }
+    if (base == quote){
+      return value;
+    }
+    for (CurrencyBalance balance in AddressData.currencies){
+      if (balance.currency == base){
+        return (value * balance.currentBalanceInQuote) ~/ balance.balance;
+      }
+    }
+    return BigInt.zero;
+  }
+
   static String formatCurrency(BigInt value, String symbol, {bool includeSymbol=true}){
     String result = displayGenericToken(value, symbol);
+    if (symbol == "USDT" && includeSymbol){
+      return "\$"+result.split(" ")[0];
+    }
     if (!includeSymbol){
       return result.split(" ")[0];
     }
@@ -20,11 +40,7 @@ class CurrencyUtils {
     //return formatUnits(value, CurrencyMetadata.metadata[symbol]!.decimals);
     return commify(((double.parse(
         formatUnits(value, CurrencyMetadata.metadata[symbol]!.decimals)
-    ) * MULTIPLIER).floor() / MULTIPLIER).toStringAsFixed(DECIMAL_PLACES)) + " " + symbol;
-  }
-
-  static stringToValidFloat(String value){
-
+    ) * MULTIPLIER).floor() / MULTIPLIER).toStringAsFixed(DECIMAL_PLACES)) + " " + CurrencyMetadata.metadata[symbol]!.displaySymbol;
   }
 
   static BigInt parseCurrency(String value, String symbol){

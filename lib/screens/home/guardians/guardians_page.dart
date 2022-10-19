@@ -24,6 +24,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
   void fetchGuardians() async {
     setState(() => _loading = true);
     await AddressData.loadGuardians();
+    //AddressData.guardians = [];
     if (!mounted) return;
     setState(() => _loading = false);
   }
@@ -85,7 +86,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                   guardian: guardian,
                   logo: logo,
                   onPressDelete: () async {
-                    bool refresh = await GuardiansHelper.revokeGuardian(guardian.address);
+                    bool refresh = await GuardiansHelper.revokeGuardian(guardian.address, guardian.index);
                     if (refresh){
                       fetchGuardians();
                     }

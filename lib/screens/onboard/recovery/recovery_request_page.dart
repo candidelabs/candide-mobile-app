@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/security.dart';
+import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
@@ -38,7 +38,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   }
 
   Future<void> fetchMinimumSignatures() async {
-    minimumSignatures = (await CWallet.customInterface(EthereumAddress.fromHex(request.walletAddress)).getMinGuardiansSignatures()).toInt();
+    minimumSignatures = (await CWallet.recoveryInterface(EthereumAddress.fromHex(request.socialRecoveryAddress)).threshold()).toInt(); // todo fix for integration
     setState(() {});
   }
 
@@ -61,8 +61,8 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   }
 
   Future<bool> isOwner() async {
-    String currentOwner = (await CWallet.customInterface(EthereumAddress.fromHex(request.walletAddress)).getOwner(BigInt.zero)).hex.toLowerCase();
-    if (currentOwner == request.newOwner){
+    String currentOwner = (await CWallet.customInterface(EthereumAddress.fromHex(request.walletAddress)).getOwners())[0].hex.toLowerCase();
+    if (currentOwner == request.newOwner.toLowerCase()){
       return true;
     }
     return false;

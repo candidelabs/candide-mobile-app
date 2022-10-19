@@ -42,7 +42,7 @@ class _AddressFieldState extends State<AddressField> {
       //
       final _ensAddress = await Constants.ens.withName(address.toLowerCase()).getAddress();
       //
-      if (_ensAddress.hex == Constants.addressZero){
+      if (_ensAddress.hex == Constants.addressZeroHex){
         Utils.showError(title: "ENS Error", message: "ENS domain not found, please make sure that you've typed the ENS correctly");
         _ensResponse = null;
       }else{

@@ -4,7 +4,7 @@ import 'package:biometric_storage/biometric_storage.dart';
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/security.dart';
+import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
@@ -65,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> {
     }
     var wallet = Hive.box("wallet").get("main");
     //
-    //wallet = null; // todo remove
+    wallet = null; // todo remove
     /*if (wallet == null){ // todo remove
       wallet = '{"walletAddress":"0x011341fb589cd6566124e61c0b770a8a48f17397","initImplementation":"0x4f7459eff03cd8c19b5a442d7c9b675a05f66fbf","initOwner":"0xc26976587aed81a811c7d5e1084e8fd0da178ad7","initGuardians":[],"salt":"sDbtw1e/Wyk2TnzQcFo5Tg==","encryptedSigner":"b0+pMyCcW7fm9GCqtBUJwDH2NxuXgLZ2yHK9oULUQKuaV1yT0kVkxlOi29oFmAlnIc8okqbKNhuPa2UgSi9CNwxhDiWTT+ospds4FfY+7as="}';
       await (await BiometricStorage().getStorage("auth_data")).write("StrongPass1@");

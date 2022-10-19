@@ -20,10 +20,18 @@ class NetworkBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(width: 5,),
-          SizedBox(
+          /*SizedBox(
             height: 25,
             width: 25,
             child: network.logo,
+          ),*/
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.all(Radius.circular(50))
+            ),
           ),
           const SizedBox(width: 5,),
           Text(network.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),),

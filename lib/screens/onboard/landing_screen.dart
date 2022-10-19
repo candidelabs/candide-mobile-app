@@ -1,6 +1,6 @@
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/security.dart';
+import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/onboard/create_wallet_screen.dart';
 import 'package:candide_mobile_app/screens/onboard/recovery/recover_sheet.dart';

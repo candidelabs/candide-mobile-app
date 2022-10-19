@@ -55,14 +55,14 @@ class CurrencyBalanceCard extends StatelessWidget {
               const Spacer(),
               RichText(
                 text: TextSpan(
-                    text: CurrencyUtils.formatCurrency(currencyBalance.currentBalanceInQuote, currencyBalance.quoteCurrency, includeSymbol: false),
-                    style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
-                    children: [
-                      TextSpan(
-                        text: " ${currencyBalance.quoteCurrency}",
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
-                      )
-                    ]
+                  text: CurrencyUtils.formatCurrency(currencyBalance.currentBalanceInQuote, currencyBalance.quoteCurrency, includeSymbol: currencyBalance.quoteCurrency == "USDT"),
+                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
+                  children: [
+                    currencyBalance.quoteCurrency != "USDT" ? TextSpan(
+                      text: CurrencyMetadata.metadata[currencyBalance.quoteCurrency]!.displaySymbol,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ) : const WidgetSpan(child: SizedBox.shrink())
+                  ]
                 ),
               ),
               const SizedBox(width: 7,),

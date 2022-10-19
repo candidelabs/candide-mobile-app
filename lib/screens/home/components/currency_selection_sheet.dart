@@ -41,7 +41,6 @@ class CurrenciesSelectionSheet extends StatelessWidget {
   }
 }
 
-
 class _CurrencySelectionCard extends StatelessWidget {
   final CurrencyBalance currencyBalance;
   final bool selected;
@@ -94,20 +93,6 @@ class _CurrencySelectionCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Spacer(),
-                RichText(
-                  text: TextSpan(
-                      text: CurrencyUtils.formatCurrency(currencyBalance.currentBalanceInQuote, currencyBalance.quoteCurrency, includeSymbol: false),
-                      style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
-                      children: [
-                        TextSpan(
-                          text: " ${currencyBalance.quoteCurrency}",
-                          style: const TextStyle(fontSize: 11, color: Colors.grey),
-                        )
-                      ]
-                  ),
-                ),
-                const SizedBox(width: 7,),
               ],
             ),
           ),

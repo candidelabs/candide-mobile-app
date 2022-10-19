@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,7 +51,8 @@ class _DepositSheetState extends State<DepositSheet> {
               const SizedBox(height: 35,),
               const Text("Fund your", style: TextStyle(fontSize: 20, color: Colors.black),),
               const SizedBox(height: 5,),
-              SvgPicture.asset("assets/images/optimism_title.svg"),
+              Text("GÖERLI", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 30, color: Colors.red, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),),
+              //SvgPicture.asset("assets/images/optimism_title.svg"),
               const SizedBox(height: 5,),
               const Text("Account", style: TextStyle(fontSize: 20, color: Colors.black),),
               const SizedBox(height: 15,),

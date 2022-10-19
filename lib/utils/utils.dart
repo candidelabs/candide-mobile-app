@@ -6,8 +6,11 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
 import 'package:get/get.dart';
+import 'package:logger/logger.dart';
 
 class Utils {
+  static final Logger logger = Logger();
+
   static void showError({required String title, required String message}){
     DangerAlertBox(
       context: Get.context,
@@ -46,6 +49,11 @@ class Utils {
     return BotToast.showCustomLoading(
       toastBuilder: (CancelFunc func) => const _LoadingWidget(),
     );
+  }
+
+  static void printWrapped(String text) {
+    final pattern = RegExp('.{1,800}'); // 800 is the size of each chunk
+    pattern.allMatches(text).forEach((match) => print(match.group(0)));
   }
 
 }

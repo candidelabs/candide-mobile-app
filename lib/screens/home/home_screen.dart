@@ -17,9 +17,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   var pagesList = [
     const OverviewScreen(),
-    Container(),
+    // Container(),
     const GuardiansPage(),
-    Container(),
+    // Container(),
   ];
   bool reverse = false;
   int currentIndex = 0;
@@ -65,21 +65,21 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text("Assets"),
               selectedColor: Get.theme.colorScheme.primary,
             ),
-            SalomonBottomBarItem(
+            /*SalomonBottomBarItem(
               icon: const Icon(PhosphorIcons.squaresFourLight, size: 25,),
               title: const Text("DApps"),
               selectedColor: const Color(0xff9fd8df),
-            ),
+            ),*/
             SalomonBottomBarItem(
               icon: const Icon(PhosphorIcons.shieldLight, size: 25,),
               title: const Text("Security"),
               selectedColor: const Color(0xffdf695e),
             ),
-            SalomonBottomBarItem(
+            /*SalomonBottomBarItem(
               icon: const Icon(PhosphorIcons.gearLight, size: 25,),
               title: const Text("Settings"),
               selectedColor: const Color(0xffebb577),
-            ),
+            ),*/
           ],
         ),
       ),

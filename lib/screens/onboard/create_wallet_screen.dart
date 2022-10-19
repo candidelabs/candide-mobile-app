@@ -14,6 +14,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
+import 'package:web3dart/web3dart.dart';
 
 class CreateWalletScreen extends StatefulWidget {
   const CreateWalletScreen({Key? key}) : super(key: key);

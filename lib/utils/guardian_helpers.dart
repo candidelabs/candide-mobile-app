@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:candide_mobile_app/models/batch.dart';
+import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/bundler.dart';
-import 'package:candide_mobile_app/controller/hooks/guardian_hook.dart';
+import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/controller/guardian_controller.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
@@ -14,10 +18,14 @@ import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:magic_sdk/magic_sdk.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:wallet_dart/wallet/UserOperation.dart';
+import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:web3dart/web3dart.dart';
 
 class GuardiansHelper {
+
+  static Batch? grantBatch;
 
   static Future<String?> getPasswordThroughBiometrics() async {
     try{
@@ -30,12 +38,7 @@ class GuardiansHelper {
     }
   }
 
-  static void onConfirmTransaction(List<UserOperation> userOperations) async {
-    List<UserOperation>? unsignedUserOperations = await Bundler.requestPaymasterSignature(
-      userOperations,
-      SettingsData.network,
-    );
-    if (unsignedUserOperations == null) return;
+  static void onConfirmTransaction(Batch batch) async {
     var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
     if (biometricsEnabled){
       String? password = await getPasswordThroughBiometrics();
@@ -47,34 +50,38 @@ class GuardiansHelper {
         );
         return;
       }else{
-        confirmTransactions(userOperations, unsignedUserOperations, password);
+        confirmTransactions(password, batch);
       }
     }else{
       Get.dialog(PromptPasswordDialog(
         onConfirm: (String password){
-          confirmTransactions(userOperations, unsignedUserOperations, password);
+          confirmTransactions(password, batch);
         },
       ));
     }
   }
 
-  static confirmTransactions(List<UserOperation> userOperations, List<UserOperation> unsignedUserOperations, String masterPassword) async {
-    if (!Bundler.verifyUserOperationsWithPaymaster(userOperations, unsignedUserOperations)) {
-      Get.back();
-      Utils.showError(title: "Error", message: "Transaction corrupted, contact us for help");
-      return;
-    }
-    var signedUserOperations = await Bundler.signUserOperations(
+  static confirmTransactions(String masterPassword, Batch batch) async {
+    Credentials? signer = WalletHelpers.decryptSigner(
       AddressData.wallet,
       masterPassword,
-      SettingsData.network,
-      unsignedUserOperations,
+      AddressData.wallet.salt,
     );
-
-    if (signedUserOperations == null){
+    if (signer == null){
       Utils.showError(title: "Error", message: "Incorrect password");
       return;
     }
+    //
+    Uint8List privateKey = (signer as EthPrivateKey).privateKey;
+    batch.configureNonces(AddressData.walletStatus.nonce);
+    batch.signTransactions(privateKey, AddressData.wallet);
+    List<UserOperation> unsignedUserOperations = await batch.toUserOperations(AddressData.wallet);
+    //
+    var signedUserOperations = await Bundler.signUserOperations(
+      signer,
+      SettingsData.network,
+      unsignedUserOperations,
+    );
 
     BotToast.showText(
       text: "Transaction sent, this might take a minute...",
@@ -168,12 +175,12 @@ class GuardiansHelper {
   }
 
 
-  static Future<bool> revokeGuardian(String address) async {
+  /*static Future<bool> revokeGuardian(String address) async {
     CancelFunc? cancelLoad = Utils.showLoading();
-    Map data = await GuardianHook.buildRevokeOps(
+    Map data = await GuardianController.buildRevokeOps(
       instance: AddressData.wallet,
       network: SettingsData.network,
-      isDeployed: AddressData.walletStatus.isDeployed,
+      isDeployed: AddressData.walletStatus.proxyDeployed,
       nonce: AddressData.walletStatus.nonce,
       defaultCurrency: SettingsData.quoteCurrency,
       guardianAddress: address,
@@ -197,18 +204,37 @@ class GuardiansHelper {
     );
     cancelLoad?.call();
     return (refresh ?? false);
-  }
+  }*/
 
   static Future<bool> grantGuardian(String address, {Map? magicLinkData}) async {
     CancelFunc? cancelLoad = Utils.showLoading();
-    Map data = await GuardianHook.buildGrantOps(
-      instance: AddressData.wallet,
-      network: SettingsData.network,
-      isDeployed: AddressData.walletStatus.isDeployed,
-      nonce: AddressData.walletStatus.nonce,
-      defaultCurrency: SettingsData.quoteCurrency,
-      guardianAddress: address,
+    Batch grantBatch = Batch();
+    bool setupSocialModule = true;
+    int friendsCount = 0;
+    int threshold = 1;
+    if (AddressData.walletStatus.socialModuleDeployed){
+      print("G!");
+      EthereumAddress recoveryManager = await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).manager();
+      print("G! : ${recoveryManager.hex}");
+      print("G! : ${AddressData.wallet.walletAddress.hex}");
+      if (recoveryManager.hex == AddressData.wallet.walletAddress.hex){
+        print("G!!");
+        setupSocialModule = false;
+        friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).friendsCount()).toInt();
+        threshold = (((friendsCount + 1) / 2 ) + 1).floor();
+      }
+    }
+    print("Setup: $setupSocialModule");
+    print("friendsCount: $friendsCount");
+    print("threshold: $threshold");
+    List<GnosisTransaction> transactions = GuardianController.buildGrantTransactions(
+        socialModuleDeployed: AddressData.walletStatus.socialModuleDeployed,
+        setup: setupSocialModule,
+        instance: AddressData.wallet,
+        guardianAddress: address,
+        threshold: threshold,
     );
+    grantBatch.transactions.addAll(transactions);
     cancelLoad();
     cancelLoad = null;
     bool? refresh = await showBarModalBottomSheet(
@@ -218,10 +244,10 @@ class GuardiansHelper {
         return GuardianOperationReview(
           operation: GuardianOperation.grant,
           guardian: address,
-          fee: data["fee"],
+          batch: grantBatch,
           onConfirm: (){
             cancelLoad = Utils.showLoading();
-            onConfirmTransaction(data["userOperations"]);
+            onConfirmTransaction(grantBatch);
           },
         );
       },
@@ -229,6 +255,7 @@ class GuardiansHelper {
     if (refresh ?? false){
       if (magicLinkData != null){
         AddressData.guardians.add(WalletGuardian(
+          index: friendsCount,
           type: "magic-link",
           address: address,
           email: magicLinkData["email"],
@@ -236,6 +263,7 @@ class GuardiansHelper {
         ));
       }else{
         AddressData.guardians.add(WalletGuardian(
+          index: friendsCount,
           type: "family-and-friends",
           address: address,
           email: null,
@@ -248,9 +276,49 @@ class GuardiansHelper {
     return (refresh ?? false);
   }
 
-  static Future<bool> recoverUsingGuardian(String address, String newOwner) async {
+
+  static Future<bool> revokeGuardian(String address, int guardianIndex) async {
     CancelFunc? cancelLoad = Utils.showLoading();
-    Map data = await GuardianHook.buildRecoverOps(
+    Batch revokeBatch = Batch();
+    int friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).friendsCount()).toInt();
+    int threshold = (((friendsCount - 1) / 2 ) + 1).floor();
+    if ((friendsCount-1) == 0){
+      threshold = 0;
+    }
+    List<GnosisTransaction> transactions = GuardianController.buildRevokeTransactions(
+      instance: AddressData.wallet,
+      guardianIndex: guardianIndex,
+      threshold: threshold,
+    );
+    revokeBatch.transactions.addAll(transactions);
+    cancelLoad();
+    cancelLoad = null;
+    bool? refresh = await showBarModalBottomSheet(
+      context: Get.context!,
+      builder: (context) {
+        Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "guardian_review_modal");
+        return GuardianOperationReview(
+          operation: GuardianOperation.revoke,
+          guardian: address,
+          batch: revokeBatch,
+          onConfirm: (){
+            cancelLoad = Utils.showLoading();
+            onConfirmTransaction(revokeBatch);
+          },
+        );
+      },
+    );
+    if (refresh ?? false){
+      AddressData.guardians.removeWhere((element) => element.address.toLowerCase() == address.toLowerCase());
+      await AddressData.storeGuardians();
+    }
+    cancelLoad?.call();
+    return (refresh ?? false);
+  }
+
+  /*static Future<bool> recoverUsingGuardian(String address, String newOwner) async {
+    CancelFunc? cancelLoad = Utils.showLoading();
+    Map data = await GuardianController.buildRecoverOps(
       walletAddress: EthereumAddress.fromHex(address),
       network: SettingsData.network,
       defaultCurrency: SettingsData.quoteCurrency,
@@ -275,9 +343,9 @@ class GuardiansHelper {
     );
     cancelLoad?.call();
     return (refresh ?? false);
-  }
+  }*/
 
-  static Future<bool> setupMagicLinkRecovery(String email, String walletAddress, String newOwner) async {
+  /*static Future<bool> setupMagicLinkRecovery(String email, String walletAddress, String newOwner) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     bool? refresh = false;
     try {
@@ -300,7 +368,7 @@ class GuardiansHelper {
     cancelLoad?.call();
     Get.back();
     return refresh;
-  }
+  }*/
 
   static Future<bool> setupMagicLinkGuardian(String email) async {
     CancelFunc? cancelLoad = Utils.showLoading();

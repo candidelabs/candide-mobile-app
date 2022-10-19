@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:wallet_dart/contracts/factories/EIP4337Manager.g.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:wallet_dart/contracts/factories/Wallet.g.dart' as w;
@@ -16,14 +17,14 @@ class RecoveryProgressDialog extends StatefulWidget {
 }
 
 class _RecoveryProgressDialogState extends State<RecoveryProgressDialog> {
-  late w.Wallet walletInterface;
+  late EIP4337Manager walletInterface;
 
   void periodicCheck(int checks) async {
     if (checks >= 25){
       Navigator.pop(context, false);
       return;
     }
-    var owner = await walletInterface.getOwner(BigInt.zero);
+    var owner = (await walletInterface.getOwners())[0];
     if (owner.hex.toLowerCase() == widget.expectedOwner.toLowerCase()){
       Navigator.pop(context, true);
       return;
