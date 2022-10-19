@@ -7,17 +7,14 @@ import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:dio/dio.dart';
 import 'package:magic_sdk/magic_sdk.dart';
-import 'package:wallet_dart/wallet/AbiEncoders.dart';
 import 'package:wallet_dart/wallet/UserOperation.dart';
-import 'package:wallet_dart/wallet/wallet_helpers.dart';
-import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Bundler {
   static Future<Map?> fetchPaymasterStatus(String address, String network) async {
     try{
-      var response = await Dio().get("${Env.bundlerUri}/v1/paymaster/status", queryParameters: {
+      var response = await Dio().get("${Env.legacyBundlerUri}/v1/paymaster/status", queryParameters: {
         "address": address,
         "network": network,
       });
@@ -32,7 +29,7 @@ class Bundler {
   static Future<List<UserOperation>?> requestPaymasterSignature(List<UserOperation> userOperations, String network) async {
     try{
       var response = await Dio().post(
-        "${Env.bundlerUri}/v1/paymaster/sign",
+        "${Env.legacyBundlerUri}/v1/paymaster/sign",
         data: jsonEncode({
           "network": network,
           "userOperations": userOperations.map((e) => e.toJson()).toList()
@@ -114,7 +111,7 @@ class Bundler {
   static Future<RelayResponse?> relayUserOperations(List<UserOperation> userOperations, String network) async{
     try{
       var response = await Dio().post(
-          "http://10.0.2.2:8000/jsonrpc/bundler",
+          "${Env.bundlerUri}/jsonrpc/bundler",
           data: jsonEncode({
             "jsonrpc": "2.0",
             "id": 1,
@@ -135,7 +132,7 @@ class Bundler {
 
   static Future<List<FeeCurrency>?> fetchPaymasterFees() async {
     try{
-      var response = await Dio().post("http://10.0.2.2:8000/jsonrpc/paymaster",
+      var response = await Dio().post("${Env.bundlerUri}/jsonrpc/paymaster",
         data: jsonEncode({
           "jsonrpc": "2.0",
           "id": 1,
@@ -160,7 +157,7 @@ class Bundler {
   static Future<String?> getPaymasterSignature(UserOperation userOperation) async{
     try{
       var response = await Dio().post(
-          "http://10.0.2.2:8000/jsonrpc/paymaster",
+          "${Env.bundlerUri}/jsonrpc/paymaster",
           data: jsonEncode({
             "jsonrpc": "2.0",
             "id": 1,
@@ -182,7 +179,7 @@ class Bundler {
   static Future<Uint8List?> getRequestId(UserOperation userOperation, String network, {bool returnHash=false}) async{
     try{
       var response = await Dio().post(
-          "http://10.0.2.2:8000/jsonrpc/bundler",
+          "${Env.bundlerUri}/jsonrpc/bundler",
           data: jsonEncode({
             "jsonrpc": "2.0",
             "id": 1,
