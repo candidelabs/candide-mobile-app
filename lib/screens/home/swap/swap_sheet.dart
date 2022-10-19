@@ -170,7 +170,6 @@ class _SwapSheetState extends State<SwapSheet> {
     );
 
     var cancelLoad = Utils.showLoading();
-    cancelLoad();
     //
     RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
     if (response?.status == "PENDING"){
