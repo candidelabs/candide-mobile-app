@@ -7,7 +7,6 @@ import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
-import 'package:candide_mobile_app/screens/home/guardians/magic_email_sheet.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
 import 'package:candide_mobile_app/screens/onboard/recovery/recovery_progress_dialog.dart';
 import 'package:candide_mobile_app/screens/onboard/recovery/recovery_request_page.dart';
@@ -127,10 +126,7 @@ class _RecoverSheetState extends State<RecoverSheet> {
     await Hive.box("wallet").put("recovered", jsonEncode(wallet.toJson()));
     cancelLoad();
     Get.back();
-    //
-    if (method == "email-recovery"){
-      showEmailRecoveryDialog(wallet);
-    }else if (method == "social-recovery"){
+    if (method == "social-recovery"){
       EthereumAddress oldOwner = (await CWallet.customInterface(EthereumAddress.fromHex(address)).getOwners())[0];
       var dataHash = CWallet.customInterface(EthereumAddress.fromHex(address)).self.function("swapOwner").encodeCall([Constants.addressOne, oldOwner, EthereumAddress.fromHex(wallet.initOwner)]);
       dataHash = keccak256(dataHash);
@@ -156,31 +152,6 @@ class _RecoverSheetState extends State<RecoverSheet> {
     Get.off(RecoveryRequestPage(request: request));
   }
 
-  void showEmailRecoveryDialog(WalletInstance wallet){
-    showBarModalBottomSheet(
-      context: Get.context!,
-      builder: (context) => SingleChildScrollView(
-        controller: ModalScrollController.of(context),
-        child: MagicEmailSheet(
-          onProceed: (String email) async {
-            //bool result = await GuardiansHelper.setupMagicLinkRecovery(email, wallet.walletAddress.hex, wallet.initOwner); // todo re-enable or delete
-            bool result = false;
-            if (result){
-              bool success = await Get.dialog(RecoveryProgressDialog(
-                walletAddress: wallet.walletAddress.hex,
-                expectedOwner: wallet.initOwner,
-              ));
-              if (success){
-                AddressData.wallet = wallet;
-                await Hive.box("wallet").put("main", jsonEncode(wallet.toJson()));
-                navigateToHome();
-              }
-            }
-          },
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,27 +160,6 @@ class _RecoverSheetState extends State<RecoverSheet> {
         const SizedBox(height: 35,),
         Text("Select a recovery method", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
         const SizedBox(height: 10,),
-        _RecoveryMethodCard(
-          type: "Email recovery",
-          logo: SizedBox(
-              width: 25,
-              height: 25,
-              child: SvgPicture.asset("assets/images/magic_link.svg")
-          ),
-          onPress: () async{
-            Get.back();
-            await showBarModalBottomSheet(
-              context: context,
-              builder: (context) {
-                Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "recovery_wallet_modal");
-                return RecoveryWalletSheet(
-                  method: "email-recovery",
-                  onNext: setupRecoveryWallet
-                );
-              },
-            );
-          },
-        ),
         _RecoveryMethodCard(
           type: "Family and friends",
           logo: SizedBox(
