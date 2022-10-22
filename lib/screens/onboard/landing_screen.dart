@@ -56,25 +56,21 @@ class _LandingScreenState extends State<LandingScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 35,),
-              Text("Crypto can be really confusing\nand hard to understand.", textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),),
-              const SizedBox(height: 25),
-              Text("Candide makes your entry to crypto\na very pleasant and easy experience.", textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 15),),
               const SizedBox(height: 25,),
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: RichText(
                   textAlign: TextAlign.center,
                   text: const TextSpan(
-                    text: "If you're an already crypto user, you can ",
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    text: "If you already had a Candide Wallet before, you can ",
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                     children: [
                       TextSpan(
-                        text: "import",
+                        text: "recover",
                         style: TextStyle(color: Colors.teal)
                       ),
                       TextSpan(
-                        text: " your wallet, otherwise ",
+                        text: " your account, otherwise ",
                       ),
                       TextSpan(
                         text: "create",
@@ -87,7 +83,7 @@ class _LandingScreenState extends State<LandingScreen> {
                   )
                 ),
               ),
-              const SizedBox(height: 25,),
+              const SizedBox(height: 190), // TODO           
               ElevatedButton(
                 onPressed: (){
                   Navigator.push(context, SharedAxisRoute(builder: (_) => const CreateWalletScreen(), transitionType: SharedAxisTransitionType.horizontal));
@@ -96,13 +92,15 @@ class _LandingScreenState extends State<LandingScreen> {
                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15)
                   )),
+                  minimumSize: MaterialStateProperty.all(Size(300, 60)),
                 ),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: Text("Create your crypto account", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),)
+                  child: Text("Create a new wallet", style: TextStyle(fontSize: 17, fontFamily: AppThemes.fonts.gilroyBold),)
                 ),
               ),
-              TextButton(
+              const SizedBox(height: 10),
+              ElevatedButton(
                 onPressed: (){
                   //Get.bottomSheet(RecoverSheet());
                   showBarModalBottomSheet(
@@ -113,7 +111,17 @@ class _LandingScreenState extends State<LandingScreen> {
                     ),
                   );
                 },
-                child: Text("lost your wallet ? recover it", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)),
+                style: ButtonStyle(
+                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  )),
+                  minimumSize: MaterialStateProperty.all(Size(300, 60)),
+                  backgroundColor: MaterialStateProperty.all<Color>(Get.theme.colorScheme.onPrimary),
+                ),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Text("I already have a wallet", style: TextStyle(fontSize: 17, fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary)),
+                )
               ),
               /*ElevatedButton(
                 onPressed: () async {

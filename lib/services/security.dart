@@ -9,8 +9,7 @@ class SecurityGateway {
 
   static Future<RecoveryRequest?> create(String walletAddress, String socialRecoveryAddress, String dataHash, String oldOwner, String newOwner, String network) async {
     try{
-      //var response = await Dio().post("${Env.securityUri}/v1/guardian/create",
-      var response = await Dio().post("http://10.0.2.2:3004/v1/guardian/create",
+      var response = await Dio().post("${Env.securityUri}/v1/guardian/create",
         data: jsonEncode({
           "walletAddress": walletAddress,
           "socialRecoveryAddress": socialRecoveryAddress,
@@ -44,8 +43,7 @@ class SecurityGateway {
 
   static Future<RecoveryRequest?> fetchById(String id) async {
     try{
-      var response = await Dio().get("http://10.0.2.2:3004/v1/guardian/fetchById", queryParameters: {"id": id}); // todo change to remote
-      //var response = await Dio().get("${Env.securityUri}/v1/guardian/fetchById", queryParameters: {"id": id});
+      var response = await Dio().get("${Env.securityUri}/v1/guardian/fetchById", queryParameters: {"id": id});
       //
       RecoveryRequest recoveryRequest = RecoveryRequest(
         id: response.data["id"].toString(),

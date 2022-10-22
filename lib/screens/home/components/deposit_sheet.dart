@@ -51,7 +51,7 @@ class _DepositSheetState extends State<DepositSheet> {
               const SizedBox(height: 35,),
               const Text("Fund your", style: TextStyle(fontSize: 20, color: Colors.black),),
               const SizedBox(height: 5,),
-              Text("GÖERLI", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 30, color: Colors.red, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),),
+              Text("GÖRLI", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 30, color: Colors.red, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),),
               //SvgPicture.asset("assets/images/optimism_title.svg"),
               const SizedBox(height: 5,),
               const Text("Account", style: TextStyle(fontSize: 20, color: Colors.black),),
