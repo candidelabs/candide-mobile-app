@@ -2,8 +2,10 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/models/batch.dart';
+import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
+import 'package:candide_mobile_app/screens/components/token_fee_selector.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -14,11 +16,11 @@ class SwapReviewSheet extends StatefulWidget {
   final BigInt baseValue;
   final String quoteCurrency;
   final OptimalQuote quote;
-  final Map paymasterStatus;
+  final Batch batch;
   //
   final VoidCallback onPressBack;
   final VoidCallback onConfirm;
-  const SwapReviewSheet({Key? key, required this.baseCurrency, required this.baseValue, required this.quoteCurrency, required this.quote, required this.paymasterStatus, required this.onPressBack, required this.onConfirm}) : super(key: key);
+  const SwapReviewSheet({Key? key, required this.baseCurrency, required this.baseValue, required this.quoteCurrency, required this.quote, required this.batch, required this.onPressBack, required this.onConfirm}) : super(key: key);
 
   @override
   State<SwapReviewSheet> createState() => _SwapReviewSheetState();
@@ -30,17 +32,52 @@ class _SwapReviewSheetState extends State<SwapReviewSheet> {
     "balance": "Insufficient balance",
     "fee": "Insufficient balance to cover network fee",
   };
-  //
-  @override
-  void initState() {
-    if (widget.baseCurrency == widget.paymasterStatus["fees"]["currency"]){
-      if (widget.baseValue + widget.paymasterStatus["fees"]["value"] > AddressData.getCurrencyBalance(widget.baseCurrency)){
-        errorMessage = _errors["fees"]!;
+
+  FeeCurrency? selectDefaultFeeCurrency(List<FeeCurrency> feeCurrencies){
+    FeeCurrency? result;
+    BigInt maxQuoteBalance = BigInt.from(-1);
+    for (FeeCurrency feeCurrency in feeCurrencies){
+      CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == feeCurrency.currency.symbol);
+      if (currencyBalance == null) continue;
+      if (feeCurrency.fee > currencyBalance.balance) continue;
+      if (feeCurrency.currency.symbol == widget.baseCurrency){
+        if (feeCurrency.fee + widget.baseValue > currencyBalance.balance) continue;
+      }
+      if (currencyBalance.currentBalanceInQuote > maxQuoteBalance){
+        result = feeCurrency;
+        maxQuoteBalance = currencyBalance.currentBalanceInQuote;
+      }
+    }
+    return result;
+  }
+
+  void validateFeeBalance(){
+    errorMessage = "";
+    BigInt fee = widget.batch.getFee();
+    if (widget.baseCurrency == widget.batch.feeCurrency!.currency.symbol){
+      if (widget.baseValue + fee > AddressData.getCurrencyBalance(widget.baseCurrency)){
+        errorMessage = _errors["fee"]!;
       }
     }else{
       if (widget.baseValue > AddressData.getCurrencyBalance(widget.baseCurrency)){
         errorMessage = _errors["balance"]!;
+      }else{
+        if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.currency.symbol) < fee){
+          errorMessage = _errors["fee"]!;
+        }
       }
+    }
+    setState(() {});
+  }
+  //
+  @override
+  void initState() {
+    FeeCurrency? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
+    if (feeCurrency != null){
+      widget.batch.feeCurrency = feeCurrency;
+      validateFeeBalance();
+    }else{
+      errorMessage = _errors["fee"]!;
     }
     super.initState();
   }
@@ -108,8 +145,16 @@ class _SwapReviewSheetState extends State<SwapReviewSheet> {
                     margin: const EdgeInsets.symmetric(horizontal: 10),
                     child: SummaryTable(entries: [
                       SummaryTableEntry(title: "Rate", value: CurrencyUtils.formatRate(widget.baseCurrency, widget.quoteCurrency, widget.quote.rate)),
-                      SummaryTableEntry(title: "Fee", value: CurrencyUtils.formatCurrency(BigInt.parse(widget.paymasterStatus["fees"][SettingsData.quoteCurrency] ?? '0'), SettingsData.quoteCurrency)),
                     ]),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: Get.width * 0.03),
+                    child: TokenFeeSelector(
+                      batch: widget.batch,
+                      onFeeCurrencyChange: (FeeCurrency feeCurrency){
+                        validateFeeBalance();
+                      },
+                    ),
                   ),
                   const Spacer(),
                   errorMessage.isNotEmpty ? Container(
