@@ -6,7 +6,6 @@ import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -86,7 +85,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                   guardian: guardian,
                   logo: logo,
                   onPressDelete: () async {
-                    bool refresh = await GuardiansHelper.revokeGuardian(guardian.address, guardian.index);
+                    bool refresh = await GuardianOperationsHelper.revokeGuardian(guardian.address, guardian.index);
                     if (refresh){
                       fetchGuardians();
                     }
@@ -130,7 +129,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                   controller: ModalScrollController.of(context),
                   child: MagicEmailSheet(
                     onProceed: (String email) async {
-                      bool result = await GuardiansHelper.setupMagicLinkGuardian(email);
+                      bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email);
                       if (result){
                         fetchGuardians();
                       }
@@ -156,7 +155,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                   child: GuardianAddressSheet(
                     onProceed: (String address) async {
                       Get.back();
-                      bool refresh = await GuardiansHelper.grantGuardian(address);
+                      bool refresh = await GuardianOperationsHelper.grantGuardian(address);
                       if (refresh){
                         fetchGuardians();
                       }
