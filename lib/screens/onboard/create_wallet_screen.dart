@@ -99,7 +99,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                         style: TextStyle(color: Colors.deepOrange),
                       ),
                       TextSpan(
-                        text: " password to protect yourself. We'll never have access to this.",
+                        text: " password to protect your wallet. We'll never have access to it.",
                       )
                     ]
                   )
