@@ -22,7 +22,7 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:wallet_dart/wallet/UserOperation.dart';
+import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:web3dart/web3dart.dart';
 

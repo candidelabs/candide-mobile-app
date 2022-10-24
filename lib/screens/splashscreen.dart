@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:biometric_storage/biometric_storage.dart';
-import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/services/security.dart';

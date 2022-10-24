@@ -1,16 +1,13 @@
-import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
-import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -18,7 +15,7 @@ import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SwapMainSheet extends StatefulWidget {
-  final Function(String, double, String, OptimalQuote, GasEstimate, Map) onPressReview;
+  final Function(String, double, String, OptimalQuote) onPressReview;
   const SwapMainSheet({Key? key, required this.onPressReview}) : super(key: key);
 
   @override
@@ -40,8 +37,6 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
   //
   String quoteCurrency = "UNI";
   OptimalQuote? quote;
-  GasEstimate? gasEstimate;
-  Map? paymasterStatus;
   double _lastFetchedAmount = 0.0;
   bool _retrievingSwapData = false;
   bool showTable = false;
@@ -56,11 +51,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     listenToFocus = false;
     //
     BigInt value = CurrencyUtils.parseCurrency(amount.toString(), baseCurrency);
-    await Future.wait([
-      Explorer.fetchSwapQuote(SettingsData.network, baseCurrency, quoteCurrency, value, AddressData.wallet.walletAddress.hex).then((value) => quote = value),
-      Bundler.fetchPaymasterStatus(AddressData.wallet.walletAddress.hex, SettingsData.network).then((value) => paymasterStatus = value),
-      Explorer.fetchGasEstimate(SettingsData.network).then((value) => gasEstimate = value),
-    ]);
+    quote = await Explorer.fetchSwapQuote(SettingsData.network, baseCurrency, quoteCurrency, value, AddressData.wallet.walletAddress.hex);
     _retrievingSwapData = false;
     _lastFetchedAmount = amount;
     Future.delayed(const Duration(milliseconds: 350), (){
@@ -247,7 +238,6 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                     margin: const EdgeInsets.symmetric(horizontal: 10),
                     child: SummaryTable(entries: [
                       SummaryTableEntry(title: "Rate", value: CurrencyUtils.formatRate(baseCurrency, quoteCurrency, quote?.rate ?? BigInt.zero)),
-                      SummaryTableEntry(title: "Fee", value: CurrencyUtils.formatCurrency(BigInt.parse(paymasterStatus!["fees"][SettingsData.quoteCurrency] ?? '0'), SettingsData.quoteCurrency)),
                     ]),
                   ) : const SizedBox.shrink(),
                   const Spacer(),
@@ -269,7 +259,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                   SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
                   ElevatedButton(
                     onPressed: errorMessage.isEmpty ? (){
-                      widget.onPressReview.call(baseCurrency, amount, quoteCurrency, quote!, gasEstimate!, paymasterStatus!);
+                      widget.onPressReview.call(baseCurrency, amount, quoteCurrency, quote!);
                     } : null,
                     style: ButtonStyle(
                       minimumSize: MaterialStateProperty.all(Size(Get.width * 0.8, 40)),

@@ -9,8 +9,7 @@ import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:get/get.dart';
-import 'package:wallet_dart/contracts/factories/SingletonFactory.g.dart';
-import 'package:wallet_dart/wallet/UserOperation.dart';
+import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/crypto.dart';
@@ -77,8 +76,6 @@ class Batch {
     //
     int nonce = transactions[0].nonce.toInt() - transactions.length;
     //
-    print(gasOverrides.maxPriorityFeePerGas);
-    print(gasOverrides.maxFeePerGas);
     for (GnosisTransaction transaction in transactions){
       print("${transaction.id} userOp nonce: $nonce");
       UserOperation userOp = UserOperation.get(

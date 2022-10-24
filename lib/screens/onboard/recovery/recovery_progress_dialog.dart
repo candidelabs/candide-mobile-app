@@ -1,11 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:wallet_dart/contracts/factories/EIP4337Manager.g.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:wallet_dart/contracts/factories/Wallet.g.dart' as w;
 
 class RecoveryProgressDialog extends StatefulWidget {
   final String walletAddress;

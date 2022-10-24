@@ -1,4 +1,4 @@
-import 'package:wallet_dart/wallet/UserOperation.dart';
+import 'package:wallet_dart/wallet/user_operation.dart';
 
 class GasEstimate{
   String maxPriorityFeePerGas;

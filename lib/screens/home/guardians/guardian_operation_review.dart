@@ -1,13 +1,13 @@
 import 'package:candide_mobile_app/models/batch.dart';
+import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
-import 'package:candide_mobile_app/utils/currency.dart';
+import 'package:candide_mobile_app/screens/components/token_fee_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -28,11 +28,38 @@ class _GuardianOperationReviewState extends State<GuardianOperationReview> {
     "fee": "Insufficient balance to cover network fee",
   };
 
-  @override
-  void initState() {
+  FeeCurrency? selectDefaultFeeCurrency(List<FeeCurrency> feeCurrencies){
+    FeeCurrency? result;
+    BigInt maxQuoteBalance = BigInt.from(-1);
+    for (FeeCurrency feeCurrency in feeCurrencies){
+      CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == feeCurrency.currency.symbol);
+      if (currencyBalance == null) continue;
+      if (feeCurrency.fee > currencyBalance.balance) continue;
+      if (currencyBalance.currentBalanceInQuote > maxQuoteBalance){
+        result = feeCurrency;
+        maxQuoteBalance = currencyBalance.currentBalanceInQuote;
+      }
+    }
+    return result;
+  }
+
+  void validateFeeBalance(){
+    errorMessage = "";
     String feeCurrency = widget.batch.getFeeCurrency();
     BigInt fee = widget.batch.getFee();
     if (widget.operation != GuardianOperation.recover && AddressData.getCurrencyBalance(feeCurrency) < fee){
+      errorMessage = _errors["fee"]!;
+    }
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    FeeCurrency? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
+    if (feeCurrency != null){
+      widget.batch.feeCurrency = feeCurrency;
+      validateFeeBalance();
+    }else{
       errorMessage = _errors["fee"]!;
     }
     super.initState();
@@ -97,16 +124,21 @@ class _GuardianOperationReviewState extends State<GuardianOperationReview> {
                           value: widget.guardian,
                         ),
                         SummaryTableEntry(
-                          title: "Estimated fee",
-                          value: CurrencyUtils.formatCurrency(widget.batch.getFee(), widget.batch.getFeeCurrency()),
-                        ),
-                        SummaryTableEntry(
                           title: "Network",
                           titleStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color),
                           valueStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color),
                           value: SettingsData.network,
                         ),
                       ],
+                    ),
+                  ),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: Get.width * 0.03),
+                    child: TokenFeeSelector(
+                      batch: widget.batch,
+                      onFeeCurrencyChange: (FeeCurrency feeCurrency){
+                        validateFeeBalance();
+                      },
                     ),
                   ),
                   const Spacer(),

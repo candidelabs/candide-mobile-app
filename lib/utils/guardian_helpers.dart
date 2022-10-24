@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/models/batch.dart';
+import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
@@ -25,7 +27,7 @@ import 'package:magic_sdk/magic_sdk.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:wallet_dart/contracts/factories/EIP4337Manager.g.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
-import 'package:wallet_dart/wallet/UserOperation.dart';
+import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/crypto.dart';
@@ -148,6 +150,20 @@ class GuardianOperationsHelper {
         threshold: threshold,
     );
     grantBatch.transactions.addAll(transactions);
+    //
+    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    if (feeCurrencies == null){
+      // todo handle network errors
+      return false;
+    }else{
+      //sendBatch!.feeCurrencies = feeCurrencies;
+      grantBatch.feeCurrencies = [
+        FeeCurrency(currency: CurrencyMetadata.metadata["ETH"]!, fee: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 500000).getInWei),
+        FeeCurrency(currency: CurrencyMetadata.metadata["UNI"]!, fee: BigInt.from(6000000000000000)),
+        FeeCurrency(currency: CurrencyMetadata.metadata["CTT"]!, fee: BigInt.from(5000000000000000)),
+      ];
+    }
+    //
     cancelLoad();
     cancelLoad = null;
     bool? refresh = await showBarModalBottomSheet(
@@ -204,6 +220,20 @@ class GuardianOperationsHelper {
       threshold: threshold,
     );
     revokeBatch.transactions.addAll(transactions);
+    //
+    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    if (feeCurrencies == null){
+      // todo handle network errors
+      return false;
+    }else{
+      //sendBatch!.feeCurrencies = feeCurrencies;
+      revokeBatch.feeCurrencies = [
+        FeeCurrency(currency: CurrencyMetadata.metadata["ETH"]!, fee: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 500000).getInWei),
+        FeeCurrency(currency: CurrencyMetadata.metadata["UNI"]!, fee: BigInt.from(6000000000000000)),
+        FeeCurrency(currency: CurrencyMetadata.metadata["CTT"]!, fee: BigInt.from(5000000000000000)),
+      ];
+    }
+    //
     cancelLoad();
     cancelLoad = null;
     bool? refresh = await showBarModalBottomSheet(
