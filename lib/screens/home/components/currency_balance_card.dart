@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 
 class CurrencyBalanceCard extends StatelessWidget {
   final CurrencyBalance currencyBalance;
-  const CurrencyBalanceCard({Key? key, required this.currencyBalance}) : super(key: key);
+  final bool balanceVisible;
+  const CurrencyBalanceCard({Key? key, required this.currencyBalance, required this.balanceVisible}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class CurrencyBalanceCard extends StatelessWidget {
                   Text(metadata.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)),
                   RichText(
                     text: TextSpan(
-                        text: CurrencyUtils.formatCurrency(currencyBalance.balance, metadata.symbol, includeSymbol: false),
+                        text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance.balance, metadata.symbol, includeSymbol: false) : "••••••",
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                         children: [
                           TextSpan(
@@ -55,7 +56,7 @@ class CurrencyBalanceCard extends StatelessWidget {
               const Spacer(),
               RichText(
                 text: TextSpan(
-                  text: CurrencyUtils.formatCurrency(currencyBalance.currentBalanceInQuote, currencyBalance.quoteCurrency, includeSymbol: currencyBalance.quoteCurrency == "USDT"),
+                  text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance.currentBalanceInQuote, currencyBalance.quoteCurrency, includeSymbol: currencyBalance.quoteCurrency == "USDT") : "••••••",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                   children: [
                     currencyBalance.quoteCurrency != "USDT" ? TextSpan(

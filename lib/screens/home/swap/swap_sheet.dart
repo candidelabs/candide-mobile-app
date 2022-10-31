@@ -4,7 +4,6 @@ import 'dart:typed_data';
 import 'package:animations/animations.dart';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
@@ -88,12 +87,7 @@ class _SwapSheetState extends State<SwapSheet> {
       // todo handle network errors
       return;
     }else{
-      //sendBatch!.feeCurrencies = feeCurrencies;
-      swapBatch!.feeCurrencies = [
-        FeeCurrency(currency: CurrencyMetadata.metadata["ETH"]!, fee: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 500000).getInWei),
-        FeeCurrency(currency: CurrencyMetadata.metadata["UNI"]!, fee: BigInt.from(6000000000000000)),
-        FeeCurrency(currency: CurrencyMetadata.metadata["CTT"]!, fee: BigInt.from(5000000000000000)),
-      ];
+      await swapBatch!.changeFeeCurrencies(feeCurrencies);
     }
     //
     pagesList[1] = SwapReviewSheet(
@@ -160,7 +154,12 @@ class _SwapSheetState extends State<SwapSheet> {
     Uint8List privateKey = (signer as EthPrivateKey).privateKey;
     swapBatch!.configureNonces(AddressData.walletStatus.nonce);
     swapBatch!.signTransactions(privateKey, AddressData.wallet);
-    unsignedUserOperations = await swapBatch!.toUserOperations(AddressData.wallet);
+
+    unsignedUserOperations = await swapBatch!.toUserOperations(
+      AddressData.wallet,
+      proxyDeployed: AddressData.walletStatus.proxyDeployed,
+      managerDeployed: AddressData.walletStatus.managerDeployed,
+    );
     //
     var signedUserOperations = await Bundler.signUserOperations(
       signer,

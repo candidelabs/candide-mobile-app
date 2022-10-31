@@ -38,7 +38,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   }
 
   Future<void> fetchMinimumSignatures() async {
-    minimumSignatures = (await CWallet.recoveryInterface(EthereumAddress.fromHex(request.socialRecoveryAddress)).threshold()).toInt(); // todo fix for integration
+    minimumSignatures = (await CWallet.recoveryInterface(EthereumAddress.fromHex(request.socialRecoveryAddress)).threshold()).toInt();
     setState(() {});
   }
 

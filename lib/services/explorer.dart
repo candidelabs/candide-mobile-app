@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:dio/dio.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
@@ -43,7 +42,7 @@ class Explorer {
     }
   }
 
-  static Future<GasEstimate?> fetchGasEstimate(String network) async {
+  /*static Future<GasEstimate?> fetchGasEstimate(String network) async {
     try{
       var response = await Dio().get("${Env.explorerUri}/v1/gas/estimator", queryParameters: {"network": network});
       //
@@ -57,7 +56,7 @@ class Explorer {
       print("Error occured ${e.type.toString()}");
       return null;
     }
-  }
+  }*/
 
   static Future<OptimalQuote?> fetchSwapQuote(String network, String baseCurrency, String quoteCurrency, BigInt value, String address) async {
     try{

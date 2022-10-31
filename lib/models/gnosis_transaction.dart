@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
@@ -35,7 +34,6 @@ class GnosisTransaction {
     this.nonce = nonce ?? BigInt.from(0);
     this.operation = operation ?? BigInt.zero;
     this.safeTxGas = safeTxGas ?? BigInt.from(38306);
-    print("Gnosis nonce of $id: ${this.nonce}");
   }
 
   Uint8List getHash(

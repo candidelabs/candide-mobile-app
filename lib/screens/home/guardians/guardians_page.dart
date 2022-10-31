@@ -4,6 +4,7 @@ import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet
 import 'package:candide_mobile_app/screens/home/guardians/magic_email_sheet.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -37,136 +38,156 @@ class _GuardiansPageState extends State<GuardiansPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _loading ? const Center(child: CircularProgressIndicator(),)
-        : AddressData.guardians.isEmpty ? noGuardiansWidget() : withGuardiansWidget(),
+      body: _loading ? const Center(child: CircularProgressIndicator(),) : SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+                margin: const EdgeInsets.only(left: 15, top: 25),
+                child: Text("Guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
+            ),
+            AddressData.guardians.length < 3 ? const _GuardianCountAlert() : const SizedBox.shrink(),
+            AddressData.guardians.isEmpty ? noGuardiansWidget(true) : withGuardiansWidget()
+          ],
+        ),
+      ),
     );
   }
 
   Widget withGuardiansWidget(){
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-              margin: const EdgeInsets.only(left: 15, top: 25),
-              child: Text("Guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
-          ),
-          const _GuardianCountAlert(),
-          Container(
-              margin: const EdgeInsets.only(left: 15, bottom: 5, top: 10),
-              child: Text("Your guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
-          ),
-          const SizedBox(height: 10,),
-          for (WalletGuardian guardian in AddressData.guardians)
-            Builder(
-              builder: (context) {
-                Widget logo;
-                if (guardian.type == "magic-link"){
-                  logo = SizedBox(
-                      width: 35,
-                      height: 35,
-                      child: SvgPicture.asset("assets/images/magic_link.svg")
-                  );
-                }else if (guardian.type == "family-and-friends"){
-                  logo = SizedBox(
-                      width: 35,
-                      height: 35,
-                      child: SvgPicture.asset("assets/images/friends.svg")
-                  );
-                }else{
-                  logo = Container(
-                      margin: const EdgeInsets.only(right: 10, bottom: 5),
-                      child: const Icon(PhosphorIcons.keyLight, size: 25,)
-                  );
-                }
-                return _GuardianCard(
-                  guardian: guardian,
-                  logo: logo,
-                  onPressDelete: () async {
-                    bool refresh = await GuardianOperationsHelper.revokeGuardian(guardian.address, guardian.index);
-                    if (refresh){
-                      fetchGuardians();
-                    }
-                  },
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+            margin: const EdgeInsets.only(left: 15, bottom: 5, top: 10),
+            child: Text("Your guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
+        ),
+        const SizedBox(height: 10,),
+        for (WalletGuardian guardian in AddressData.guardians)
+          Builder(
+            builder: (context) {
+              Widget logo;
+              if (guardian.type == "magic-link"){
+                logo = SizedBox(
+                    width: 35,
+                    height: 35,
+                    child: SvgPicture.asset("assets/images/magic_link.svg")
+                );
+              }else if (guardian.type == "family-and-friends"){
+                logo = SizedBox(
+                    width: 35,
+                    height: 35,
+                    child: SvgPicture.asset("assets/images/friends.svg")
+                );
+              }else{
+                logo = Container(
+                    margin: const EdgeInsets.only(right: 10, bottom: 5),
+                    child: const Icon(PhosphorIcons.keyLight, size: 25,)
                 );
               }
-            ),
-        ],
-      ),
+              return _GuardianCard(
+                guardian: guardian,
+                logo: logo,
+                onPressDelete: () async {
+                  bool refresh = await GuardianOperationsHelper.revokeGuardian(guardian.address, guardian.index);
+                  if (refresh){
+                    fetchGuardians();
+                  }
+                },
+              );
+            }
+          ),
+        const SizedBox(height: 10,),
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: (){
+              showBarModalBottomSheet(
+                context: context,
+                builder: (context) => SingleChildScrollView(
+                  controller: ModalScrollController.of(context),
+                  child: noGuardiansWidget(false),
+                ),
+              );
+            },
+            icon: const Icon(PhosphorIcons.plusBold, size: 15,),
+            label: Text("Add guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, height: 1.6),),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget noGuardiansWidget(){
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(left: 15, top: 25),
-            child: Text("Guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
+  Widget noGuardiansWidget(bool showTitle){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        showTitle ? Container(
+            margin: const EdgeInsets.only(left: 15, bottom: 5, top: 10),
+            child: Text("Start by adding your first guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
+        ) : const SizedBox(height: 15,),
+        _GuardianAddCard(
+          type: "Email recovery",
+          recommended: true,
+          logo: SizedBox(
+            width: 25,
+            height: 25,
+            child: SvgPicture.asset("assets/images/magic_link.svg")
           ),
-          const _GuardianCountAlert(),
-          Container(
-              margin: const EdgeInsets.only(left: 15, bottom: 5, top: 10),
-              child: Text("Start by adding your first guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
-          ),
-          _GuardianAddCard(
-            type: "Email recovery",
-            recommended: true,
-            logo: SizedBox(
+          onPress: (){
+            showBarModalBottomSheet(
+              context: context,
+              builder: (context) => SingleChildScrollView(
+                controller: ModalScrollController.of(context),
+                child: MagicEmailSheet(
+                  onProceed: (String email) async {
+                    bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email);
+                    if (result){
+                      fetchGuardians();
+                    }
+                    if (!showTitle){
+                      Get.back();
+                    }
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 10,),
+        _GuardianAddCard(
+          type: "Family and friends",
+          logo: SizedBox(
               width: 25,
               height: 25,
-              child: SvgPicture.asset("assets/images/magic_link.svg")
-            ),
-            onPress: (){
-              showBarModalBottomSheet(
-                context: context,
-                builder: (context) => SingleChildScrollView(
-                  controller: ModalScrollController.of(context),
-                  child: MagicEmailSheet(
-                    onProceed: (String email) async {
-                      bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email);
-                      if (result){
-                        fetchGuardians();
-                      }
-                    },
-                  ),
-                ),
-              );
-            },
+              child: SvgPicture.asset("assets/images/friends.svg")
           ),
-          const SizedBox(height: 10,),
-          _GuardianAddCard(
-            type: "Family and friends",
-            logo: SizedBox(
-                width: 25,
-                height: 25,
-                child: SvgPicture.asset("assets/images/friends.svg")
-            ),
-            onPress: (){
-              showBarModalBottomSheet(
-                context: context,
-                builder: (context) => SingleChildScrollView(
-                  controller: ModalScrollController.of(context),
-                  child: GuardianAddressSheet(
-                    onProceed: (String address) async {
+          onPress: (){
+            showBarModalBottomSheet(
+              context: context,
+              builder: (context) => SingleChildScrollView(
+                controller: ModalScrollController.of(context),
+                child: GuardianAddressSheet(
+                  onProceed: (String address) async {
+                    Get.back();
+                    bool refresh = await GuardianOperationsHelper.grantGuardian(address);
+                    if (refresh){
+                      fetchGuardians();
+                    }
+                    if (!showTitle){
                       Get.back();
-                      bool refresh = await GuardianOperationsHelper.grantGuardian(address);
-                      if (refresh){
-                        fetchGuardians();
-                      }
-                    },
-                  ),
+                    }
+                  },
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 15,)
+      ],
     );
   }
 }
@@ -320,12 +341,19 @@ class _GuardianCountAlert extends StatelessWidget { // todo move to components
               ),
               const SizedBox(height: 10,),
               RichText(
-                text: const TextSpan(
-                  text: "You are limited to only ",
-                  style: TextStyle(height: 1.35),
+                text: TextSpan(
+                  text: "We recommend to have at least ",
+                  style: const TextStyle(height: 1.35),
                   children: [
-                    TextSpan(text: "1 guardian ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    TextSpan(text: "through our client app in beta\nThis restriction will be removed in production"),
+                    const TextSpan(text: "3 guardians ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                    const TextSpan(text: "to fully protect your wallet against lost"),
+                    const TextSpan(text: "\nlearn more at"),
+                    TextSpan(
+                      text: " candidewallet.com/security-faqs",
+                      style: const TextStyle(color: Colors.blue),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {}, // todo add faqs url
+                    ),
                   ]
                 ),
               ),

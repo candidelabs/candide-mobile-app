@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
+import 'package:web3dart/web3dart.dart';
 
 class AddressData {
   // Load from Box called "wallet" at "main"
@@ -79,7 +80,8 @@ class AddressData {
     //
     guardians.clear();
     var walletInterface = CWallet.recoveryInterface(wallet.socialRecovery);
-    int guardiansCount = (await walletInterface.friendsCount()).toInt();
+    List<EthereumAddress> _guardians = (await walletInterface.getFriends());
+    int guardiansCount = _guardians.length;
     if (guardiansCount > 0){
       var _indexesList = List<int>.generate(guardiansCount, (i) => i);
       await Future.wait(

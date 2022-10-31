@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
@@ -85,7 +84,11 @@ class GuardianOperationsHelper {
     Uint8List privateKey = (signer as EthPrivateKey).privateKey;
     batch.configureNonces(AddressData.walletStatus.nonce);
     batch.signTransactions(privateKey, AddressData.wallet);
-    List<UserOperation> unsignedUserOperations = await batch.toUserOperations(AddressData.wallet);
+    List<UserOperation> unsignedUserOperations = await batch.toUserOperations(
+      AddressData.wallet,
+      proxyDeployed: AddressData.walletStatus.proxyDeployed,
+      managerDeployed: AddressData.walletStatus.managerDeployed,
+    );
     //
     var signedUserOperations = await Bundler.signUserOperations(
       signer,
@@ -134,14 +137,19 @@ class GuardianOperationsHelper {
     bool setupSocialModule = true;
     int friendsCount = 0;
     int threshold = 1;
+    print("M0");
     if (AddressData.walletStatus.socialModuleDeployed){
+      print("M1");
       EthereumAddress recoveryManager = await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).manager();
+      print("M2");
       if (recoveryManager.hex == AddressData.wallet.walletAddress.hex){
+        print("M3");
         setupSocialModule = false;
-        friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).friendsCount()).toInt();
+        friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).getFriends()).length;
         threshold = (((friendsCount + 1) / 2 ) + 1).floor();
       }
     }
+    print("M4");
     List<GnosisTransaction> transactions = GuardianController.buildGrantTransactions(
         socialModuleDeployed: AddressData.walletStatus.socialModuleDeployed,
         setup: setupSocialModule,
@@ -150,19 +158,19 @@ class GuardianOperationsHelper {
         threshold: threshold,
     );
     grantBatch.transactions.addAll(transactions);
+    print("M5");
     //
     List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    print("M6");
     if (feeCurrencies == null){
       // todo handle network errors
       return false;
     }else{
-      //sendBatch!.feeCurrencies = feeCurrencies;
-      grantBatch.feeCurrencies = [
-        FeeCurrency(currency: CurrencyMetadata.metadata["ETH"]!, fee: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 500000).getInWei),
-        FeeCurrency(currency: CurrencyMetadata.metadata["UNI"]!, fee: BigInt.from(6000000000000000)),
-        FeeCurrency(currency: CurrencyMetadata.metadata["CTT"]!, fee: BigInt.from(5000000000000000)),
-      ];
+      print("M7");
+      await grantBatch.changeFeeCurrencies(feeCurrencies);
+      print("M8");
     }
+    print("M9");
     //
     cancelLoad();
     cancelLoad = null;
@@ -209,7 +217,7 @@ class GuardianOperationsHelper {
   static Future<bool> revokeGuardian(String address, int guardianIndex) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     Batch revokeBatch = Batch();
-    int friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).friendsCount()).toInt();
+    int friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).getFriends()).length;
     int threshold = (((friendsCount - 1) / 2 ) + 1).floor();
     if ((friendsCount-1) == 0){
       threshold = 0;
@@ -226,12 +234,7 @@ class GuardianOperationsHelper {
       // todo handle network errors
       return false;
     }else{
-      //sendBatch!.feeCurrencies = feeCurrencies;
-      revokeBatch.feeCurrencies = [
-        FeeCurrency(currency: CurrencyMetadata.metadata["ETH"]!, fee: EtherAmount.fromUnitAndValue(EtherUnit.gwei, 500000).getInWei),
-        FeeCurrency(currency: CurrencyMetadata.metadata["UNI"]!, fee: BigInt.from(6000000000000000)),
-        FeeCurrency(currency: CurrencyMetadata.metadata["CTT"]!, fee: BigInt.from(5000000000000000)),
-      ];
+      await revokeBatch.changeFeeCurrencies(feeCurrencies);
     }
     //
     cancelLoad();
@@ -260,20 +263,27 @@ class GuardianOperationsHelper {
   }
 
   static Future<bool> setupMagicLinkGuardian(String email) async {
+    print("K0");
     CancelFunc? cancelLoad = Utils.showLoading();
     bool? refresh = false;
     try {
+      print("K1");
       var magic = Magic.instance;
       var isLoggedIn = await magic.user.isLoggedIn();
       if (isLoggedIn){
         await magic.user.logout();
       }
+      print("K2");
       await magic.auth.loginWithMagicLink(email: email);
+      print("K3");
       var metadata = await magic.user.getMetadata();
+      print("K4");
       cancelLoad.call();
       cancelLoad = null;
       if (metadata.publicAddress == null) return false;
+      print("K5");
       refresh = await grantGuardian(metadata.publicAddress!, magicLinkData: {"email":email});
+      print("K6");
     } on Exception catch (e) {
       cancelLoad?.call();
       print(e);
@@ -297,7 +307,7 @@ class GuardianRecoveryHelper{
     }
     for (EthereumAddress module in modulesPaginated.array){
       try{
-        int guardiansCount = (await CWallet.recoveryInterface(module).friendsCount()).toInt();
+        int guardiansCount = (await CWallet.recoveryInterface(module).getFriends()).length;
         if (guardiansCount == 0) return null;
         return module;
       }catch (e){

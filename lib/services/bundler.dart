@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:dio/dio.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
@@ -72,7 +73,40 @@ class Bundler {
     }
   }
 
-  static Future<String?> getPaymasterSignature(UserOperation userOperation) async{
+  static Future<List<GasEstimate>?> getOperationsGasFees(List<UserOperation> userOperations) async{
+    try{
+      var response = await Dio().post(
+          "${Env.bundlerUri}/jsonrpc/bundler",
+          data: jsonEncode({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "eth_getOperationsGasValues",
+            "params": {
+              "request": userOperations.map((e) => e.toJson()).toList(),
+            }
+          })
+      );
+      //
+      List<GasEstimate> result = [];
+      for (var op in response.data["result"]){
+        GasEstimate estimate = GasEstimate(
+          callGas: op["callGas"],
+          preVerificationGas: op["preVerificationGas"],
+          verificationGas: op["verificationGas"],
+          maxPriorityFeePerGas: op["maxPriorityFeePerGas"],
+          maxFeePerGas: op["maxFeePerGas"]
+        );
+        result.add(estimate);
+      }
+
+      return result;
+    } on DioError catch(e){
+      print("Error occured ${e.type.toString()}");
+      return null;
+    }
+  }
+
+  static Future<List<String>?> getPaymasterSignature(List<UserOperation> userOperations, String tokenAddress) async{
     try{
       var response = await Dio().post(
           "${Env.bundlerUri}/jsonrpc/paymaster",
@@ -80,13 +114,14 @@ class Bundler {
             "jsonrpc": "2.0",
             "id": 1,
             "method": "eth_paymaster",
-            "params": [
-              userOperation.toJson()
-            ]
+            "params": {
+              "request": userOperations.map((e) => e.toJson()).toList(),
+              "token": tokenAddress,
+            }
           })
       );
       //
-      return response.data["result"];
+      return (response.data["result"] as List<dynamic>).cast<String>();
     } on DioError catch(e){
       print("Error occured ${e.type.toString()}");
       return null;

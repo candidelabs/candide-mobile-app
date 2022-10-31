@@ -32,7 +32,7 @@ dependencies:
   wallet_dart:
     path: ../wallet_dart
   ens_dart: ^1.0.0
-  magic_sdk: ^1.2.1
+  magic_sdk: ^2.0.0
   dio: ^4.0.6
   eth_sig_util: ^0.0.9
   # Auth

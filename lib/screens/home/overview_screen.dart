@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_sheet.dart';
@@ -27,6 +24,7 @@ class OverviewScreen extends StatefulWidget {
 
 class _OverviewScreenState extends State<OverviewScreen> {
   final RefreshController _refreshController = RefreshController(initialRefresh: true);
+  bool balancesVisible = true;
 
   fetchOverview() async {
     await Explorer.fetchAddressOverview(
@@ -70,11 +68,18 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ),
           const SizedBox(height: 20,),
           BalanceCard(
-            onToggleVisibility: (val) async {
-              print(jsonEncode(AddressData.wallet.toJson()));
+            balanceVisible: balancesVisible,
+            onPressVisibilityIcon: () {
+              /*print(jsonEncode(AddressData.wallet.toJson()));
+              //var x = await Constants.ens.withAddress(EthereumAddress.fromHex("0xdbd510f9EBB7A81209FcCD12A56f6c6354AA8caB")).getName();
               print(AddressData.walletStatus.proxyDeployed);
               print(AddressData.walletStatus.managerDeployed);
               print(AddressData.walletStatus.socialModuleDeployed);
+              print(bytesToHex((WalletHelpers.decryptSigner(AddressData.wallet, "002500Gg!", AddressData.wallet.salt) as EthPrivateKey).privateKey, include0x: true));
+              return;*/
+              setState(() {
+                balancesVisible = !balancesVisible;
+              });
             },
             onPressDeposit: _refreshController.isLoading ? null : (){
               showBarModalBottomSheet(
@@ -119,7 +124,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ),
           const SizedBox(height: 5,),
           for (CurrencyBalance currencyBalance in AddressData.currencies)
-            CurrencyBalanceCard(currencyBalance: currencyBalance,),
+            CurrencyBalanceCard(currencyBalance: currencyBalance, balanceVisible: balancesVisible,),
         ],
       ),
     );
