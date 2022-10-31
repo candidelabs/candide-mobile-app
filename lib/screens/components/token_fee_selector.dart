@@ -30,7 +30,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
           initialSelection: widget.batch.feeCurrency?.currency.symbol,
           onSelected: (feeCurrency){
             setState(() {
-              widget.batch.feeCurrency = feeCurrency;
+              widget.batch.changeFeeCurrency(feeCurrency);
             });
             widget.onFeeCurrencyChange?.call(feeCurrency);
           },

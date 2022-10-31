@@ -7,12 +7,13 @@ import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class BalanceCard extends StatelessWidget {
-  final Function(bool) onToggleVisibility;
+  final VoidCallback onPressVisibilityIcon;
   final VoidCallback? onPressDeposit;
   final VoidCallback? onPressSend;
   final VoidCallback? onPressSwap;
   final WalletBalance balance;
-  const BalanceCard({Key? key, required this.onToggleVisibility, required this.balance, this.onPressDeposit, this.onPressSend, this.onPressSwap}) : super(key: key);
+  final bool balanceVisible;
+  const BalanceCard({Key? key, required this.onPressVisibilityIcon, required this.balance, this.onPressDeposit, this.onPressSend, this.onPressSwap, required this.balanceVisible}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -33,9 +34,7 @@ class BalanceCard extends StatelessWidget {
                 Text("Overview", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
                 const SizedBox(width: 15,),
                 IconButton(
-                  onPressed: (){
-                    onToggleVisibility(true);
-                  },
+                  onPressed: onPressVisibilityIcon,
                   iconSize: 18,
                   icon: const Icon(PhosphorIcons.eye, size: 25,),
                 )
@@ -45,7 +44,7 @@ class BalanceCard extends StatelessWidget {
                 margin: const EdgeInsets.only(left: 10),
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  CurrencyUtils.formatCurrency(balance.currentBalance, balance.quoteCurrency),
+                  balanceVisible ? CurrencyUtils.formatCurrency(balance.currentBalance, balance.quoteCurrency) : "••••••••••••",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
                 )
             ),

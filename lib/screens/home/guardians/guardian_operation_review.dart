@@ -57,7 +57,7 @@ class _GuardianOperationReviewState extends State<GuardianOperationReview> {
   void initState() {
     FeeCurrency? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
     if (feeCurrency != null){
-      widget.batch.feeCurrency = feeCurrency;
+      widget.batch.changeFeeCurrency(feeCurrency);
       validateFeeBalance();
     }else{
       errorMessage = _errors["fee"]!;

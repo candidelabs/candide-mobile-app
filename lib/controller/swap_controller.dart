@@ -24,7 +24,7 @@ class SwapController {
         EthereumAddress.fromHex(optimalQuote.transaction["to"].toString()),
         baseCurrencyValue
       )),
-      type: GnosisTransactionType.execTransaction,
+      type: GnosisTransactionType.execTransactionFromModule,
     ) : null;
     //
     GnosisTransaction swapTransaction = GnosisTransaction(
@@ -32,7 +32,7 @@ class SwapController {
       to: EthereumAddress.fromHex(optimalQuote.transaction["to"].toString()),
       value: BigInt.parse(optimalQuote.transaction["value"]),
       data: hexToBytes(optimalQuote.transaction["data"]),
-      type: GnosisTransactionType.execTransaction,
+      type: GnosisTransactionType.execTransactionFromModule,
     );
     //
     if (approveRouterTransaction != null){
