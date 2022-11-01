@@ -2,6 +2,12 @@
     package="com.candide.candide_mobile_app">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
    <application
         android:label="candide_mobile_app"
         android:name="${applicationName}"
