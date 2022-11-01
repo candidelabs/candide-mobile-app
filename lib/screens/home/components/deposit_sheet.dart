@@ -6,6 +6,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -143,9 +145,37 @@ class _DepositSheetState extends State<DepositSheet> {
                 ],
               ),
               const SizedBox(height: 50,),
+              const DepositAlertFundsLoss(),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class DepositAlertFundsLoss extends StatelessWidget {
+  const DepositAlertFundsLoss({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return 
+    Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+      child: RichText(
+        text: TextSpan(
+            text: "Make sure that you are depositing on ",
+            style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
+            children: [
+              TextSpan(
+                  text: SettingsData.network,
+                  style: TextStyle(color: Networks.get(SettingsData.network)!.color)
+              ),
+              const TextSpan(
+                text: " network, otherwise funds will be lost.",
+              ),
+            ]
+        ),
       ),
     );
   }
