@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DepositSheet extends StatefulWidget {
   final String address;
@@ -18,7 +19,13 @@ class DepositSheet extends StatefulWidget {
 
 class _DepositSheetState extends State<DepositSheet> {
   bool _addressCopied = false;
+  late String tweetUrl;
 
+  @override
+  void initState() {
+    tweetUrl = "https://twitter.com/intent/tweet?text=I%27m+claiming+testnet+tokens+for+%40candidewallet%2C+a+smart+contract+wallet+based+on+ERC4337!%0A%0AMy+Address%3A+${widget.address}";
+    super.initState();
+  }
 
   copyAddress() async {
     Clipboard.setData(ClipboardData(text: widget.address));
@@ -28,6 +35,13 @@ class _DepositSheetState extends State<DepositSheet> {
     setState(() => _addressCopied = false);
   }
 
+  tweetToClaimTestTokens() async {
+    if(await canLaunch(tweetUrl)) {
+      await launch(tweetUrl);
+    } else {
+      throw "Could not launch $tweetUrl";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,6 +120,22 @@ class _DepositSheetState extends State<DepositSheet> {
                           Text("Copied!", style: TextStyle(color: Colors.green),),
                         ],
                       ),
+                    ),
+                  ),
+                  const SizedBox(width: 5,),
+                  SizedBox(
+                    width: 65,
+                    child: ElevatedButton(
+                      onPressed: tweetToClaimTestTokens,
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                        elevation: MaterialStateProperty.all(0),
+                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                            borderRadius: const BorderRadius.all(Radius.circular(0)),
+                            side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 1.5)
+                        )),
+                      ),
+                      child: const Icon(PhosphorIcons.twitterLogo, color: Colors.black, size: 20,),
                     ),
                   ),
                 ],
