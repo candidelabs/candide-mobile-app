@@ -160,7 +160,8 @@ class _SendSheetState extends State<SendSheet> {
   }
 
   confirmTransactions(String masterPassword) async {
-    Credentials? signer = WalletHelpers.decryptSigner(
+    var cancelLoad = Utils.showLoading();
+    Credentials? signer = await WalletHelpers.decryptSigner(
       AddressData.wallet,
       masterPassword,
       AddressData.wallet.salt,
@@ -191,7 +192,6 @@ class _SendSheetState extends State<SendSheet> {
       contentColor: Get.theme.colorScheme.primary,
       align: Alignment.topCenter,
     );
-    var cancelLoad = Utils.showLoading();
     //
     RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
     if (response?.status == "PENDING"){

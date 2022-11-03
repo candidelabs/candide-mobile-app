@@ -7,7 +7,6 @@ class AppThemes {
     brightness: Brightness.dark,
     primaryColor: const Color(0xFFF8ECE1),
     colorScheme: const ColorScheme.dark(
-      //background: Color(0xff001219),
       primary: Color(0xFFF8ECE1),
       onPrimary: Color(0xFF1F2546),
     ),

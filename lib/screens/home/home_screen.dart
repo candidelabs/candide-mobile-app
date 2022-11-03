@@ -1,8 +1,8 @@
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardians_page.dart';
 import 'package:candide_mobile_app/screens/home/overview_screen.dart';
+import 'package:candide_mobile_app/screens/home/settings/settings_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
@@ -17,9 +17,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   var pagesList = [
     const OverviewScreen(),
-    // Container(),
     const GuardiansPage(),
-    // Container(),
+    const SettingsScreen(),
   ];
   bool reverse = false;
   int currentIndex = 0;
@@ -75,11 +74,11 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text("Security"),
               selectedColor: const Color(0xffdf695e),
             ),
-            /*SalomonBottomBarItem(
+            SalomonBottomBarItem(
               icon: const Icon(PhosphorIcons.gearLight, size: 25,),
               title: const Text("Settings"),
               selectedColor: const Color(0xffebb577),
-            ),*/
+            ),
           ],
         ),
       ),

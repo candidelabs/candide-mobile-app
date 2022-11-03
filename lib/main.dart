@@ -11,7 +11,7 @@ void main() async {
   await Env.initialize();
   Magic.instance = Magic.custom(
       Env.magicApiKey,
-      rpcUrl: "https://mainnet.infura.io/v3/db07a0ccb47b4318888ab6d61f7bfb13",
+      rpcUrl: Env.nodeRpcEndpoint,
       chainId: 5
   );
   await Hive.initFlutter();

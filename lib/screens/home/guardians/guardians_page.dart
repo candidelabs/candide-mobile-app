@@ -2,6 +2,7 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/magic_email_sheet.dart';
+import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/gestures.dart';
@@ -23,6 +24,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
 
   void fetchGuardians() async {
     setState(() => _loading = true);
+    await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hex,);
     await AddressData.loadGuardians();
     //AddressData.guardians = [];
     if (!mounted) return;

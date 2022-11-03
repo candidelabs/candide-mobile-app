@@ -71,7 +71,8 @@ class GuardianOperationsHelper {
   }
 
   static confirmTransactions(String masterPassword, Batch batch) async {
-    Credentials? signer = WalletHelpers.decryptSigner(
+    var cancelLoad = Utils.showLoading();
+    Credentials? signer = await WalletHelpers.decryptSigner(
       AddressData.wallet,
       masterPassword,
       AddressData.wallet.salt,
@@ -95,14 +96,12 @@ class GuardianOperationsHelper {
       SettingsData.network,
       unsignedUserOperations,
     );
-
     BotToast.showText(
       text: "Transaction sent, this might take a minute...",
       textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
       contentColor: Get.theme.colorScheme.primary,
       align: Alignment.topCenter,
     );
-    var cancelLoad = Utils.showLoading();
     //
     RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
     if (response?.status == "PENDING"){
@@ -137,19 +136,14 @@ class GuardianOperationsHelper {
     bool setupSocialModule = true;
     int friendsCount = 0;
     int threshold = 1;
-    print("M0");
     if (AddressData.walletStatus.socialModuleDeployed){
-      print("M1");
       EthereumAddress recoveryManager = await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).manager();
-      print("M2");
       if (recoveryManager.hex == AddressData.wallet.walletAddress.hex){
-        print("M3");
         setupSocialModule = false;
         friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).getFriends()).length;
         threshold = (((friendsCount + 1) / 2 ) + 1).floor();
       }
     }
-    print("M4");
     List<GnosisTransaction> transactions = GuardianController.buildGrantTransactions(
         socialModuleDeployed: AddressData.walletStatus.socialModuleDeployed,
         setup: setupSocialModule,
@@ -158,19 +152,14 @@ class GuardianOperationsHelper {
         threshold: threshold,
     );
     grantBatch.transactions.addAll(transactions);
-    print("M5");
     //
     List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
-    print("M6");
     if (feeCurrencies == null){
       // todo handle network errors
       return false;
     }else{
-      print("M7");
       await grantBatch.changeFeeCurrencies(feeCurrencies);
-      print("M8");
     }
-    print("M9");
     //
     cancelLoad();
     cancelLoad = null;
@@ -263,27 +252,20 @@ class GuardianOperationsHelper {
   }
 
   static Future<bool> setupMagicLinkGuardian(String email) async {
-    print("K0");
     CancelFunc? cancelLoad = Utils.showLoading();
     bool? refresh = false;
     try {
-      print("K1");
       var magic = Magic.instance;
       var isLoggedIn = await magic.user.isLoggedIn();
       if (isLoggedIn){
         await magic.user.logout();
       }
-      print("K2");
       await magic.auth.loginWithMagicLink(email: email);
-      print("K3");
       var metadata = await magic.user.getMetadata();
-      print("K4");
       cancelLoad.call();
       cancelLoad = null;
       if (metadata.publicAddress == null) return false;
-      print("K5");
       refresh = await grantGuardian(metadata.publicAddress!, magicLinkData: {"email":email});
-      print("K6");
     } on Exception catch (e) {
       cancelLoad?.call();
       print(e);
@@ -330,7 +312,6 @@ class GuardianRecoveryHelper{
       try{
         final contract = DeployedContract(ContractAbi.fromJson(abi, 'EIP4337Fallback'), module);
         var moduleManagerAddress = await Constants.client.call(contract: contract, function: contract.function("eip4337manager"), params: []);
-        print("Fallback: ${module.hexEip55}");
         return moduleManagerAddress[0];
       }catch (e){
         continue;
@@ -353,8 +334,6 @@ class GuardianRecoveryHelper{
     //
     EthereumAddress? socialModuleAddress = await getSocialRecoveryModule(address, modulesPaginated);
     EthereumAddress? moduleManagerAddress = await getModuleManagerAddress(address, modulesPaginated);
-    print(socialModuleAddress?.hexEip55);
-    print(moduleManagerAddress?.hexEip55);
     if (socialModuleAddress == null || moduleManagerAddress == null){
       cancelLoad();
       Utils.showError(title: "Error", message: "This wallet does not have any guardians, unfortunately this means this wallet cannot be recovered, contact us to learn more");

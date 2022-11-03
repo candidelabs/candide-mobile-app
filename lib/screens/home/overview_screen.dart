@@ -69,13 +69,14 @@ class _OverviewScreenState extends State<OverviewScreen> {
           const SizedBox(height: 20,),
           BalanceCard(
             balanceVisible: balancesVisible,
-            onPressVisibilityIcon: () {
+            onPressVisibilityIcon: () async {
+              //
               /*print(jsonEncode(AddressData.wallet.toJson()));
               //var x = await Constants.ens.withAddress(EthereumAddress.fromHex("0xdbd510f9EBB7A81209FcCD12A56f6c6354AA8caB")).getName();
               print(AddressData.walletStatus.proxyDeployed);
               print(AddressData.walletStatus.managerDeployed);
               print(AddressData.walletStatus.socialModuleDeployed);
-              print(bytesToHex((WalletHelpers.decryptSigner(AddressData.wallet, "002500Gg!", AddressData.wallet.salt) as EthPrivateKey).privateKey, include0x: true));
+              //print(bytesToHex((WalletHelpers.decryptSigner(AddressData.wallet, "002500Gg!", AddressData.wallet.salt) as EthPrivateKey).privateKey, include0x: true));
               return;*/
               setState(() {
                 balancesVisible = !balancesVisible;

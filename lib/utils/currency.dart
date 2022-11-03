@@ -19,6 +19,7 @@ class CurrencyUtils {
     }
     for (CurrencyBalance balance in AddressData.currencies){
       if (balance.currency == base){
+        if (balance.balance == BigInt.zero) return BigInt.zero;
         return (value * balance.currentBalanceInQuote) ~/ balance.balance;
       }
     }

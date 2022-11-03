@@ -68,7 +68,10 @@ class AddressData {
 
   static loadGuardians() async {
     if (wallet == null) return;
-    if (!walletStatus.socialModuleDeployed) return;
+    if (!walletStatus.socialModuleDeployed){
+      guardians.clear();
+      return;
+    }
     var json = Hive.box("state").get("guardians_metadata");
     Map<String, List<dynamic>> metadata = {};
     //

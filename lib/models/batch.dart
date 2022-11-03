@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:candide_mobile_app/config/network.dart';
@@ -62,14 +63,9 @@ class Batch {
   Future<void> _adjustFeeCurrencyCosts() async{
     configureNonces(AddressData.walletStatus.nonce);
     List<UserOperation> userOps = await toUserOperations(AddressData.wallet, proxyDeployed: AddressData.walletStatus.proxyDeployed, skipPaymasterData: true);
-    BigInt fee = FeeCurrencyUtils.calculateFee(userOps);
-    BigInt etherFee = FeeCurrencyUtils.calculateEtherFee(userOps);
     for (FeeCurrency feeCurrency in _feeCurrencies){
-      if (feeCurrency.currency.symbol == Networks.get(SettingsData.network)!.nativeCurrency){
-        feeCurrency.fee = etherFee;
-      }else{
-        feeCurrency.fee = fee;
-      }
+      bool isEther = feeCurrency.currency.symbol == Networks.get(SettingsData.network)!.nativeCurrency;
+      feeCurrency.fee = FeeCurrencyUtils.calculateFee(userOps, feeCurrency.conversion, isEther);
     }
   }
 
@@ -139,7 +135,6 @@ class Batch {
     }
     if (!managerDeployed){
       managerSalt = bytesToHex(keccak256(Uint8List.fromList("${instance.salt}_moduleManager".codeUnits)), include0x: true);
-      print(managerSalt);
     }
     //
     int nonce = transactions[0].nonce.toInt() - transactions.length;
@@ -173,6 +168,12 @@ class Batch {
       op.verificationGas = gasEstimates[index].verificationGas;
       op.maxFeePerGas = gasEstimates[index].maxFeePerGas;
       op.maxPriorityFeePerGas = gasEstimates[index].maxPriorityFeePerGas;
+      if (transactions[index].id == "social-deploy" || op.initCode != "0x"){
+        op.callGas = 2150000;
+        if (op.initCode != "0x"){
+          op.preVerificationGas = 4000000;
+        }
+      }
       index++;
     }
     if (includesPaymaster && !skipPaymasterData){
@@ -194,9 +195,11 @@ class BatchUtils {
       suggestedMaxFeePerGas = EtherAmount.fromUnitAndValue(EtherUnit.mwei, suggestedMaxFeePerGas).getInWei.toInt();
       suggestedMaxPriorityFeePerGas = EtherAmount.fromUnitAndValue(EtherUnit.mwei, suggestedMaxPriorityFeePerGas).getInWei.toInt();
       //
+      suggestedMaxFeePerGas = min(suggestedMaxFeePerGas, EtherAmount.fromUnitAndValue(EtherUnit.gwei, 35).getInWei.toInt());
+      //
       return [suggestedMaxFeePerGas, suggestedMaxPriorityFeePerGas];
     } on DioError catch(e){
-      print("Error occured ${e.type.toString()}");
+      print("Error occurred ${e.type.toString()}");
       return null;
     }
   }
@@ -206,7 +209,7 @@ class BatchUtils {
     List<int> networkFees = await getNetworkGasFees(chainId) ?? [0, 0];
     for (UserOperation op in userOps){
       int preVerificationGas = op.pack().length * 5 + 18000;
-      GasEstimate gasEstimate = GasEstimate(callGas: 2150000, preVerificationGas: preVerificationGas, verificationGas: 645000, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
+      GasEstimate gasEstimate = GasEstimate(callGas: 1000000, verificationGas: 1000000, preVerificationGas: preVerificationGas, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
       results.add(gasEstimate);
     }
     return results;

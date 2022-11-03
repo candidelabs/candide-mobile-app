@@ -15,14 +15,17 @@ class Bundler {
 
   static Future<List<UserOperation>> signUserOperations(Credentials signer, String network, List<UserOperation> userOperations) async{
     List<UserOperation> signedOperations = [];
+    List<Uint8List> requestIds = (await getRequestIds(userOperations))!;
+    int index = 0;
     for (UserOperation operation in userOperations){
       UserOperation signedOperation = UserOperation.fromJson(operation.toJson());
       await signedOperation.sign(
         signer,
         Networks.get(network)!.chainId,
-        overrideRequestId: await getRequestId(operation, network)
+        overrideRequestId: requestIds[index],
       );
       signedOperations.add(signedOperation);
+      index++;
     }
     return signedOperations;
   }
@@ -42,9 +45,12 @@ class Bundler {
       );
       //
       //RelayResponse relayResponse = RelayResponse(status: response.data["status"], hash: response.data["hash"] ?? "");
-      return RelayResponse(status: "SUCCESS", hash: ""); // todo real output
+      if ((response.data as Map).containsKey("error")){
+        return RelayResponse(status: "FAIL", hash: "");
+      }
+      return RelayResponse(status: "SUCCESS", hash: "");
     } on DioError catch(e){
-      print("Error occured ${e.type.toString()}");
+      print("Error occurred ${e.type.toString()}");
       return null;
     }
   }
@@ -64,11 +70,11 @@ class Bundler {
         var _tokenData = jsonDecode(tokenData.replaceAll("'", '"'));
         CurrencyMetadata? _currency = CurrencyMetadata.findByAddress(_tokenData["address"]);
         if (_currency == null) continue;
-        result.add(FeeCurrency(currency: _currency, fee: _tokenData["price"].runtimeType == String ? BigInt.parse(_tokenData["price"]) : BigInt.from(_tokenData["price"])));
+        result.add(FeeCurrency(currency: _currency, fee: BigInt.zero, conversion: _tokenData["tokenToEthPrice"].runtimeType == String ? BigInt.parse(_tokenData["tokenToEthPrice"]) : BigInt.from(_tokenData["tokenToEthPrice"])));
       }
       return result;
     } on DioError catch(e){
-      print("Error occured ${e.type.toString()}");
+      print("Error occurred ${e.type.toString()}");
       return null;
     }
   }
@@ -101,7 +107,7 @@ class Bundler {
 
       return result;
     } on DioError catch(e){
-      print("Error occured ${e.type.toString()}");
+      print("Error occurred ${e.type.toString()}");
       return null;
     }
   }
@@ -123,29 +129,33 @@ class Bundler {
       //
       return (response.data["result"] as List<dynamic>).cast<String>();
     } on DioError catch(e){
-      print("Error occured ${e.type.toString()}");
+      print("Error occurred ${e.type.toString()}");
       return null;
     }
   }
 
 
-  static Future<Uint8List?> getRequestId(UserOperation userOperation, String network, {bool returnHash=false}) async{
+  static Future<List<Uint8List>?> getRequestIds(List<UserOperation> userOperations) async{
     try{
       var response = await Dio().post(
           "${Env.bundlerUri}/jsonrpc/bundler",
           data: jsonEncode({
             "jsonrpc": "2.0",
             "id": 1,
-            "method": "eth_getRequestId",
-            "params": [
-              userOperation.toJson()
-            ]
+            "method": "eth_getRequestIds",
+            "params": {
+              "request": userOperations.map((e) => e.toJson()).toList(),
+            }
           })
       );
       //
-      return hexToBytes(response.data["result"]);
+      List<Uint8List> result = [];
+      for (String requestId in response.data["result"]){
+        result.add(hexToBytes(requestId));
+      }
+      return result;
     } on DioError catch(e){
-      print("Error occured ${e.type.toString()}");
+      print("Error occurred ${e.type.toString()}");
       return null;
     }
   }

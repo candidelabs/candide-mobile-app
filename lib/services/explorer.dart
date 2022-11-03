@@ -10,17 +10,19 @@ import 'package:wallet_dart/contracts/wallet.dart';
 class Explorer {
 
   static fetchAddressOverview({
-      required String network,
-      required String quoteCurrency,
+      String? network,
+      String? quoteCurrency,
       required String address,
-      required List<String> currencyList}) async {
+      List<String>? currencyList}) async {
     try{
-      var response = await Dio().post("${Env.explorerUri}/v1/address/$address", data: jsonEncode({
-        "network": network,
-        "quoteCurrency": quoteCurrency,
-        "currencies": currencyList,
-      }));
-      await AddressData.updateExplorerJson(response.data);
+      if (currencyList != null && currencyList.isNotEmpty){
+        var response = await Dio().post("${Env.explorerUri}/v1/address/$address", data: jsonEncode({
+          "network": network ?? "Goerli",
+          "quoteCurrency": quoteCurrency ?? "USDT",
+          "currencies": currencyList,
+        }));
+        await AddressData.updateExplorerJson(response.data);
+      }
       //
       bool proxyDeployed = true;
       bool managerDeployed = true;

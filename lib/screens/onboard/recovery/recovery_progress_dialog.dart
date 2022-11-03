@@ -24,10 +24,10 @@ class _RecoveryProgressDialogState extends State<RecoveryProgressDialog> {
     }
     var owner = (await walletInterface.getOwners())[0];
     if (owner.hex.toLowerCase() == widget.expectedOwner.toLowerCase()){
+      if (!mounted) return;
       Navigator.pop(context, true);
       return;
     }
-    print("false $checks");
     if (!mounted) return;
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;

@@ -1,6 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class PromptPasswordDialog extends StatefulWidget {
   final Function(String) onConfirm;

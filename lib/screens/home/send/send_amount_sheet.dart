@@ -1,7 +1,5 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';

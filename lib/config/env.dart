@@ -6,6 +6,7 @@ class Env {
   static late String legacyBundlerUri;
   static late String securityUri;
   static late String magicApiKey;
+  static late String nodeRpcEndpoint;
 
   static initialize() async {
     await dotenv.load(fileName: ".env");
@@ -14,5 +15,6 @@ class Env {
     bundlerUri = dotenv.get('BUNDLER_URL', fallback: 'http://192.168.1.3:3002');
     securityUri = dotenv.get('SECURITY_URL', fallback: 'http://192.168.1.3:3004');
     magicApiKey = dotenv.get('MAGIC_API_KEY', fallback: '-');
+    nodeRpcEndpoint = dotenv.get('NODE_RPC_ENDPOINT', fallback: '-');
   }
 }

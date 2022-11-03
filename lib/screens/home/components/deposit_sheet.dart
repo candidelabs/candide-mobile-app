@@ -2,8 +2,6 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
@@ -39,8 +37,8 @@ class _DepositSheetState extends State<DepositSheet> {
   }
 
   tweetToClaimTestTokens() async {
-    if(await canLaunch(tweetUrl)) {
-      await launch(tweetUrl);
+    if(await canLaunchUrl(Uri.parse(tweetUrl))) {
+      await launchUrl(Uri.parse(tweetUrl));
     } else {
       throw "Could not launch $tweetUrl";
     }
@@ -144,8 +142,9 @@ class _DepositSheetState extends State<DepositSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: 50,),
+              const SizedBox(height: 10,),
               const DepositAlertFundsLoss(),
+              const SizedBox(height: 35,),
             ],
           ),
         ],
@@ -161,8 +160,9 @@ class DepositAlertFundsLoss extends StatelessWidget {
   Widget build(BuildContext context) {
     return 
     Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       child: RichText(
+        textAlign: TextAlign.center,
         text: TextSpan(
             text: "Make sure that you are depositing on ",
             style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),

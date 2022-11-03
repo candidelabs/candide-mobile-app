@@ -141,7 +141,8 @@ class _SwapSheetState extends State<SwapSheet> {
   }
 
   confirmTransactions(String masterPassword) async {
-    Credentials? signer = WalletHelpers.decryptSigner(
+    var cancelLoad = Utils.showLoading();
+    Credentials? signer = await WalletHelpers.decryptSigner(
       AddressData.wallet,
       masterPassword,
       AddressData.wallet.salt,
@@ -166,15 +167,12 @@ class _SwapSheetState extends State<SwapSheet> {
       SettingsData.network,
       unsignedUserOperations!,
     );
-
     BotToast.showText(
       text: "Transaction sent, this might take a minute...",
       textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
       contentColor: Get.theme.colorScheme.primary,
       align: Alignment.topCenter,
     );
-
-    var cancelLoad = Utils.showLoading();
     //
     RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
     if (response?.status == "PENDING"){

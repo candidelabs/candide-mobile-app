@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -49,11 +48,6 @@ class Utils {
     return BotToast.showCustomLoading(
       toastBuilder: (CancelFunc func) => const _LoadingWidget(),
     );
-  }
-
-  static void printWrapped(String text) {
-    final pattern = RegExp('.{1,800}'); // 800 is the size of each chunk
-    pattern.allMatches(text).forEach((match) => print(match.group(0)));
   }
 
 }
