@@ -38,7 +38,7 @@ class _DepositSheetState extends State<DepositSheet> {
 
   tweetToClaimTestTokens() async {
     if(await canLaunchUrl(Uri.parse(tweetUrl))) {
-      await launchUrl(Uri.parse(tweetUrl));
+      await launchUrl(Uri.parse(tweetUrl), mode: LaunchMode.externalApplication);
     } else {
       throw "Could not launch $tweetUrl";
     }
