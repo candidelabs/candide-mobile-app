@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/confirm_dialog.dart';
@@ -82,8 +83,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (delete){
                     await Hive.box("wallet").delete("main");
                     await Hive.box("state").clear();
+                    Get.off(const LandingScreen());
                   }
-                  Get.off(const LandingScreen());
                 },
                 style: ButtonStyle(
                   elevation: MaterialStateProperty.all(0),
@@ -96,7 +97,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text("Remove Wallet", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, color: Colors.redAccent[700]),),
               ),
             ),
-            kDebugMode ? Column(
+            kDebugMode || Env.testnet ? Column(
               children: [
                 const SizedBox(height: 10,),
                 const Divider(indent: 10, endIndent: 10, thickness: 2,),
