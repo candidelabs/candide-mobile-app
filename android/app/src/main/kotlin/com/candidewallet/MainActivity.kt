@@ -1,4 +1,4 @@
-package com.candide.candide_mobile_app
+package com.candidewallet
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
