@@ -22,13 +22,6 @@ class Networks {
             decimals: 18,
             logo: SvgPicture.asset("assets/images/ethereum.svg"),
           ),
-          "WETH": CurrencyMetadata(
-            address: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
-            name: "Wrapped Ethereum",
-            symbol: "WETH",
-            decimals: 18,
-            logo: SvgPicture.asset("assets/images/optimism.svg"),
-          ),
           "UNI": CurrencyMetadata(
             address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
             name: "Uniswap",
