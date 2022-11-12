@@ -10,8 +10,10 @@ import 'package:candide_mobile_app/screens/home/components/currency_selection_sh
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SwapMainSheet extends StatefulWidget {
@@ -24,6 +26,7 @@ class SwapMainSheet extends StatefulWidget {
 
 class _SwapMainSheetState extends State<SwapMainSheet> {
   final TextEditingController _baseController = TextEditingController(text: "0.0");
+  final FocusNode _baseFocusNode = FocusNode();
   //
   String errorMessage = "Swapping amount must be greater than zero";
   final _errors = {
@@ -102,179 +105,185 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     }
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          controller: Get.find<ScrollController>(tag: "swap_modal"),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: constraints.maxWidth, minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Column(
-                children: [
-                  const SizedBox(height: 25,),
-                  Text("Swap", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
-                  const SizedBox(height: 35,),
-                  Row(
-                    children: [
-                      const SizedBox(width: 25,),
-                      Expanded(
-                        child: _CurrencySelector(
-                          currency: baseCurrency,
-                          onChange: (currency){
-                            if (currency == baseCurrency) return;
-                            if (currency == quoteCurrency){
-                              swapCurrencies();
-                              return;
-                            }
-                            setState(() => baseCurrency = currency);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12.5,),
-                      Expanded(
-                        child: Focus(
-                          onFocusChange: (hasFocus){
-                            handleFocus(hasFocus);
-                          },
-                          child: TextField(
-                            controller: _baseController,
-                            style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
-                            textAlign: TextAlign.center,
-                            decoration: InputDecoration(
-                              contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 10),
-                              border: ContinousInputBorder(
-                                borderRadius: const BorderRadius.all(Radius.circular(25)),
-                                borderSide: BorderSide(color: Get.theme.colorScheme.primary)
-                              )
-                            ),
-                            onChanged: (val){
-                              if (showTable){
-                                setState(() => showTable = false);
+        return KeyboardActions(
+          config: Utils.getiOSNumericKeyboardConfig(context, _baseFocusNode),
+          child: SingleChildScrollView(
+            controller: Get.find<ScrollController>(tag: "swap_modal"),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth, minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 25,),
+                    Text("Swap", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
+                    const SizedBox(height: 35,),
+                    Row(
+                      children: [
+                        const SizedBox(width: 25,),
+                        Expanded(
+                          child: _CurrencySelector(
+                            currency: baseCurrency,
+                            onChange: (currency){
+                              if (currency == baseCurrency) return;
+                              if (currency == quoteCurrency){
+                                swapCurrencies();
+                                return;
                               }
-                              if (val.isEmpty){
-                                val = "0";
-                              }
-                              amount = double.parse(val);
-                              if (amount == 0){
-                                if (errorMessage != _errors["zero"]) {
-                                  setState(() {
-                                    errorMessage = _errors["zero"]!;
-                                  });
-                                }
-                              }else if (amount > double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))){
-                                if (errorMessage != _errors["balance"]){
-                                  setState(() {
-                                    errorMessage = _errors["balance"]!;
-                                  });
-                                }
-                              }else if (errorMessage.isNotEmpty){
-                                setState(() {
-                                  errorMessage = "";
-                                });
-                              }
+                              setState(() => baseCurrency = currency);
                             },
                           ),
                         ),
+                        const SizedBox(width: 12.5,),
+                        Expanded(
+                          child: Focus(
+                            onFocusChange: (hasFocus){
+                              handleFocus(hasFocus);
+                            },
+                            child: TextFormField(
+                              controller: _baseController,
+                              focusNode: _baseFocusNode,
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\.?\d*(?<!\.)\.?\d*'))],
+                              style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 10),
+                                border: ContinousInputBorder(
+                                  borderRadius: const BorderRadius.all(Radius.circular(25)),
+                                  borderSide: BorderSide(color: Get.theme.colorScheme.primary)
+                                )
+                              ),
+                              onChanged: (val){
+                                if (showTable){
+                                  setState(() => showTable = false);
+                                }
+                                if (val.isEmpty || val == "."){
+                                  val = "0";
+                                }
+                                amount = double.parse(val);
+                                if (amount == 0){
+                                  if (errorMessage != _errors["zero"]) {
+                                    setState(() {
+                                      errorMessage = _errors["zero"]!;
+                                    });
+                                  }
+                                }else if (amount > double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))){
+                                  if (errorMessage != _errors["balance"]){
+                                    setState(() {
+                                      errorMessage = _errors["balance"]!;
+                                    });
+                                  }
+                                }else if (errorMessage.isNotEmpty){
+                                  setState(() {
+                                    errorMessage = "";
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 25,),
+                      ],
+                    ),
+                    const SizedBox(height: 10,),
+                    Container(
+                      margin: const EdgeInsets.only(right: 27),
+                      alignment: Alignment.centerRight,
+                      child: RichText(
+                        text: TextSpan(
+                          text: "Balance: ",
+                          style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),
+                          children: [
+                            TextSpan(
+                              text: "${double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))} $baseCurrency",
+                              style: const TextStyle(color: Colors.white),
+                            )
+                          ]
+                        ),
                       ),
-                      const SizedBox(width: 25,),
-                    ],
-                  ),
-                  const SizedBox(height: 10,),
-                  Container(
-                    margin: const EdgeInsets.only(right: 27),
-                    alignment: Alignment.centerRight,
-                    child: RichText(
-                      text: TextSpan(
-                        text: "Balance: ",
-                        style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),
-                        children: [
-                          TextSpan(
-                            text: "${double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))} $baseCurrency",
-                            style: const TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 10,),
+                    Card(
+                      shape: ContinuousRectangleBorder(
+                        borderRadius: BorderRadius.circular(25.0),
+                      ),
+                      child: IconButton(
+                        onPressed: (){
+                          swapCurrencies();
+                        },
+                        icon: const Icon(FontAwesomeIcons.upDown),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                    Row(
+                      children: [
+                        const SizedBox(width: 25,),
+                        Expanded(
+                          child: _CurrencySelector(
+                            currency: quoteCurrency,
+                            onChange: (currency){
+                              if (currency == quoteCurrency) return;
+                              if (currency == baseCurrency){
+                                swapCurrencies();
+                                return;
+                              }
+                              setState(() => quoteCurrency = currency);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12.5,),
+                        Expanded(
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Text(CurrencyUtils.formatCurrency(quote?.amount ?? BigInt.zero, quoteCurrency, includeSymbol: false), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25)),
+                          ),
+                        ),
+                        const SizedBox(width: 25,),
+                      ],
+                    ),
+                    SizedBox(height: showTable ? 20 : 0,),
+                    showTable ? Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                      child: SummaryTable(entries: [
+                        SummaryTableEntry(title: "Rate", value: CurrencyUtils.formatRate(baseCurrency, quoteCurrency, quote?.rate ?? BigInt.zero)),
+                      ]),
+                    ) : const SizedBox.shrink(),
+                    const Spacer(),
+                    errorMessage.isNotEmpty ? Container(
+                      margin: EdgeInsets.symmetric(horizontal: Get.width * 0.1),
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      width: double.maxFinite,
+                      height: 40,
+                      decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: Colors.red,
                           )
-                        ]
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 10,),
-                  Card(
-                    shape: ContinuousRectangleBorder(
-                      borderRadius: BorderRadius.circular(25.0),
-                    ),
-                    child: IconButton(
-                      onPressed: (){
-                        swapCurrencies();
-                      },
-                      icon: const Icon(FontAwesomeIcons.upDown),
-                    ),
-                  ),
-                  const SizedBox(height: 20,),
-                  Row(
-                    children: [
-                      const SizedBox(width: 25,),
-                      Expanded(
-                        child: _CurrencySelector(
-                          currency: quoteCurrency,
-                          onChange: (currency){
-                            if (currency == quoteCurrency) return;
-                            if (currency == baseCurrency){
-                              swapCurrencies();
-                              return;
-                            }
-                            setState(() => quoteCurrency = currency);
-                          },
-                        ),
+                      child: Center(
+                          child: Text(errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red),)
                       ),
-                      const SizedBox(width: 12.5,),
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.center,
-                          child: Text(CurrencyUtils.formatCurrency(quote?.amount ?? BigInt.zero, quoteCurrency, includeSymbol: false), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25)),
-                        ),
+                    ) : const SizedBox.shrink(),
+                    SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
+                    ElevatedButton(
+                      onPressed: errorMessage.isEmpty ? (){
+                        widget.onPressReview.call(baseCurrency, amount, quoteCurrency, quote!);
+                      } : null,
+                      style: ButtonStyle(
+                        minimumSize: MaterialStateProperty.all(Size(Get.width * 0.8, 40)),
+                        shape: MaterialStateProperty.all(const BeveledRectangleBorder(
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(7),
+                          ),
+                        )),
                       ),
-                      const SizedBox(width: 25,),
-                    ],
-                  ),
-                  SizedBox(height: showTable ? 20 : 0,),
-                  showTable ? Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 10),
-                    child: SummaryTable(entries: [
-                      SummaryTableEntry(title: "Rate", value: CurrencyUtils.formatRate(baseCurrency, quoteCurrency, quote?.rate ?? BigInt.zero)),
-                    ]),
-                  ) : const SizedBox.shrink(),
-                  const Spacer(),
-                  errorMessage.isNotEmpty ? Container(
-                    margin: EdgeInsets.symmetric(horizontal: Get.width * 0.1),
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    width: double.maxFinite,
-                    height: 40,
-                    decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.all(
-                          color: Colors.red,
-                        )
+                      child: Text("Review", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),),
                     ),
-                    child: Center(
-                        child: Text(errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red),)
-                    ),
-                  ) : const SizedBox.shrink(),
-                  SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
-                  ElevatedButton(
-                    onPressed: errorMessage.isEmpty ? (){
-                      widget.onPressReview.call(baseCurrency, amount, quoteCurrency, quote!);
-                    } : null,
-                    style: ButtonStyle(
-                      minimumSize: MaterialStateProperty.all(Size(Get.width * 0.8, 40)),
-                      shape: MaterialStateProperty.all(const BeveledRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(7),
-                        ),
-                      )),
-                    ),
-                    child: Text("Review", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),),
-                  ),
-                  const SizedBox(height: 25,),
-                ],
-              ),
-            )
+                    const SizedBox(height: 25,),
+                  ],
+                ),
+              )
+            ),
           ),
         );
       }
