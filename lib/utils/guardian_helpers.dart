@@ -172,7 +172,6 @@ class GuardianOperationsHelper {
           guardian: address,
           batch: grantBatch,
           onConfirm: (){
-            cancelLoad = Utils.showLoading();
             onConfirmTransaction(grantBatch);
           },
         );
