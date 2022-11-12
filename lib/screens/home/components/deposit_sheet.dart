@@ -84,8 +84,14 @@ class _DepositSheetState extends State<DepositSheet> {
                   SizedBox(
                     width: 65,
                     child: ElevatedButton(
-                      onPressed: (){
-                        Share.share(widget.address);
+                      onPressed: () {
+                        // _onShare method:
+                        final box = context.findRenderObject() as RenderBox?;
+                        Share.share(
+                          widget.address,
+                          sharePositionOrigin:
+                              box!.localToGlobal(Offset.zero) & box.size,
+                        );
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(Colors.transparent),
