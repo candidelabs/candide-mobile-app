@@ -16,7 +16,6 @@ import 'package:candide_mobile_app/screens/home/components/prompt_password.dart'
 import 'package:candide_mobile_app/screens/home/send/send_amount_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/send_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/send_to_sheet.dart';
-import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -44,7 +43,6 @@ class _SendSheetState extends State<SendSheet> {
   List<UserOperation> userOperations = [];
   List<UserOperation>? unsignedUserOperations = [];
   Map fee = {};
-  double amount = 0;
   //
   Batch? sendBatch;
   //
@@ -74,14 +72,12 @@ class _SendSheetState extends State<SendSheet> {
   }
   //
 
-  onPressReview(String _currency, double _amount) async {
+  onPressReview(String _currency, BigInt value) async {
     currency = _currency;
-    amount = _amount;
     var cancelLoad = Utils.showLoading();
     //
     sendBatch = Batch();
     //
-    BigInt value = CurrencyUtils.parseCurrency(amount.toString(), currency);
     GnosisTransaction transaction = SendController.buildTransaction(
       sendCurrency: _currency,
       to: toAddress,

@@ -16,7 +16,6 @@ import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_main_sheet.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_review_sheet.dart';
-import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,7 +39,6 @@ class _SwapSheetState extends State<SwapSheet> {
   int currentIndex = 0;
   //
   String baseCurrency = "";
-  double baseAmount = 0;
   String quoteCurrency = "";
   OptimalQuote? quote;
   List<UserOperation> userOperations = [];
@@ -65,13 +63,10 @@ class _SwapSheetState extends State<SwapSheet> {
   }
   //
 
-  onPressReview(String bc, double bcAmount, String qc, OptimalQuote _quote) async {
+  onPressReview(String bc, BigInt baseValue, String qc, OptimalQuote _quote) async {
     baseCurrency = bc;
-    baseAmount = bcAmount;
     quoteCurrency = qc;
     quote = _quote;
-    //
-    BigInt baseValue = CurrencyUtils.parseCurrency(baseAmount.toString(), baseCurrency);
     //
     swapBatch = Batch();
     //
