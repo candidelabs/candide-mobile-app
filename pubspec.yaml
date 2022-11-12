@@ -53,6 +53,7 @@ dependencies:
   salomon_bottom_bar: ^3.3.1
   pull_to_refresh_flutter3: ^2.0.1
   blockies: ^0.1.2
+  keyboard_actions: ^4.1.0
   # Typography
   phosphor_flutter: ^1.4.0
   font_awesome_flutter: ^10.1.0

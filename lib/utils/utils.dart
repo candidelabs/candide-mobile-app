@@ -5,6 +5,7 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
 import 'package:get/get.dart';
+import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:logger/logger.dart';
 
 class Utils {
@@ -47,6 +48,43 @@ class Utils {
   static CancelFunc showLoading(){
     return BotToast.showCustomLoading(
       toastBuilder: (CancelFunc func) => const _LoadingWidget(),
+    );
+  }
+
+  static KeyboardActionsConfig getiOSNumericKeyboardConfig(BuildContext context, FocusNode focusNode){
+    return KeyboardActionsConfig(
+      keyboardActionsPlatform: KeyboardActionsPlatform.IOS,
+      keyboardBarColor: Colors.grey[200],
+      actions: [
+        KeyboardActionsItem(
+          focusNode: focusNode,
+          toolbarButtons: [
+            (node) {
+              return TextButton.icon(
+                onPressed: () => node.unfocus(),
+                style: ButtonStyle(
+                  padding: MaterialStateProperty.all(const EdgeInsets.symmetric(horizontal: 20, vertical: 8)),
+                ),
+                label: Text("Done", style: TextStyle(color: Get.theme.colorScheme.onPrimary)),
+                icon: Icon(Icons.check, color: Get.theme.colorScheme.onPrimary, size: 15,),
+              );
+            },
+            /*(node) {
+              return GestureDetector(
+                onTap: () => node.unfocus(),
+                child: Container(
+                  color: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
+                  child: Text(
+                    "Done",
+                    style: TextStyle(color: Get.theme.colorScheme.onPrimary),
+                  ),
+                ),
+              );
+            },*/
+          ]
+        ),
+      ]
     );
   }
 
