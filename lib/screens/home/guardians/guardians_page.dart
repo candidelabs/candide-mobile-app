@@ -11,6 +11,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GuardiansPage extends StatefulWidget {
   const GuardiansPage({Key? key}) : super(key: key);
@@ -348,14 +349,23 @@ class _GuardianCountAlert extends StatelessWidget { // todo move to components
                   style: const TextStyle(height: 1.35),
                   children: [
                     const TextSpan(text: "3 guardians ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                    const TextSpan(text: "to fully protect your wallet against lost"),
-                    const TextSpan(text: "\nlearn more at"),
-                    TextSpan(
-                      text: " candidewallet.com/security-faqs",
-                      style: const TextStyle(color: Colors.blue),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {}, // todo add faqs url
-                    ),
+                      const TextSpan(
+                          text: "to protect your wallet against loss. Learn more about"),
+                      TextSpan(
+                        text: " account recovery",
+                        style: const TextStyle(color: Colors.blue),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async {
+                            String url =
+                                "https://docs.candidewallet.com/overview/account-recovery";
+                            var urllaunchable = await canLaunchUrl(Uri.parse(url));
+                            if (urllaunchable) {
+                              await launchUrl(Uri.parse(url)); 
+                            } else {
+                              throw "Could not launch URL";
+                            }
+                          }, 
+                      ),
                   ]
                 ),
               ),
