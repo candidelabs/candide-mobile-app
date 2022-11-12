@@ -69,19 +69,6 @@ class Utils {
                 icon: Icon(Icons.check, color: Get.theme.colorScheme.onPrimary, size: 15,),
               );
             },
-            /*(node) {
-              return GestureDetector(
-                onTap: () => node.unfocus(),
-                child: Container(
-                  color: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
-                  child: Text(
-                    "Done",
-                    style: TextStyle(color: Get.theme.colorScheme.onPrimary),
-                  ),
-                ),
-              );
-            },*/
           ]
         ),
       ]
