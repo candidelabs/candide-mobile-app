@@ -17,7 +17,7 @@ import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SwapMainSheet extends StatefulWidget {
-  final Function(String, double, String, OptimalQuote) onPressReview;
+  final Function(String, BigInt, String, OptimalQuote) onPressReview;
   const SwapMainSheet({Key? key, required this.onPressReview}) : super(key: key);
 
   @override
@@ -36,11 +36,12 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
   };
   //
   String baseCurrency = "ETH";
+  BigInt actualAmount = BigInt.zero;
   double amount = 0.0;
   //
   String quoteCurrency = "UNI";
   OptimalQuote? quote;
-  double _lastFetchedAmount = 0.0;
+  BigInt _lastFetchedActualAmount = BigInt.zero;
   bool _retrievingSwapData = false;
   bool showTable = false;
   //
@@ -53,10 +54,9 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     // Fix a bug where handleFocus is called endlessly after swapCurrencies
     listenToFocus = false;
     //
-    BigInt value = CurrencyUtils.parseCurrency(amount.toString(), baseCurrency);
-    quote = await Explorer.fetchSwapQuote(SettingsData.network, baseCurrency, quoteCurrency, value, AddressData.wallet.walletAddress.hex);
+    quote = await Explorer.fetchSwapQuote(SettingsData.network, baseCurrency, quoteCurrency, actualAmount, AddressData.wallet.walletAddress.hex);
     _retrievingSwapData = false;
-    _lastFetchedAmount = amount;
+    _lastFetchedActualAmount = actualAmount;
     Future.delayed(const Duration(milliseconds: 350), (){
       listenToFocus = true;
     });
@@ -88,11 +88,45 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     if (!listenToFocus) return;
     //
     if (!hasFocus){
-      double amount = double.parse(_baseController.value.text.isEmpty ? "0" : _baseController.value.text);
-      if (amount != _lastFetchedAmount && amount > 0){
+      if (!_baseController.value.text.contains("<")){
+        _validateAmountInput(_baseController.value.text);
+      }
+      if (actualAmount != _lastFetchedActualAmount && actualAmount > BigInt.zero){
         getSwapData();
       }
-      _baseController.text = "$amount";
+      if (!_baseController.value.text.contains("<")){
+        _baseController.text = "$amount";
+      }
+    }
+  }
+
+  void _validateAmountInput(String input, {bool setActualAmount=true}){
+    if (showTable){
+      setState(() => showTable = false);
+    }
+    if (input.isEmpty || input == "."){
+      input = "0";
+    }
+    amount = double.parse(input);
+    if (setActualAmount){
+      actualAmount = CurrencyUtils.parseCurrency(amount.toString(), baseCurrency);
+    }
+    if (actualAmount == BigInt.zero){
+      if (errorMessage != _errors["zero"]) {
+        setState(() {
+          errorMessage = _errors["zero"]!;
+        });
+      }
+    }else if (actualAmount > AddressData.getCurrencyBalance(baseCurrency)){
+      if (errorMessage != _errors["balance"]){
+        setState(() {
+          errorMessage = _errors["balance"]!;
+        });
+      }
+    }else if (errorMessage.isNotEmpty){
+      setState(() {
+        errorMessage = "";
+      });
     }
   }
   //
@@ -116,7 +150,30 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                   children: [
                     const SizedBox(height: 25,),
                     Text("Swap", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
-                    const SizedBox(height: 35,),
+                    const SizedBox(height: 15,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: (){
+                            _baseFocusNode.unfocus();
+                            actualAmount = AddressData.getCurrencyBalance(baseCurrency);
+                            amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, baseCurrency, includeSymbol: false));
+                            _baseController.text = "$amount";
+                            _validateAmountInput(amount.toString(), setActualAmount: false);
+                            if (amount.toString() == "0.0" && actualAmount > BigInt.zero){
+                              _baseController.text = "<0.000001";
+                            }
+                          },
+                          style: ButtonStyle(
+                            padding: MaterialStateProperty.all(EdgeInsets.zero),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap
+                          ),
+                          child: Text("USE MAX", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+                        ),
+                        const SizedBox(width: 25,),
+                      ],
+                    ),
                     Row(
                       children: [
                         const SizedBox(width: 25,),
@@ -154,30 +211,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                                 )
                               ),
                               onChanged: (val){
-                                if (showTable){
-                                  setState(() => showTable = false);
-                                }
-                                if (val.isEmpty || val == "."){
-                                  val = "0";
-                                }
-                                amount = double.parse(val);
-                                if (amount == 0){
-                                  if (errorMessage != _errors["zero"]) {
-                                    setState(() {
-                                      errorMessage = _errors["zero"]!;
-                                    });
-                                  }
-                                }else if (amount > double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))){
-                                  if (errorMessage != _errors["balance"]){
-                                    setState(() {
-                                      errorMessage = _errors["balance"]!;
-                                    });
-                                  }
-                                }else if (errorMessage.isNotEmpty){
-                                  setState(() {
-                                    errorMessage = "";
-                                  });
-                                }
+                                _validateAmountInput(val);
                               },
                             ),
                           ),
@@ -195,7 +229,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                           style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),
                           children: [
                             TextSpan(
-                              text: "${double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false))} $baseCurrency",
+                              text: "${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false, formatSmallDecimals: true)} $baseCurrency",
                               style: const TextStyle(color: Colors.white),
                             )
                           ]
@@ -235,7 +269,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                         Expanded(
                           child: Container(
                             alignment: Alignment.center,
-                            child: Text(CurrencyUtils.formatCurrency(quote?.amount ?? BigInt.zero, quoteCurrency, includeSymbol: false), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25)),
+                            child: Text(CurrencyUtils.formatCurrency(quote?.amount ?? BigInt.zero, quoteCurrency, includeSymbol: false, formatSmallDecimals: true), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25)),
                           ),
                         ),
                         const SizedBox(width: 25,),
@@ -267,7 +301,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                     SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
                     ElevatedButton(
                       onPressed: errorMessage.isEmpty ? (){
-                        widget.onPressReview.call(baseCurrency, amount, quoteCurrency, quote!);
+                        widget.onPressReview.call(baseCurrency, actualAmount, quoteCurrency, quote!);
                       } : null,
                       style: ButtonStyle(
                         minimumSize: MaterialStateProperty.all(Size(Get.width * 0.8, 40)),

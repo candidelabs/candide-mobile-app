@@ -11,7 +11,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SendAmountSheet extends StatefulWidget {
   final VoidCallback onPressBack;
-  final Function(String, double) onPressReview;
+  final Function(String, BigInt) onPressReview;
   const SendAmountSheet({Key? key, required this.onPressBack, required this.onPressReview}) : super(key: key);
 
   @override
@@ -27,6 +27,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
     "balance": "Insufficient Balance",
     "zero": "Sending amount must be greater than zero",
   };
+  BigInt actualAmount = BigInt.zero;
   double amount = 0.0;
   //
   @override
@@ -36,6 +37,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
       if (_amountFocus.hasFocus){
         _amountController.text = amount.toString();
       }else{
+        if (_amountController.value.text.contains("<")) return;
         amount = double.parse(_amountController.value.text.isEmpty ? "0" : _amountController.value.text);
         _amountController.text = "$amount $selectedCurrency";
       }
@@ -59,6 +61,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
               }
               selectedCurrency = currency;
               _amountController.text = "$amount $selectedCurrency";
+              _validateAmountInput(amount.toString());
             });
           },
         ),
@@ -66,6 +69,32 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
     );
   }
 
+  void _validateAmountInput(String input, {bool setActualAmount=true}){
+    if (input.isEmpty || input == "."){
+      input = "0";
+    }
+    amount = double.parse(input);
+    if (setActualAmount){
+      actualAmount = CurrencyUtils.parseCurrency(amount.toString(), selectedCurrency);
+    }
+    if (actualAmount == BigInt.zero){
+      if (errorMessage != _errors["zero"]) {
+        setState(() {
+          errorMessage = _errors["zero"]!;
+        });
+      }
+    }else if (actualAmount > AddressData.getCurrencyBalance(selectedCurrency)){
+      if (errorMessage != _errors["balance"]){
+        setState(() {
+          errorMessage = _errors["balance"]!;
+        });
+      }
+    }else if (errorMessage.isNotEmpty){
+      setState(() {
+        errorMessage = "";
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,23 +125,45 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                       ],
                     ),
                     const SizedBox(height: 25,),
-                    Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: ElevatedButton.icon(
-                        onPressed: (){
-                          showCurrencySelectionModal();
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                          elevation: MaterialStateProperty.all(0),
-                          shape: MaterialStateProperty.all(ContinuousRectangleBorder(
-                            borderRadius: const BorderRadius.all(Radius.circular(25)),
-                            side: BorderSide(color: Get.theme.colorScheme.primary)
-                          )),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Spacer(flex: 2,),
+                        const SizedBox(width: 10,),
+                        Directionality(
+                          textDirection: TextDirection.rtl,
+                          child: ElevatedButton.icon(
+                            onPressed: (){
+                              showCurrencySelectionModal();
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                              elevation: MaterialStateProperty.all(0),
+                              shape: MaterialStateProperty.all(ContinuousRectangleBorder(
+                                borderRadius: const BorderRadius.all(Radius.circular(25)),
+                                side: BorderSide(color: Get.theme.colorScheme.primary)
+                              )),
+                            ),
+                            icon: Icon(Icons.arrow_drop_down, color: Get.theme.colorScheme.primary,),
+                            label: Text(selectedCurrency, style: TextStyle(color: Get.theme.colorScheme.primary),),
+                          ),
                         ),
-                        icon: Icon(Icons.arrow_drop_down, color: Get.theme.colorScheme.primary,),
-                        label: Text(selectedCurrency, style: TextStyle(color: Get.theme.colorScheme.primary),),
-                      ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: (){
+                            _amountFocus.unfocus();
+                            actualAmount = AddressData.getCurrencyBalance(selectedCurrency);
+                            amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, selectedCurrency, includeSymbol: false));
+                            _amountController.text = "$amount $selectedCurrency";
+                            _validateAmountInput(amount.toString(), setActualAmount: false);
+                            if (amount.toString() == "0.0" && actualAmount > BigInt.zero){
+                              _amountController.text = "<0.000001 $selectedCurrency";
+                            }
+                          },
+                          child: Text("USE MAX", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+                        ),
+                        const SizedBox(width: 10,)
+                      ],
                     ),
                     const SizedBox(height: 35,),
                     Container(
@@ -128,34 +179,14 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                           border: InputBorder.none,
                         ),
                         onChanged: (val){
-                          if (val.isEmpty || val == "."){
-                            val = "0";
-                          }
-                          amount = double.parse(val);
-                          if (amount == 0){
-                            if (errorMessage != _errors["zero"]) {
-                              setState(() {
-                                errorMessage = _errors["zero"]!;
-                              });
-                            }
-                          }else if (amount > double.parse(CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(selectedCurrency), selectedCurrency, includeSymbol: false))){
-                            if (errorMessage != _errors["balance"]){
-                              setState(() {
-                                errorMessage = _errors["balance"]!;
-                              });
-                            }
-                          }else if (errorMessage.isNotEmpty){
-                            setState(() {
-                              errorMessage = "";
-                            });
-                          }
+                          _validateAmountInput(val);
                         },
                       ),
                     ),
                     const SizedBox(height: 35,),
                     RichText(
                       text: TextSpan(
-                        text: "Balance: ${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(selectedCurrency), selectedCurrency, includeSymbol: false)} ",
+                        text: "Balance: ${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(selectedCurrency), selectedCurrency, includeSymbol: false, formatSmallDecimals: true)} ",
                         style: TextStyle(
                           fontFamily: AppThemes.fonts.gilroyBold,
                           fontSize: 16
@@ -187,7 +218,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                     SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
                     ElevatedButton(
                       onPressed: errorMessage.isEmpty ? (){
-                        widget.onPressReview.call(selectedCurrency, amount);
+                        widget.onPressReview.call(selectedCurrency, actualAmount);
                       } : null,
                       style: ButtonStyle(
                         minimumSize: MaterialStateProperty.all(Size(Get.width * 0.8, 35)),

@@ -41,7 +41,7 @@ class CurrencyBalanceCard extends StatelessWidget {
                   Text(metadata.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)),
                   RichText(
                     text: TextSpan(
-                        text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance.balance, metadata.symbol, includeSymbol: false) : "••••••",
+                        text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance.balance, metadata.symbol, includeSymbol: false, formatSmallDecimals: true) : "••••••",
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                         children: [
                           TextSpan(

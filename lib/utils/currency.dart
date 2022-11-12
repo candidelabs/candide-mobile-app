@@ -26,8 +26,14 @@ class CurrencyUtils {
     return BigInt.zero;
   }
 
-  static String formatCurrency(BigInt value, String symbol, {bool includeSymbol=true}){
+  static String formatCurrency(BigInt value, String symbol, {bool includeSymbol=true, bool formatSmallDecimals=false}){
     String result = displayGenericToken(value, symbol);
+    if (formatSmallDecimals){
+      var doubleString = result.split(" ")[0];
+      if (doubleString == "0.0" && value > BigInt.zero){
+        result = "<0.000001 $symbol";
+      }
+    }
     if (symbol == "USDT" && includeSymbol){
       return "\$"+result.split(" ")[0];
     }

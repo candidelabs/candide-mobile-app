@@ -115,7 +115,7 @@ class _SwapReviewSheetState extends State<SwapReviewSheet> {
                       const Spacer(flex: 2,),
                       _CurrencySwapIcon(
                         currency: widget.baseCurrency,
-                        value: CurrencyUtils.formatCurrency(widget.baseValue, widget.baseCurrency, includeSymbol: false),
+                        value: CurrencyUtils.formatCurrency(widget.baseValue, widget.baseCurrency, includeSymbol: false, formatSmallDecimals: true),
                         icon: Icon(Icons.arrow_downward_rounded, color: Get.theme.colorScheme.onPrimary, size: 18,),
                       ),
                       const Spacer(),
@@ -134,7 +134,7 @@ class _SwapReviewSheetState extends State<SwapReviewSheet> {
                       const Spacer(),
                       _CurrencySwapIcon(
                         currency: widget.quoteCurrency,
-                        value: CurrencyUtils.formatCurrency(widget.quote.amount, widget.quoteCurrency, includeSymbol: false),
+                        value: CurrencyUtils.formatCurrency(widget.quote.amount, widget.quoteCurrency, includeSymbol: false, formatSmallDecimals: true),
                         icon: Icon(Icons.arrow_upward_rounded, color: Get.theme.colorScheme.onPrimary, size: 18,),
                       ),
                       const Spacer(flex: 2,),

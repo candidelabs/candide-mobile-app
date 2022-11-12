@@ -84,6 +84,10 @@ class _SendReviewSheetState extends State<SendReviewSheet> {
   //
   @override
   Widget build(BuildContext context) {
+    String sendingAmountText = CurrencyUtils.formatCurrency(widget.value, widget.currency, includeSymbol: false);
+    if (sendingAmountText == "0.0" && widget.value > BigInt.zero){
+      sendingAmountText = "< 0.000001 ${widget.currency}";
+    }
     return LayoutBuilder(
       builder: (context, constraints){
         return SingleChildScrollView(
@@ -142,7 +146,7 @@ class _SendReviewSheetState extends State<SendReviewSheet> {
                   ),
                   const SizedBox(height: 25,),
                   Text(
-                    CurrencyUtils.formatCurrency(widget.value, widget.currency),
+                    CurrencyUtils.formatCurrency(widget.value, widget.currency, formatSmallDecimals: true),
                     style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 28),
                   ),
                   const SizedBox(height: 15,),
