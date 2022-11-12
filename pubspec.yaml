@@ -60,7 +60,7 @@ dependencies:
   # Misc
   url_launcher: ^6.1.5
   flutter_dotenv: ^5.0.2
-  share_plus: ^4.0.10
+  share_plus: ^6.2.0
   qr_code_scanner: ^1.0.0
   intl: ^0.17.0
   logger: ^1.1.0
