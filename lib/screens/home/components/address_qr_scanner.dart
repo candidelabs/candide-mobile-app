@@ -27,10 +27,18 @@ class _AddressQRScannerState extends State<AddressQRScanner> {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code == null) return;
-      if (Utils.isValidAddress(scanData.code!)){
+
+      var address = "";
+      if (scanData.code!.contains(':')) {
+        address = scanData.code!.split(":")[1];
+      } else {
+        address = scanData.code!;
+      }
+
+      if (Utils.isValidAddress(address)) {
         controller.dispose();
         Get.back();
-        widget.onScanAddress(scanData.code!);
+        widget.onScanAddress(address);
       }else{
         BotToast.showText(
           text: "Invalid address",
