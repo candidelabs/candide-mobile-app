@@ -77,7 +77,7 @@ class _DepositSheetState extends State<DepositSheet> {
                 embeddedImage: const AssetImage("assets/images/logo.jpeg"),
               ),
               const SizedBox(height: 15,),
-              Text(Utils.truncate(widget.address, trailingDigits: 10), style: const TextStyle(fontSize: 20, color: Colors.black),),
+              Text(Utils.truncate(widget.address, trailingDigits: 6), style: const TextStyle(fontSize: 20, color: Colors.black),),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
