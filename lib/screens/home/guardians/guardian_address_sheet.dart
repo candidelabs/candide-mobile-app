@@ -45,17 +45,9 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
             child: RichText(
-              text: TextSpan(
-                  text: "By proceeding you agree to Candide's ",
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                  children: [
-                    TextSpan(
-                      text: "terms and conditions ",
-                      style: const TextStyle(color: Colors.blue),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () {}, // todo add terms of service
-                    ),
-                  ]
+              text: const TextSpan(
+                  text: "Your Guardian address is stored publicly on the blockchain. A good practice is to ask your guardian to give you a new address so they remain anonymous.",
+                  style: TextStyle(fontStyle: FontStyle.italic),
               ),
             ),
           ),
