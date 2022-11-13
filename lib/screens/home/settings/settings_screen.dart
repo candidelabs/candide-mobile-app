@@ -1,14 +1,24 @@
-import 'package:candide_mobile_app/config/env.dart';
+import 'dart:convert';
+
+import 'package:biometric_storage/biometric_storage.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/confirm_dialog.dart';
+import 'package:candide_mobile_app/screens/home/components/change_password_dialog.dart';
+import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
 import 'package:candide_mobile_app/screens/onboard/landing_screen.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:wallet_dart/wallet/wallet_helpers.dart';
+import 'package:wallet_dart/wallet/wallet_instance.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -18,24 +28,103 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final TextEditingController _debugFieldController = TextEditingController();
+  BiometricStorageFile? biometricStorage;
 
-  void refreshDebugFieldText(bool forceDataReload) async {
-    if (forceDataReload){
-      _debugFieldController.text = "";
-      await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hex,);
+
+  Future<String?> getPasswordThroughBiometrics() async {
+    try{
+      biometricStorage = await BiometricStorage().getStorage('auth_data');
+      String? password = await biometricStorage!.read();
+      return password;
+    } on AuthException catch(_) {
+      return null;
     }
-    String debugText = "";
-    debugText += "Manager deployed: ${AddressData.walletStatus.managerDeployed}\n";
-    debugText += "Proxy deployed: ${AddressData.walletStatus.proxyDeployed}\n";
-    debugText += "Social recovery module deployed: ${AddressData.walletStatus.socialModuleDeployed}\n";
-    debugText += "Nonce: ${AddressData.walletStatus.nonce}\n";
-    _debugFieldController.text = debugText;
+  }
+
+  Future<String?> getUserPassword() async {
+    var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
+    if (biometricsEnabled){
+      String? password = await getPasswordThroughBiometrics();
+      if (password == null){
+        return null;
+      }else{
+        return password;
+      }
+    }else{
+      String? password;
+      await Get.dialog(PromptPasswordDialog(
+        onConfirm: (String _password){
+          password = _password;
+        },
+      ));
+      return password;
+    }
+  }
+
+  Future<Tuple<String, Credentials>?> validateUser() async {
+    String? password = await getUserPassword();
+    if (password == null) return null;
+    var cancelLoad = Utils.showLoading();
+    Credentials? signer = await WalletHelpers.decryptSigner(
+      AddressData.wallet,
+      password,
+      AddressData.wallet.salt,
+    );
+    cancelLoad();
+    if (signer == null){
+      Utils.showError(title: "Error", message: "Incorrect password");
+      return null;
+    }
+    return Tuple(a: password, b: signer);
+  }
+
+  void changePassword() async {
+    Tuple? validationData = await validateUser();
+    String? password = validationData?.a;
+    if (password == null) return;
+    showDialog(
+      context: context,
+      useRootNavigator: false,
+      builder: (_) => ChangePasswordDialog(
+        onConfirm: (String newPassword) async {
+          Navigator.pop(context);
+          var cancelLoad = Utils.showLoading();
+          WalletInstance? newInstance = await WalletHelpers.reEncryptSigner(AddressData.wallet, newPassword, AddressData.wallet.salt, password: password, credentials: (validationData!.b as EthPrivateKey));
+          cancelLoad();
+          if (newInstance == null) return;
+          var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
+          if (biometricsEnabled){
+            try{
+              await biometricStorage!.write(newPassword);
+            } on AuthException catch(_) {
+              Utils.showError(title: "Error", message: "User cancelled auth, password not changed!");
+              return null;
+            }
+          }
+          AddressData.wallet = newInstance;
+          await Hive.box("wallet").put("main", jsonEncode(newInstance.toJson()));
+        }
+      ),
+    );
+  }
+
+  void toggleFingerprint() async {
+    String? password = (await validateUser())?.a;
+    if (password == null) return;
+    var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
+    if (biometricsEnabled){
+      await biometricStorage!.delete();
+      await Hive.box("settings").put("biometrics_enabled", false);
+    }else{
+      biometricStorage = await BiometricStorage().getStorage('auth_data');
+      await biometricStorage!.write(password);
+      await Hive.box("settings").put("biometrics_enabled", true);
+    }
+    setState(() {});
   }
 
   @override
   void initState() {
-    refreshDebugFieldText(false);
     super.initState();
   }
 
@@ -51,9 +140,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text("Settings", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
             ),
             const SizedBox(height: 15,),
+            const _CandideCommunityWidget(),
+            const SizedBox(height: 5,),
+            _MenuItem(
+              onPress: (){
+                changePassword();
+              },
+              leading: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.red[900]!,
+                      Colors.redAccent[700]!,
+                    ],
+                  ),
+                ),
+                child: const CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Icon(PhosphorIcons.passwordLight, color: Colors.white,),
+                ),
+              ),
+              label: Text("Change Password", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
+              trailing: const Icon(PhosphorIcons.arrowRightBold),
+            ),
+            _MenuItem(
+              onPress: (){
+                toggleFingerprint();
+              },
+              leading: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.blue,
+                      Colors.blueGrey,
+                    ],
+                  ),
+                ),
+                child: const CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Icon(PhosphorIcons.fingerprint, color: Colors.white,),
+                ),
+              ),
+              label: Text("Enable Fingerprint", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
+              description: const Text("Enable fingerprint to authorize transactions and access your wallet",),
+              trailing: Switch(
+                onChanged: (val){
+                  toggleFingerprint();
+                },
+                value: Hive.box("settings").get("biometrics_enabled"),
+                activeColor: Colors.blue,
+              ),
+            ),
             _MenuItem(
               onPress: (){},
-              //leading: const Icon(PhosphorIcons.info),
+              leading: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Get.theme.colorScheme.primary,
+                      Colors.teal,
+                    ],
+                  ),
+                ),
+                child: const CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Icon(PhosphorIcons.infoLight, color: Colors.white,),
+                ),
+              ),
               label: RichText(
                 text: TextSpan(
                   text: "About ",
@@ -90,54 +252,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   elevation: MaterialStateProperty.all(0),
                   backgroundColor: MaterialStateProperty.all(Colors.transparent),
                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
+                    borderRadius: const BorderRadius.all(Radius.circular(12)),
                     side: BorderSide(color: Colors.redAccent[700]!, width: 1)
                   ))
                 ),
                 child: Text("Remove Wallet", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, color: Colors.redAccent[700]),),
               ),
             ),
-            kDebugMode || Env.testnet ? Column(
-              children: [
-                const SizedBox(height: 10,),
-                const Divider(indent: 10, endIndent: 10, thickness: 2,),
-                const SizedBox(height: 5,),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Row(
-                    children: [
-                      const Text("Debug info:"),
-                      const Spacer(),
-                      IconButton(
-                        onPressed: (){
-                          refreshDebugFieldText(true);
-                        },
-                        icon: const Icon(Icons.refresh),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 5,),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 10),
-                  child: TextField(
-                    controller: _debugFieldController,
-                    maxLines: 5,
-                    minLines: 5,
-                    enabled: false,
-                    decoration: const InputDecoration(
-                      disabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 3, color: Colors.grey)),
-                    ),
-                  ),
-                )
-              ],
-            ) : const SizedBox.shrink(),
+            kDebugMode ? _DebugWidget() : const SizedBox.shrink(),
           ],
         ),
       ),
     );
   }
 }
+
+class _DebugWidget extends StatelessWidget {
+  _DebugWidget({Key? key}) : super(key: key);
+  final TextEditingController _debugFieldController = TextEditingController();
+
+  void refreshDebugFieldText(bool forceDataReload) async {
+    if (forceDataReload){
+      _debugFieldController.text = "";
+      await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hex,);
+    }
+    String debugText = "";
+    debugText += "Manager deployed: ${AddressData.walletStatus.managerDeployed}\n";
+    debugText += "Proxy deployed: ${AddressData.walletStatus.proxyDeployed}\n";
+    debugText += "Social recovery module deployed: ${AddressData.walletStatus.socialModuleDeployed}\n";
+    debugText += "Nonce: ${AddressData.walletStatus.nonce}\n";
+    _debugFieldController.text = debugText;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    refreshDebugFieldText(false);
+    return Column(
+      children: [
+        const SizedBox(height: 10,),
+        const Divider(indent: 10, endIndent: 10, thickness: 2,),
+        const SizedBox(height: 5,),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            children: [
+              const Text("Debug info:"),
+              const Spacer(),
+              IconButton(
+                onPressed: (){
+                  refreshDebugFieldText(true);
+                },
+                icon: const Icon(Icons.refresh),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 5,),
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 10),
+          child: TextField(
+            controller: _debugFieldController,
+            maxLines: 5,
+            minLines: 5,
+            enabled: false,
+            decoration: const InputDecoration(
+              disabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 3, color: Colors.grey)),
+            ),
+          ),
+        ),
+        const SizedBox(height: 15,),
+      ],
+    );
+  }
+}
+
 
 class _MenuItem extends StatelessWidget {
   final Widget label;
@@ -152,8 +340,12 @@ class _MenuItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 5),
       child: Card(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12)
+        ),
         child: InkWell(
           onTap: onPress,
+          borderRadius: BorderRadius.circular(12),
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             child: Row(
@@ -163,8 +355,14 @@ class _MenuItem extends StatelessWidget {
                   child: leading
                 ) : const SizedBox.shrink(),
                 Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     label,
+                    description != null ? Container(
+                      margin: const EdgeInsets.only(top: 5),
+                      width: Get.width * 0.55,
+                      child: description!
+                    ) : const SizedBox.shrink(),
                   ],
                 ),
                 const Spacer(),
@@ -174,6 +372,93 @@ class _MenuItem extends StatelessWidget {
                 ) : const SizedBox.shrink(),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CandideCommunityWidget extends StatelessWidget {
+  const _CandideCommunityWidget({Key? key}) : super(key: key);
+
+  launchUri(Uri uri) async {
+    if(await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw "Could not launch ${uri.host}";
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 5),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)
+        ),
+        color: Get.theme.colorScheme.primary,
+        child: Container(
+          width: double.maxFinite,
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          margin: const EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Join CANDIDE community", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary),),
+              const SizedBox(height: 5,),
+              Text("We believe anyone with a mobile phone and an internet connect should be able to self-custody.\nCome share your feedback and contribute in creating the most fun and accessible open source wallet 🐪", style: TextStyle(color: Get.theme.colorScheme.onPrimary.withOpacity(0.9)),),
+              const SizedBox(height: 5,),
+              Text("You can find us on:", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary.withOpacity(0.9)),),
+              const SizedBox(height: 5,),
+              Row(
+                children: [
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xff7289da),
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      child: IconButton(
+                        onPressed: () => launchUri(Uri.parse("https://discord.gg/QQ6R9Ac5ah")),
+                        icon: const Icon(Icons.discord, color: Colors.white,),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10,),
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xff1DA1F2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      child: IconButton(
+                        onPressed: () => launchUri(Uri.parse("https://twitter.com/candidewallet")),
+                        icon: const Icon(FontAwesomeIcons.twitter, color: Colors.white, size: 22,),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10,),
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Color(0xff333333),
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      child: IconButton(
+                        onPressed: () => launchUri(Uri.parse("https://github.com/candidelabs")),
+                        icon: const Icon(FontAwesomeIcons.github, color: Colors.white, size: 22,),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            ],
           ),
         ),
       ),
