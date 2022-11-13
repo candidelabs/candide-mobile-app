@@ -95,3 +95,20 @@ class _LoadingWidget extends StatelessWidget {
     );
   }
 }
+
+class Tuple<T1, T2> {
+  final T1 a;
+  final T2 b;
+
+  Tuple({
+    required this.a,
+    required this.b,
+  });
+
+  factory Tuple.fromJson(Map<String, dynamic> json) {
+    return Tuple(
+      a: json['a'],
+      b: json['b'],
+    );
+  }
+}

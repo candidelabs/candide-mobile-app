@@ -9,7 +9,8 @@ class CredentialsEntry extends StatefulWidget {
   final String confirmButtonText;
   final bool disable;
   final Function(String, bool) onConfirm;
-  const CredentialsEntry({Key? key, required this.confirmButtonText, required this.onConfirm, this.horizontalMargin=35, this.disable=false}) : super(key: key);
+  final bool showBiometricsOption;
+  const CredentialsEntry({Key? key, required this.confirmButtonText, required this.onConfirm, this.horizontalMargin=35, this.disable=false, this.showBiometricsOption=true}) : super(key: key);
 
   @override
   State<CredentialsEntry> createState() => _CredentialsEntryState();
@@ -28,9 +29,11 @@ class _CredentialsEntryState extends State<CredentialsEntry> {
   bool _showBiometricsAuth = false;
   //
   initialize() async {
-    final response = await BiometricStorage().canAuthenticate();
-    if (response == CanAuthenticateResponse.success){
-      setState(() => _showBiometricsAuth = true);
+    if (widget.showBiometricsOption){
+      final response = await BiometricStorage().canAuthenticate();
+      if (response == CanAuthenticateResponse.success){
+        setState(() => _showBiometricsAuth = true);
+      }
     }
   }
 
@@ -44,6 +47,8 @@ class _CredentialsEntryState extends State<CredentialsEntry> {
     if (password.isEmpty || !_passwordController.areAllRulesValidated){
       setState(() => _showPasswordRules = true);
       return;
+    }else{
+      setState(() => _showPasswordRules = false);
     }
     if (!(_formKey.currentState?.validate() ?? false)){
       return;
@@ -57,6 +62,7 @@ class _CredentialsEntryState extends State<CredentialsEntry> {
     return Form(
       key: _formKey,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           PasswordField(
             onChange: (value) => password = value,
