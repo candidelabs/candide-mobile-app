@@ -3,6 +3,7 @@ import 'package:candide_mobile_app/screens/components/continous_input_border.dar
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MagicEmailSheet extends StatefulWidget {
   final Function(String) onProceed;
@@ -52,29 +53,47 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
           const SizedBox(height: 25,),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
-            //child: const Text("By proceeding you agree to Candide's terms and conditions and to Magic Link's terms and conditions")
             child: RichText(
               text: TextSpan(
-                text: "By proceeding you agree to Candide's ",
+                text: "By proceeding, you agree to Magic Labs ",
                 style: const TextStyle(fontStyle: FontStyle.italic),
                 children: [
                   TextSpan(
-                    text: "terms and conditions ",
-                    style: const TextStyle(color: Colors.blue),
-                    recognizer: TapGestureRecognizer()
-                      ..onTap = () {}, // todo add terms of service
-                  ),
-                  const TextSpan(
-                    text: "and to Magic Link's ",
+                      text: "terms of service ",
+                      style: const TextStyle(color: Colors.blue),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () async {
+                          String url =
+                              "https://magic.link/legal/terms-of-service";
+                          var urllaunchable =
+                              await canLaunchUrl(Uri.parse(url));
+                          if (urllaunchable) {
+                            await launchUrl(Uri.parse(url));
+                          } else {
+                            throw "Could not launch URL";
+                          }
+                        },
+                    ),
+                    const TextSpan(
+                      text: "and ",
                   ),
                   TextSpan(
-                    text: "terms and conditions",
+                    text: "privacy policy",
                     style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
-                      ..onTap = () {}, // todo add terms of service
-                  ),
-                ]
-              ),
+                        ..onTap = () async {
+                          String url =
+                              "https://magic.link/legal/privacy-policy";
+                          var urllaunchable =
+                              await canLaunchUrl(Uri.parse(url));
+                          if (urllaunchable) {
+                            await launchUrl(Uri.parse(url));
+                          } else {
+                            throw "Could not launch URL";
+                          }
+                        },
+                    ),
+                  ]),
             ),
           ),
           const SizedBox(height: 35,),
