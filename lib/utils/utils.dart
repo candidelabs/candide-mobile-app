@@ -21,7 +21,7 @@ class Utils {
   }
 
   static String truncate(String input, {int? trailingDigits}){
-    var regex = RegExp('^(0x[a-zA-Z0-9]{6})[a-zA-Z0-9]+([a-zA-Z0-9]{${trailingDigits ?? 6}})\$');
+    var regex = RegExp('^(0x[a-zA-Z0-9]{${trailingDigits ?? 6}})[a-zA-Z0-9]+([a-zA-Z0-9]{${trailingDigits ?? 6}})\$');
     var matches = regex.allMatches(input);
     if (matches.isEmpty) {
       return input;
