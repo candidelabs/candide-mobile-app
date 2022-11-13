@@ -9,6 +9,7 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -31,8 +32,18 @@ class _GuardiansPageState extends State<GuardiansPage> {
     setState(() => _loading = false);
   }
 
+  void checkGuardianSystemOnboarding() async {
+    await Future.delayed(const Duration(milliseconds: 250)); // cooldown for the widget to not interrupt the widget while being built
+    bool? onboardSeenStatus = Hive.box("state").get("guardian_onboard_tutorial_seen");
+    if (onboardSeenStatus == null || onboardSeenStatus == false){
+      Get.to(const GuardianSystemOnBoarding());
+      await Hive.box("state").put("guardian_onboard_tutorial_seen", true);
+    }
+  }
+
   @override
   void initState() {
+    checkGuardianSystemOnboarding();
     fetchGuardians();
     super.initState();
   }
