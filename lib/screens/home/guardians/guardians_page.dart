@@ -157,7 +157,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
             child: Text("Start by adding your first guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
         ) : const SizedBox(height: 15,),
         _GuardianAddCard(
-          type: "Email recovery",
+          type: "Email recovery, by Magic Labs",
           recommended: true,
           logo: SizedBox(
             width: 25,
