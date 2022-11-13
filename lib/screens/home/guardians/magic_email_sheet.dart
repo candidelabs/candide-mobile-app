@@ -59,41 +59,42 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
                 style: const TextStyle(fontStyle: FontStyle.italic),
                 children: [
                   TextSpan(
-                      text: "terms of service ",
-                      style: const TextStyle(color: Colors.blue),
-                      recognizer: TapGestureRecognizer()
-                        ..onTap = () async {
-                          String url =
-                              "https://magic.link/legal/terms-of-service";
-                          var urllaunchable =
-                              await canLaunchUrl(Uri.parse(url));
-                          if (urllaunchable) {
-                            await launchUrl(Uri.parse(url));
-                          } else {
-                            throw "Could not launch URL";
-                          }
-                        },
-                    ),
-                    const TextSpan(
-                      text: "and ",
+                    text: "terms of service ",
+                    style: const TextStyle(color: Colors.blue),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () async {
+                        String url =
+                            "https://magic.link/legal/terms-of-service";
+                        var urllaunchable =
+                            await canLaunchUrl(Uri.parse(url));
+                        if (urllaunchable) {
+                          await launchUrl(Uri.parse(url));
+                        } else {
+                          throw "Could not launch URL";
+                        }
+                      },
+                  ),
+                  const TextSpan(
+                    text: "and ",
                   ),
                   TextSpan(
                     text: "privacy policy",
                     style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
-                        ..onTap = () async {
-                          String url =
-                              "https://magic.link/legal/privacy-policy";
-                          var urllaunchable =
-                              await canLaunchUrl(Uri.parse(url));
-                          if (urllaunchable) {
-                            await launchUrl(Uri.parse(url));
-                          } else {
-                            throw "Could not launch URL";
-                          }
-                        },
-                    ),
-                  ]),
+                      ..onTap = () async {
+                        String url =
+                            "https://magic.link/legal/privacy-policy";
+                        var urllaunchable =
+                            await canLaunchUrl(Uri.parse(url));
+                        if (urllaunchable) {
+                          await launchUrl(Uri.parse(url));
+                        } else {
+                          throw "Could not launch URL";
+                        }
+                      },
+                  ),
+                ]
+              ),
             ),
           ),
           const SizedBox(height: 35,),
