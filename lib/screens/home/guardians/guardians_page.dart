@@ -1,17 +1,16 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet.dart';
+import 'package:candide_mobile_app/screens/home/guardians/guardian_system_onboarding.dart';
 import 'package:candide_mobile_app/screens/home/guardians/magic_email_sheet.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class GuardiansPage extends StatefulWidget {
   const GuardiansPage({Key? key}) : super(key: key);
@@ -252,23 +251,6 @@ class _GuardianAddCard extends StatelessWidget { // todo move to components
                         //recommended ? const Text("  recommended", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.green, height: 2),) : const SizedBox.shrink(),
                       ],
                     ),
-                    Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: TextButton.icon(
-                        onPressed: (){},
-                        style: ButtonStyle(
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                          padding: MaterialStateProperty.all(EdgeInsets.zero),
-                        ),
-                        icon: Container(
-                          margin: const EdgeInsets.only(bottom: 3.5),
-                          child: const Icon(PhosphorIcons.arrowSquareOutLight, size: 10, color: Colors.lightBlue)
-                        ),
-                        label: Text("Learn more about ${type.toLowerCase()}", style: const TextStyle(fontSize: 11, color: Colors.lightBlue)),
-                      ),
-                    )
-                    //const Text("Learn more about magic link", style: TextStyle(fontSize: 12, color: Colors.lightBlue),),
                   ],
                 ),
                 const SizedBox(width: 5,),
@@ -369,28 +351,13 @@ class _GuardianCountAlert extends StatelessWidget { // todo move to components
               ),
               const SizedBox(height: 10,),
               RichText(
-                text: TextSpan(
+                text: const TextSpan(
                   text: "We recommend to have at least ",
-                  style: const TextStyle(height: 1.35),
+                  style: TextStyle(height: 1.35),
                   children: [
-                    const TextSpan(text: "3 guardians ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-                      const TextSpan(
-                          text: "to protect your wallet against loss. Learn more about"),
+                    TextSpan(text: "3 guardians ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                       TextSpan(
-                        text: " account recovery",
-                        style: const TextStyle(color: Colors.blue),
-                        recognizer: TapGestureRecognizer()
-                          ..onTap = () async {
-                            String url =
-                                "https://docs.candidewallet.com/overview/account-recovery";
-                            var urllaunchable = await canLaunchUrl(Uri.parse(url));
-                            if (urllaunchable) {
-                              await launchUrl(Uri.parse(url)); 
-                            } else {
-                              throw "Could not launch URL";
-                            }
-                          }, 
-                      ),
+                          text: "to protect your wallet against loss"),
                   ]
                 ),
               ),
