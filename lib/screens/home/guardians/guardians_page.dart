@@ -47,10 +47,35 @@ class _GuardiansPageState extends State<GuardiansPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-                margin: const EdgeInsets.only(left: 15, top: 25),
-                child: Text("Guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
-            ),
+                  Container(
+                      margin: const EdgeInsets.only(left: 12, top: 18),
+                      child: Row(children: <Widget>[
+                        Expanded(
+                            child: (Text(
+                          "Guardians",
+                          style: TextStyle(
+                              fontFamily: AppThemes.fonts.gilroyBold,
+                              fontSize: 25),
+                        ))),
+                        const Spacer(
+                          flex: 1,
+                        ),
+                        Expanded(
+                            child: IconButton(
+                          icon: const Icon(
+                            PhosphorIcons.info,
+                            size: 32.0,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const GuardianSystemOnBoarding()),
+                            );
+                          },
+                        )),
+                      ])),
             AddressData.guardians.length < 3 ? const _GuardianCountAlert() : const SizedBox.shrink(),
             AddressData.guardians.isEmpty ? noGuardiansWidget(true) : withGuardiansWidget()
           ],
