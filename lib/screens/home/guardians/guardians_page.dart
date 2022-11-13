@@ -46,35 +46,29 @@ class _GuardiansPageState extends State<GuardiansPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-                  Container(
-                      margin: const EdgeInsets.only(left: 12, top: 18),
-                      child: Row(children: <Widget>[
-                        Expanded(
-                            child: (Text(
-                          "Guardians",
-                          style: TextStyle(
-                              fontFamily: AppThemes.fonts.gilroyBold,
-                              fontSize: 25),
-                        ))),
-                        const Spacer(
-                          flex: 1,
-                        ),
-                        Expanded(
-                            child: IconButton(
-                          icon: const Icon(
-                            PhosphorIcons.info,
-                            size: 32.0,
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      const GuardianSystemOnBoarding()),
-                            );
-                          },
-                        )),
-                      ])),
+            Container(
+              margin: const EdgeInsets.only(left: 12, top: 18),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text("Guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      PhosphorIcons.info,
+                      size: 32.0,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const GuardianSystemOnBoarding()),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 10,),
+                ]
+              )
+            ),
             AddressData.guardians.length < 3 ? const _GuardianCountAlert() : const SizedBox.shrink(),
             AddressData.guardians.isEmpty ? noGuardiansWidget(true) : withGuardiansWidget()
           ],
@@ -157,8 +151,8 @@ class _GuardiansPageState extends State<GuardiansPage> {
             child: Text("Start by adding your first guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
         ) : const SizedBox(height: 15,),
         _GuardianAddCard(
-          type: "Email recovery, by Magic Labs",
-          recommended: true,
+          type: "Email recovery",
+          description: "Through Magic Link",
           logo: SizedBox(
             width: 25,
             height: 25,
@@ -221,10 +215,10 @@ class _GuardiansPageState extends State<GuardiansPage> {
 
 class _GuardianAddCard extends StatelessWidget { // todo move to components
   final String type;
+  final String? description;
   final Widget logo;
-  final bool recommended;
   final VoidCallback onPress;
-  const _GuardianAddCard({Key? key, required this.type, required this.logo, required this.onPress, this.recommended=false}) : super(key: key);
+  const _GuardianAddCard({Key? key, required this.type, required this.logo, required this.onPress, this.description}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -245,12 +239,9 @@ class _GuardianAddCard extends StatelessWidget { // todo move to components
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Text(type.capitalize!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                        //recommended ? const Text("  recommended", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.green, height: 2),) : const SizedBox.shrink(),
-                      ],
-                    ),
+                    Text(type.capitalize!, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                    const SizedBox(height: 5,),
+                    description != null ? Text(description!, style: const TextStyle(fontSize: 13, color: Colors.grey),) : const SizedBox.shrink(),
                   ],
                 ),
                 const SizedBox(width: 5,),
