@@ -16,7 +16,7 @@ class _PromptPasswordDialogState extends State<PromptPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text("Enter your password"),
+      title: const Text("Enter your current password"),
       shape: const BeveledRectangleBorder(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(15)
