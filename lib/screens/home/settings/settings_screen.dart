@@ -6,6 +6,7 @@ import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/confirm_dialog.dart';
 import 'package:candide_mobile_app/screens/home/components/change_password_dialog.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
+import 'package:candide_mobile_app/screens/home/settings/custom_license_page.dart';
 import 'package:candide_mobile_app/screens/onboard/landing_screen.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
@@ -140,8 +142,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text("Settings", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
             ),
             const SizedBox(height: 15,),
-            const _CandideCommunityWidget(),
-            const SizedBox(height: 5,),
             _MenuItem(
               onPress: (){
                 changePassword();
@@ -198,7 +198,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             _MenuItem(
-              onPress: (){},
+              onPress: () async {
+                PackageInfo packageInfo = await PackageInfo.fromPlatform();
+                String version = packageInfo.version;
+                Get.dialog(_AboutDialog(
+                  applicationName: "CANDIDE",
+                  applicationVersion: version,
+                ));
+              },
               leading: Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -230,6 +237,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               trailing: const Icon(PhosphorIcons.arrowRightBold),
             ),
+            const SizedBox(height: 5,),
+            const _CandideCommunityWidget(),
             const Divider(indent: 10, endIndent: 10,),
             Container(
               width: double.maxFinite,
@@ -266,6 +275,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
+
+class _AboutDialog extends StatelessWidget {
+  final String applicationName;
+  final String applicationVersion;
+  const _AboutDialog({Key? key, required this.applicationName, required this.applicationVersion}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      content: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(applicationName, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25, color: Get.theme.colorScheme.primary),),
+            Text(applicationVersion, style: const TextStyle(color: Colors.grey, fontSize: 12),),
+            const SizedBox(height: 30,),
+            const Text("CANDIDE Wallet is an open source Ethereum wallet built as a public good. "),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            Get.to(CustomLicensePage(
+              applicationName: applicationName,
+              applicationVersion: applicationVersion,
+            ));
+          },
+          child: Text("VIEW OPEN LICENSES", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text("CLOSE", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+        ),
+      ],
+    );
+  }
+}
+
 
 class _DebugWidget extends StatelessWidget {
   _DebugWidget({Key? key}) : super(key: key);
@@ -407,9 +460,9 @@ class _CandideCommunityWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Join CANDIDE community", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary),),
+              Text("Join CANDIDE Community", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary),),
               const SizedBox(height: 5,),
-              Text("We believe anyone with a mobile phone and an internet connect should be able to self-custody.\nCome share your feedback and contribute in creating the most fun and accessible open source wallet 🐪", style: TextStyle(color: Get.theme.colorScheme.onPrimary.withOpacity(0.9)),),
+              Text("Come share your feedback and contribute in creating the most fun and accessible open source wallet 🐪", style: TextStyle(color: Get.theme.colorScheme.onPrimary.withOpacity(0.9)),),
               const SizedBox(height: 5,),
               Text("You can find us on:", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary.withOpacity(0.9)),),
               const SizedBox(height: 5,),
