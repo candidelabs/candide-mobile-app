@@ -2,7 +2,6 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:lottie/lottie.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:onboarding/onboarding.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,7 +34,7 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
     ),
     PageModel(
         widget: _OnBoardStep(
-          leading: Lottie.asset('assets/animations/security6.json', width: 275),
+          leading: Image.asset('assets/images/shield_icon.png', width: 150),
           title: "Secure your account",
           description: "We recommend adding at least 3 Guardians from different backgrounds.",
           trailing: Container(
