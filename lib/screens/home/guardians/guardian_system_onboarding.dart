@@ -30,6 +30,13 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
           leading: SvgPicture.asset('assets/images/friends_cropped.svg', width: 150, height: 150,),
           title: "Choose your CANDIDE guardians",
           description: "Guardians are people and devices that you trust to recover your account in case you lose your phone.",
+          trailing: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+          child: const Text(
+            "* You will need the approval of more than half of them to recover your account",
+            style: TextStyle(fontSize: 15, color: Colors.grey),
+          )
+        ),
         )
     ),
     PageModel(
