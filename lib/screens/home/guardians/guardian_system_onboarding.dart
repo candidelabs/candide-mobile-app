@@ -22,7 +22,7 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
       widget: _OnBoardStep(
         leading: SvgPicture.asset('assets/images/logo_cropped.svg', width: 150, height: 150, color: Get.theme.colorScheme.primary,),
         title: "Own It. Really do",
-        description: "Your Wallet is fully self-custodial. Which means: no one have access to your funds, including us.",
+        description: "Your Wallet is self-custodial. Only you have access to your funds",
       )
     ),
     PageModel(
