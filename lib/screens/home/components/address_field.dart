@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:web3dart/credentials.dart';
 
 class AddressField extends StatefulWidget {
   final String hint;
@@ -60,7 +61,12 @@ class _AddressFieldState extends State<AddressField> {
     }
     if (!ensRegex.hasMatch(address)) return;
     //
-    final _ensAddress = await Constants.ens.withName(address.toLowerCase()).getAddress();
+    var searchingENS = address.toLowerCase();
+    EthereumAddress _ensAddress = await Constants.ens.withName(searchingENS).getAddress();
+    if (address.toLowerCase() != searchingENS){
+      restartENSListener();
+      return;
+    }
     //
     if (_ensAddress.hex == Constants.addressZeroHex){
       setState(() {
