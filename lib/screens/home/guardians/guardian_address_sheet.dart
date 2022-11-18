@@ -47,7 +47,7 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
             child: RichText(
               text: const TextSpan(
                   text: "Your Guardian address is stored publicly on the blockchain. A good practice is to ask your guardian to give you a new address so they remain anonymous.",
-                  style: TextStyle(fontStyle: FontStyle.italic),
+                  style: TextStyle(fontSize: 15),
               ),
             ),
           ),
