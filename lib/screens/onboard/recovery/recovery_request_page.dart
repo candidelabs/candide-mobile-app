@@ -1,18 +1,19 @@
 import 'dart:convert';
-
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
-import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:lottie/lottie.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
@@ -28,6 +29,7 @@ class RecoveryRequestPage extends StatefulWidget {
 
 class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   late RecoveryRequest request;
+  bool _emojisCopied = false;
   bool refreshing = false;
   int? minimumSignatures;
 
@@ -35,6 +37,14 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     AddressData.loadExplorerJson(null);
     SettingsData.loadFromJson(null);
     Get.off(const HomeScreen());
+  }
+
+  copyEmojis() async {
+    Clipboard.setData(ClipboardData(text: request.emoji));
+    setState(() => _emojisCopied = true);
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+    setState(() => _emojisCopied = false);
   }
 
   Future<void> fetchMinimumSignatures() async {
@@ -83,7 +93,6 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
           child: Column(
             children: [
               const SizedBox(height: 25,),
-              Text("Hi.", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 30),),
               const SizedBox(height: 10,),
               Lottie.asset(
                 "assets/animations/keys3.json",
@@ -93,28 +102,22 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
               RichText(
                 textAlign: TextAlign.center,
                 text: TextSpan(
-                  text: "Your recovery request is still in ",
-                  style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),
-                  children: [
-                    TextSpan(
-                      text: "progress",
-                      style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.green),
-                    )
-                  ]
-                ),
-              ),
-              const SizedBox(height: 10,),
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                    text: "Your guardians can approve the request through ",
+                    text: "Ask your guardians to approve your request on ",
                     style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),
                     children: [
                       TextSpan(
                         text: "security.candidewallet.com",
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.blue),
                         recognizer: TapGestureRecognizer()
-                          ..onTap = () => launchUrl(Uri.parse('https://security.candidewallet.com')),
+                          ..onTap = () async {
+                            String url = "https://security.candidewallet.com";
+                            var urllaunchable = await canLaunchUrl(Uri.parse(url)); 
+                            if(urllaunchable) {
+                              await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                            } else {
+                              throw("URL can't be launched.");
+                            }
+                          } 
                       )
                     ]
                 ),
@@ -125,40 +128,88 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                 child: RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
-                    text: "Be sure that your guardians see this same set of ",
+                    text: "Ensure you and your guardian see matching ",
                     style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),
                     children: const [
                       TextSpan(
                         text: "emojis",
                         style: TextStyle(fontSize: 18, color: Colors.red),
                       ),
-                      TextSpan(
-                        text: " when approving your request",
-                      )
                     ]
                   ),
                 ),
               ),
               const SizedBox(height: 10,),
               Container(
+                width: 350,
+                height: 50,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
-                child: TextFormField(
-                  initialValue: request.emoji!,
-                  enabled: false,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(letterSpacing: 5, fontSize: 23),
-                  decoration: InputDecoration(
-                    disabledBorder: ContinousInputBorder(
-                        borderSide: BorderSide(width: 2, color: Colors.grey.withOpacity(0.5)),
-                        borderRadius: const BorderRadius.all(Radius.circular(40))
-                    ),
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(40))
-                    ),
+                child: ElevatedButton(
+                  onPressed: !_emojisCopied ? copyEmojis : null,
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all(Colors.transparent),
+                    shape: MaterialStateProperty.all(BeveledRectangleBorder(
+                      borderRadius: const BorderRadius.all(Radius.circular(10)),
+                      side: BorderSide(
+                          width: 2, color: Colors.grey.withOpacity(0.5)),
+                    )),
                   ),
+                  child: !_emojisCopied
+                      ? TextFormField(
+                          initialValue: request.emoji!,
+                          textAlign: TextAlign.center,
+                          enabled: false,
+                          style:
+                              const TextStyle(letterSpacing: 5, fontSize: 23),
+                        )
+                      : Row(
+                          children: [
+                            Icon(Icons.check, color: Get.theme.colorScheme.primary),
+                            const SizedBox(width: 2,),
+                            Text(
+                              "Copied!",
+                              style: TextStyle(
+                                color: Get.theme.colorScheme.primary,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
               ),
               const SizedBox(height: 20,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 65,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // _onShare method:
+                        final box = context.findRenderObject() as RenderBox?;
+                        Share.share(
+                          "Here's my public address: ${widget.request.walletAddress}.\n I need you to approve my recovery request on https://security.candidewallet.com.\nInsure you are approving the same set of emojis ${widget.request.emoji!}",
+                          sharePositionOrigin:
+                              box!.localToGlobal(Offset.zero) & box.size,
+                        );
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                        elevation: MaterialStateProperty.all(0),
+                        shape: MaterialStateProperty.all(BeveledRectangleBorder(
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                            ),
+                            side: BorderSide(width: 2, color: Colors.grey.withOpacity(0.5))
+                        )),
+                      ),
+                      child: Icon(PhosphorIcons.shareLight, color: Get.theme.colorScheme.primary, size: 20,),
+                    ),
+                  ),
+                  const SizedBox(width: 5,),
+                ],
+              ),
               Row(
                 children: [
                   const SizedBox(width: 10,),
@@ -184,11 +235,11 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                       value: refreshing ? "..." : request.status!,
                     ),
                     SummaryTableEntry(
-                      title: "Minimum signatures",
+                      title: "Minimum approvals",
                       value: refreshing ? "..." : minimumSignatures?.toString() ?? "...",
                     ),
                     SummaryTableEntry(
-                      title: "Signatures acquired",
+                      title: "Approvals acquired",
                       value: refreshing ? "..." : request.signaturesAcquired!.toString(),
                     ),
                   ],
