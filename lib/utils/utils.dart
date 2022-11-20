@@ -2,6 +2,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bot_toast/bot_toast.dart';
+import 'package:eth_sig_util/util/keccak.dart';
+import 'package:eth_sig_util/util/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
 import 'package:get/get.dart';
@@ -29,8 +31,23 @@ class Utils {
     return "${matches.first.group(1)}...${matches.first.group(2)}";
   }
 
+  static bool _isChecksumAddress(String address){
+    address = address.replaceAll('0x','');
+    var addressHash = bytesToHex(keccakAscii(address.toLowerCase()));
+    for (var i = 0; i < 40; i++ ) {
+      if ((int.parse(addressHash[i], radix: 16) > 7 && address[i].toUpperCase() != address[i]) ||
+          (int.parse(addressHash[i], radix: 16) <= 7 && address[i].toLowerCase() != address[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   static bool isValidAddress(String address){
-    return RegExp(r"^0x[a-fA-F0-9]{40}$").hasMatch(address);
+    if (!RegExp(r"^(0x)?[0-9a-fA-F]{40}$").hasMatch(address)) return false; // check basic conditions
+    if (RegExp(r"^(0x)?[a-f0-9]{40}$").hasMatch(address)) return true; // check all lowercase
+    if (RegExp(r"^(0x)?[A-F0-9]{40}$").hasMatch(address)) return true; // check all uppercase
+    return _isChecksumAddress(address); // check checksum address
   }
 
   static Uint8List randomBytes(int length, {bool secure = false}) {
