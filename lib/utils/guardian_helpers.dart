@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
@@ -9,13 +8,12 @@ import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
+import 'package:candide_mobile_app/screens/home/guardians/components/guardian_review_leading.dart';
 import 'package:candide_mobile_app/screens/onboard/recovery/recovery_request_page.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/controller/guardian_controller.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
-import 'package:candide_mobile_app/models/relay_response.dart';
-import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
-import 'package:candide_mobile_app/screens/home/guardians/guardian_operation_review.dart';
 import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -26,7 +24,6 @@ import 'package:magic_sdk/magic_sdk.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:wallet_dart/contracts/factories/EIP4337Manager.g.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
-import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/crypto.dart';
@@ -35,100 +32,6 @@ import 'package:web3dart/web3dart.dart';
 class GuardianOperationsHelper {
 
   static Batch? grantBatch;
-
-  static Future<String?> getPasswordThroughBiometrics() async {
-    try{
-      final store = await BiometricStorage().getStorage('auth_data');
-      String? password = await store.read();
-      return password;
-    } on AuthException catch(_) {
-      BotToast.showText(text: "User cancelled authentication");
-      return null;
-    }
-  }
-
-  static void onConfirmTransaction(Batch batch) async {
-    var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
-    if (biometricsEnabled){
-      String? password = await getPasswordThroughBiometrics();
-      if (password == null){
-        BotToast.showText(
-          text: "User cancelled authentication",
-          contentColor: Colors.red,
-          align: Alignment.topCenter,
-        );
-        return;
-      }else{
-        confirmTransactions(password, batch);
-      }
-    }else{
-      Get.dialog(PromptPasswordDialog(
-        onConfirm: (String password){
-          confirmTransactions(password, batch);
-        },
-      ));
-    }
-  }
-
-  static confirmTransactions(String masterPassword, Batch batch) async {
-    var cancelLoad = Utils.showLoading();
-    Credentials? signer = await WalletHelpers.decryptSigner(
-      AddressData.wallet,
-      masterPassword,
-      AddressData.wallet.salt,
-    );
-    if (signer == null){
-      Utils.showError(title: "Error", message: "Incorrect password");
-      return;
-    }
-    //
-    Uint8List privateKey = (signer as EthPrivateKey).privateKey;
-    batch.configureNonces(AddressData.walletStatus.nonce);
-    batch.signTransactions(privateKey, AddressData.wallet);
-    List<UserOperation> unsignedUserOperations = await batch.toUserOperations(
-      AddressData.wallet,
-      proxyDeployed: AddressData.walletStatus.proxyDeployed,
-      managerDeployed: AddressData.walletStatus.managerDeployed,
-    );
-    //
-    var signedUserOperations = await Bundler.signUserOperations(
-      signer,
-      SettingsData.network,
-      unsignedUserOperations,
-    );
-    BotToast.showText(
-      text: "Transaction sent, this might take a minute...",
-      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-      contentColor: Get.theme.colorScheme.primary,
-      align: Alignment.topCenter,
-    );
-    //
-    RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
-    if (response?.status == "PENDING"){
-      BotToast.showText(
-        text: "Transaction still pending, refresh later...",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-        contentColor: Get.theme.colorScheme.primary,
-        align: Alignment.topCenter,
-      );
-    }else if (response?.status == "FAIL"){
-      BotToast.showText(
-        text: "Transaction failed, contact us for help",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold),
-        contentColor: Colors.red,
-        align: Alignment.topCenter,
-      );
-    }else if (response?.status == "SUCCESS"){
-      BotToast.showText(
-        text: "Transaction completed!",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        contentColor: Colors.green,
-        align: Alignment.topCenter,
-      );
-    }
-    cancelLoad();
-    Get.back(result: true);
-  }
 
   static Future<bool> grantGuardian(String address, {Map? magicLinkData}) async {
     CancelFunc? cancelLoad = Utils.showLoading();
@@ -167,13 +70,17 @@ class GuardianOperationsHelper {
       context: Get.context!,
       builder: (context) {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "guardian_review_modal");
-        return GuardianOperationReview(
-          operation: GuardianOperation.grant,
-          guardian: address,
-          batch: grantBatch,
-          onConfirm: (){
-            onConfirmTransaction(grantBatch);
+        return TransactionReviewSheet(
+          modalId: "guardian_review_modal",
+          leading: const GuardianReviewLeadingWidget(
+            operation: GuardianOperation.grant,
+          ),
+          tableEntriesData: {
+            "Operation": "Granting guardian",
+            "Guardian address": address,
+            "Network": SettingsData.network,
           },
+          batch: grantBatch,
         );
       },
     );
@@ -231,14 +138,17 @@ class GuardianOperationsHelper {
       context: Get.context!,
       builder: (context) {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "guardian_review_modal");
-        return GuardianOperationReview(
-          operation: GuardianOperation.revoke,
-          guardian: address,
-          batch: revokeBatch,
-          onConfirm: (){
-            cancelLoad = Utils.showLoading();
-            onConfirmTransaction(revokeBatch);
+        return TransactionReviewSheet(
+          modalId: "guardian_review_modal",
+          leading: const GuardianReviewLeadingWidget(
+            operation: GuardianOperation.revoke,
+          ),
+          tableEntriesData: {
+            "Operation": "Removing guardian",
+            "Guardian address": address,
+            "Network": SettingsData.network,
           },
+          batch: revokeBatch,
         );
       },
     );
