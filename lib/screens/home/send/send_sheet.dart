@@ -1,28 +1,19 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
-import 'dart:typed_data';
-
 import 'package:animations/animations.dart';
-import 'package:biometric_storage/biometric_storage.dart';
-import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
+import 'package:candide_mobile_app/screens/home/send/components/send_review_leading.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/controller/send_controller.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
-import 'package:candide_mobile_app/models/relay_response.dart';
-import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
 import 'package:candide_mobile_app/screens/home/send/send_amount_sheet.dart';
-import 'package:candide_mobile_app/screens/home/send/send_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/send_to_sheet.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
-import 'package:wallet_dart/wallet/wallet_helpers.dart';
-import 'package:web3dart/web3dart.dart';
 
 class SendSheet extends StatefulWidget {
   const SendSheet({Key? key}) : super(key: key);
@@ -95,16 +86,23 @@ class _SendSheetState extends State<SendSheet> {
     }
     //
     cancelLoad();
-    pagesList[2] = SendReviewSheet(
-      from: AddressData.wallet.walletAddress.hex,
-      to: toAddress,
+    pagesList[2] = TransactionReviewSheet(
+      modalId: "send_modal",
+      leading: SendReviewLeadingWidget(
+        currency: currency,
+        value: value,
+      ),
+      tableEntriesData: {
+        "From": AddressData.wallet.walletAddress.hexEip55,
+        "To": toAddress,
+        "Network": SettingsData.network
+      },
       currency: currency,
       value: value,
       batch: sendBatch!,
-      onPressBack: (){
+      onBack: (){
         gotoPage(1);
       },
-      onConfirm: onPressConfirm,
     );
     //
     gotoPage(2);
@@ -119,101 +117,6 @@ class _SendSheetState extends State<SendSheet> {
       }
       currentIndex = page;
     });
-  }
-
-  Future<String?> getPasswordThroughBiometrics() async {
-    try{
-      final store = await BiometricStorage().getStorage('auth_data');
-      String? password = await store.read();
-      return password;
-    } on AuthException catch(_) {
-      BotToast.showText(text: "User cancelled authentication");
-      return null;
-    }
-  }
-
-  onPressConfirm() async {
-    var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
-    if (biometricsEnabled){
-      String? password = await getPasswordThroughBiometrics();
-      if (password == null){
-        BotToast.showText(
-          text: "User cancelled authentication",
-          contentColor: Colors.red,
-          align: Alignment.topCenter,
-        );
-        return;
-      }else{
-        confirmTransactions(password);
-      }
-    }else{
-      Get.dialog(PromptPasswordDialog(
-        onConfirm: (String password){
-          confirmTransactions(password);
-        },
-      ));
-    }
-  }
-
-  confirmTransactions(String masterPassword) async {
-    var cancelLoad = Utils.showLoading();
-    Credentials? signer = await WalletHelpers.decryptSigner(
-      AddressData.wallet,
-      masterPassword,
-      AddressData.wallet.salt,
-    );
-    if (signer == null){
-      Utils.showError(title: "Error", message: "Incorrect password");
-      return;
-    }
-    //
-    Uint8List privateKey = (signer as EthPrivateKey).privateKey;
-    sendBatch!.configureNonces(AddressData.walletStatus.nonce);
-    sendBatch!.signTransactions(privateKey, AddressData.wallet);
-    unsignedUserOperations = await sendBatch!.toUserOperations(
-      AddressData.wallet,
-      proxyDeployed: AddressData.walletStatus.proxyDeployed,
-      managerDeployed: AddressData.walletStatus.managerDeployed,
-    );
-    //
-    var signedUserOperations = await Bundler.signUserOperations(
-      signer,
-      SettingsData.network,
-      unsignedUserOperations!,
-    );
-    //
-    BotToast.showText(
-      text: "Transaction sent, this might take a minute...",
-      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-      contentColor: Get.theme.colorScheme.primary,
-      align: Alignment.topCenter,
-    );
-    //
-    RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
-    if (response?.status == "PENDING"){
-      BotToast.showText(
-        text: "Transaction still pending, refresh later...",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-        contentColor: Get.theme.colorScheme.primary,
-        align: Alignment.topCenter,
-      );
-    }else if (response?.status == "FAIL"){
-      BotToast.showText(
-        text: "Transaction failed, contact us for help",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold),
-        contentColor: Colors.red,
-        align: Alignment.topCenter,
-      );
-    }else if (response?.status == "SUCCESS"){
-      BotToast.showText(
-        text: "Transaction completed!",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        contentColor: Colors.green,
-        align: Alignment.topCenter,
-      );
-    }
-    cancelLoad();
-    Get.back(result: true);
   }
 
   @override
