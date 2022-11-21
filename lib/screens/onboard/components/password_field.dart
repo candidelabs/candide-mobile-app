@@ -61,7 +61,7 @@ class _PasswordFieldState extends State<PasswordField> {
             DigitValidationRule(),
             UppercaseValidationRule(),
             LowercaseValidationRule(),
-            SpecialCharacterValidationRule(),
+            _SpecialCharacterValidationRule(),
             MinCharactersValidationRule(6),
           },
           validationRuleBuilder: (rules, value) {
@@ -101,5 +101,17 @@ class _PasswordFieldState extends State<PasswordField> {
         ),
       ),
     );
+  }
+}
+
+
+class _SpecialCharacterValidationRule extends ValidationRule {
+  @override
+  String get name => 'Has special character';
+
+  @override
+  bool validate(String value) {
+    return value.contains(RegExp(r'[!@#$%^&*(),.?":{}\[\]\\\/'r"'=+\-_~;|<>]"));
+
   }
 }
