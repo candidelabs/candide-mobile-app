@@ -61,63 +61,65 @@ class _CredentialsEntryState extends State<CredentialsEntry> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          PasswordField(
-            onChange: (value) => password = value,
-            horizontalMargin: widget.horizontalMargin,
-            passwordController: _passwordController,
-            nextFocusNode: _confirmPasswordNode,
-            showRules: _showPasswordRules,
-          ),
-          const SizedBox(height: 25,),
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
-            child: TextFormField(
-              focusNode: _confirmPasswordNode,
-              obscureText: _isObscured,
-              decoration: InputDecoration(
-                  label: const Text("Confirm Password"),
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    onPressed: (){
-                      setState(() {
-                        _isObscured = !_isObscured;
-                      });
-                    },
-                    icon: Icon(_isObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined),
-                  )
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            PasswordField(
+              onChange: (value) => password = value,
+              horizontalMargin: widget.horizontalMargin,
+              passwordController: _passwordController,
+              nextFocusNode: _confirmPasswordNode,
+              showRules: _showPasswordRules,
+            ),
+            const SizedBox(height: 25,),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: widget.horizontalMargin),
+              child: TextFormField(
+                focusNode: _confirmPasswordNode,
+                obscureText: _isObscured,
+                decoration: InputDecoration(
+                    label: const Text("Confirm Password"),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: (){
+                        setState(() {
+                          _isObscured = !_isObscured;
+                        });
+                      },
+                      icon: Icon(_isObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                    )
+                ),
+                validator: (input){
+                  if (input != password) return "Passwords don't match";
+                  return null;
+                },
+                onChanged: (value) => confirmPassword = value,
               ),
-              validator: (input){
-                if (input != password) return "Passwords don't match";
-                return null;
-              },
-              onChanged: (value) => confirmPassword = value,
             ),
-          ),
-          _showBiometricsAuth ? Container(
-            margin: const EdgeInsets.only(top: 10),
-            child: SwitchListTile(
-              value: biometricsEnabled,
-              activeColor: Colors.blue,
-              title: const Text("Use biometrics for authentication", textAlign: TextAlign.center, style: TextStyle(fontSize: 14),),
-              onChanged: (val) => setState(() => biometricsEnabled = val),
+            _showBiometricsAuth ? Container(
+              margin: const EdgeInsets.only(top: 10),
+              child: SwitchListTile(
+                value: biometricsEnabled,
+                activeColor: Colors.blue,
+                title: const Text("Use biometrics for authentication", textAlign: TextAlign.center, style: TextStyle(fontSize: 14),),
+                onChanged: (val) => setState(() => biometricsEnabled = val),
+              ),
+            ) : const SizedBox(height: 10,),
+            ElevatedButton(
+              onPressed: widget.disable ? null : onConfirmPress,
+              style: ButtonStyle(
+                shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15)
+                )),
+              ),
+              child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Text(widget.confirmButtonText, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),)
+              ),
             ),
-          ) : const SizedBox(height: 10,),
-          ElevatedButton(
-            onPressed: widget.disable ? null : onConfirmPress,
-            style: ButtonStyle(
-              shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15)
-              )),
-            ),
-            child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Text(widget.confirmButtonText, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),)
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
