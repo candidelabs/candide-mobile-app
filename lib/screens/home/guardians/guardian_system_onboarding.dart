@@ -27,11 +27,11 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
     ),
     PageModel(
         widget: _OnBoardStep(
-          leading: SvgPicture.asset('assets/images/friends_cropped.svg', width: 150, height: 150,),
+          leading: SvgPicture.asset('assets/images/friends_cropped.svg', width: 150, height: 130,),
           title: "Choose your CANDIDE guardians",
           description: "Guardians are people and devices that you trust to recover your account in case you lose your phone.",
           trailing: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+          margin: const EdgeInsets.symmetric(horizontal: 15),
           child: const Text(
             "* You will need the approval of more than half of them to recover your account",
             style: TextStyle(fontSize: 15, color: Colors.grey),
@@ -45,7 +45,7 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
           title: "Secure your account",
           description: "We recommend adding at least 3 Guardians from different backgrounds.",
           trailing: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+            margin: const EdgeInsets.symmetric(horizontal: 25),
             child: const Text(
               "* You can add anyone you trust with an Ethereum wallet, a hardware wallet, or even an Institution",
               style: TextStyle(fontSize: 15, color: Colors.grey),
@@ -55,11 +55,11 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
     ),
     PageModel(
         widget: _OnBoardStep(
-          leading: Image.asset("assets/images/magic_link_vertical_logo.png", width: 150, color: Color(0xff6851FF)),
+          leading: Image.asset("assets/images/magic_link_vertical_logo.png", width: 120, color: const Color(0xff6851FF)),
           title: "Add email recovery",
           description: "Candide offers you the possibility of using your email as one of your Guardians with Magic Labs.",
           trailing: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
+            margin: const EdgeInsets.symmetric(horizontal: 25),
             child: Directionality(
               textDirection: TextDirection.rtl,
               child: TextButton.icon(
