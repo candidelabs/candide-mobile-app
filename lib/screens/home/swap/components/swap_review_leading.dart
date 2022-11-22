@@ -21,7 +21,7 @@ class SwapReviewLeadingWidget extends StatelessWidget {
         _CurrencySwapIcon(
           currency: baseCurrency,
           value: CurrencyUtils.formatCurrency(baseValue, baseCurrency, includeSymbol: false, formatSmallDecimals: true),
-          icon: Icon(Icons.arrow_downward_rounded, color: Get.theme.colorScheme.onPrimary, size: 18,),
+          icon: const Icon(Icons.arrow_downward_rounded, color: Color(0xFFF44336), size: 18,),
         ),
         const Spacer(),
         Container(
@@ -32,7 +32,7 @@ class SwapReviewLeadingWidget extends StatelessWidget {
               ),
               child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: const Icon(FontAwesomeIcons.leftRight)
+                  child: const Icon(FontAwesomeIcons.arrowRight)
               )
           ),
         ),
@@ -40,7 +40,7 @@ class SwapReviewLeadingWidget extends StatelessWidget {
         _CurrencySwapIcon(
           currency: quoteCurrency,
           value: CurrencyUtils.formatCurrency(quoteValue, quoteCurrency, includeSymbol: false, formatSmallDecimals: true),
-          icon: Icon(Icons.arrow_upward_rounded, color: Get.theme.colorScheme.onPrimary, size: 18,),
+          icon: const Icon(Icons.arrow_upward_rounded, color: Color(0xFF4CAF50), size: 18,),
         ),
         const Spacer(flex: 2,),
       ],
