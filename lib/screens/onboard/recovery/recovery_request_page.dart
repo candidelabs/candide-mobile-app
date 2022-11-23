@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/services/security.dart';
@@ -29,7 +30,6 @@ class RecoveryRequestPage extends StatefulWidget {
 
 class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   late RecoveryRequest request;
-  bool _emojisCopied = false;
   bool refreshing = false;
   int? minimumSignatures;
 
@@ -41,10 +41,14 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
 
   copyEmojis() async {
     Clipboard.setData(ClipboardData(text: request.emoji));
-    setState(() => _emojisCopied = true);
+    BotToast.showText(
+        text: "Emojis copied to clipboard!",
+        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        contentColor: Get.theme.colorScheme.primary,
+        align: Alignment.topCenter,
+    );
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
-    setState(() => _emojisCopied = false);
   }
 
   Future<void> fetchMinimumSignatures() async {
@@ -145,7 +149,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                 height: 50,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
-                  onPressed: !_emojisCopied ? copyEmojis : null,
+                  onPressed: copyEmojis,
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all(Colors.transparent),
@@ -155,26 +159,12 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                           width: 2, color: Colors.grey.withOpacity(0.5)),
                     )),
                   ),
-                  child: !_emojisCopied
-                      ? TextFormField(
+                  child: TextFormField(
                           initialValue: request.emoji!,
                           textAlign: TextAlign.center,
                           enabled: false,
                           style:
                               const TextStyle(letterSpacing: 5, fontSize: 23),
-                        )
-                      : Row(
-                          children: [
-                            Icon(Icons.check, color: Get.theme.colorScheme.primary),
-                            const SizedBox(width: 2,),
-                            Text(
-                              "Copied!",
-                              style: TextStyle(
-                                color: Get.theme.colorScheme.primary,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
                         ),
                 ),
               ),
