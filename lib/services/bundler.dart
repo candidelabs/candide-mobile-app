@@ -44,11 +44,10 @@ class Bundler {
           })
       );
       //
-      //RelayResponse relayResponse = RelayResponse(status: response.data["status"], hash: response.data["hash"] ?? "");
       if ((response.data as Map).containsKey("error")){
         return RelayResponse(status: "FAIL", hash: "");
       }
-      return RelayResponse(status: "SUCCESS", hash: "");
+      return RelayResponse(status: response.data["result"]["status"], hash: response.data["result"]["txHash"]);
     } on DioError catch(e){
       print("Error occurred ${e.type.toString()}");
       return null;

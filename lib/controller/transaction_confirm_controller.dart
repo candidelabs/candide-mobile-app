@@ -8,6 +8,7 @@ import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -64,6 +65,7 @@ class TransactionConfirmController {
     }
     //
     Uint8List privateKey = (signer as EthPrivateKey).privateKey;
+    await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hexEip55);
     batch.configureNonces(AddressData.walletStatus.nonce);
     batch.signTransactions(privateKey, AddressData.wallet);
     List<UserOperation> unsignedUserOperations = [await batch.toSingleUserOperation(
@@ -87,24 +89,27 @@ class TransactionConfirmController {
     );
     //
     RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
-    if (response?.status == "PENDING"){
+    if (response?.status.toLowerCase() == "pending"){
       BotToast.showText(
         text: "Transaction still pending, refresh later...",
         textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        duration: const Duration(seconds: 5),
         contentColor: Get.theme.colorScheme.primary,
         align: Alignment.topCenter,
       );
-    }else if (response?.status == "FAIL"){
+    }else if (response?.status.toLowerCase() == "fail"){
       BotToast.showText(
         text: "Transaction failed, contact us for help",
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        duration: const Duration(seconds: 5),
         contentColor: Colors.red,
         align: Alignment.topCenter,
       );
-    }else if (response?.status == "SUCCESS"){
+    }else if (response?.status.toLowerCase() == "success"){
       BotToast.showText(
         text: "Transaction completed!",
         textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        duration: const Duration(seconds: 5),
         contentColor: Colors.green,
         align: Alignment.topCenter,
       );
