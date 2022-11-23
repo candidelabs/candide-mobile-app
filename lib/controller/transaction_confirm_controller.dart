@@ -66,11 +66,12 @@ class TransactionConfirmController {
     Uint8List privateKey = (signer as EthPrivateKey).privateKey;
     batch.configureNonces(AddressData.walletStatus.nonce);
     batch.signTransactions(privateKey, AddressData.wallet);
-    List<UserOperation> unsignedUserOperations = await batch.toUserOperations(
+    List<UserOperation> unsignedUserOperations = [await batch.toSingleUserOperation(
       AddressData.wallet,
+      AddressData.walletStatus.nonce,
       proxyDeployed: AddressData.walletStatus.proxyDeployed,
       managerDeployed: AddressData.walletStatus.managerDeployed,
-    );
+    )];
     //
     var signedUserOperations = await Bundler.signUserOperations(
       signer,
