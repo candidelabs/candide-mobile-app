@@ -249,7 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   bool delete = await confirm(
                     context,
                     title: const Text("Are you sure ?"),
-                    content: const Text("Are you sure you want to delete your wallet locally from this device ?\nPlease review your security settings and options before proceeding to be able to gain access later to this wallet"),
+                    content: const Text("You are about to delete your wallet locally from this device. \n\nYou will need your Guardians and your public address / ENS to regain access to your account again"),
                   );
                   if (delete){
                     await Hive.box("wallet").delete("main");
