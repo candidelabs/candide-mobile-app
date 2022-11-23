@@ -59,7 +59,18 @@ class TransactionConfirmController {
       AddressData.wallet.salt,
     );
     if (signer == null){
-      Utils.showError(title: "Error", message: "Incorrect password");
+      cancelLoad();
+      BotToast.showText(
+        text: "Incorrect password",
+        textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        contentColor: Colors.red,
+        align: Alignment.topCenter,
+      );
+      Get.dialog(PromptPasswordDialog(
+        onConfirm: (String password){
+          confirmTransactions(password, batch);
+        },
+      ));
       return;
     }
     //
