@@ -49,7 +49,7 @@ class _RecoveryWalletSheetState extends State<RecoveryWalletSheet> {
                   const SizedBox(height: 10,),
                   const Divider(thickness: 1, indent: 30, endIndent: 30,),
                   const SizedBox(height: 10,),
-                  Text("New password", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),),
+                  Text("Create a new password", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),),
                   const SizedBox(height: 10,),
                   CredentialsEntry(
                     onConfirm: (password, biometricsEnabled) {
