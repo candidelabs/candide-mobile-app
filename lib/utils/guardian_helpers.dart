@@ -66,6 +66,14 @@ class GuardianOperationsHelper {
     //
     cancelLoad();
     cancelLoad = null;
+    TransactionActivity transactionActivity = TransactionActivity(
+      date: DateTime.now(),
+      action: "guardian-grant",
+      title: "Added guardian",
+      status: "pending",
+      data: {"guardian": address},
+    );
+
     bool? refresh = await showBarModalBottomSheet(
       context: Get.context!,
       builder: (context) {
@@ -81,6 +89,7 @@ class GuardianOperationsHelper {
             "Network": SettingsData.network,
           },
           batch: grantBatch,
+          transactionActivity: transactionActivity,
         );
       },
     );
@@ -134,6 +143,14 @@ class GuardianOperationsHelper {
     //
     cancelLoad();
     cancelLoad = null;
+    TransactionActivity transactionActivity = TransactionActivity(
+      date: DateTime.now(),
+      action: "guardian-revoke",
+      title: "Removed guardian",
+      status: "pending",
+      data: {"guardian": address},
+    );
+
     bool? refresh = await showBarModalBottomSheet(
       context: Get.context!,
       builder: (context) {
@@ -149,6 +166,7 @@ class GuardianOperationsHelper {
             "Network": SettingsData.network,
           },
           batch: revokeBatch,
+          transactionActivity: transactionActivity,
         );
       },
     );

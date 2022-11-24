@@ -86,6 +86,14 @@ class _SendSheetState extends State<SendSheet> {
     }
     //
     cancelLoad();
+    TransactionActivity transactionActivity = TransactionActivity(
+      date: DateTime.now(),
+      action: "transfer",
+      title: "Sent $currency",
+      status: "pending",
+      data: {"currency": currency, "amount": value.toString(), "to": toAddress},
+    );
+
     pagesList[2] = TransactionReviewSheet(
       modalId: "send_modal",
       leading: SendReviewLeadingWidget(
@@ -100,6 +108,7 @@ class _SendSheetState extends State<SendSheet> {
       currency: currency,
       value: value,
       batch: sendBatch!,
+      transactionActivity: transactionActivity,
       onBack: (){
         gotoPage(1);
       },

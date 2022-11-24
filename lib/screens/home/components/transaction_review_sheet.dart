@@ -16,9 +16,10 @@ class TransactionReviewSheet extends StatefulWidget {
   final String? currency;
   final BigInt? value;
   final Batch batch;
+  final TransactionActivity transactionActivity;
   final Map<String, String> tableEntriesData;
   final VoidCallback? onBack;
-  const TransactionReviewSheet({Key? key, this.modalId, required this.leading, required this.batch, required this.tableEntriesData, this.onBack, this.currency, this.value}) : super(key: key);
+  const TransactionReviewSheet({Key? key, this.modalId, required this.leading, required this.batch, required this.transactionActivity, required this.tableEntriesData, this.onBack, this.currency, this.value}) : super(key: key);
 
   @override
   State<TransactionReviewSheet> createState() => _TransactionReviewSheetState();
@@ -158,7 +159,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                   SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
                   ElevatedButton(
                     onPressed: errorMessage.isEmpty ? (){
-                      TransactionConfirmController.onPressConfirm(widget.batch);
+                      TransactionConfirmController.onPressConfirm(widget.batch, widget.transactionActivity);
                     } : null,
                     style: ButtonStyle(
                       minimumSize: MaterialStateProperty.all(Size(Get.width * 0.9, 40)),

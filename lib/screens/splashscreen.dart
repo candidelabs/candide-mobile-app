@@ -49,12 +49,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   initialize() async {
-    await Hive.openBox("wallet");
-    await Hive.openBox("settings");
-    await Hive.openBox("state");
+    await Future.wait([
+      Hive.openBox("wallet"),
+      Hive.openBox("settings"),
+      Hive.openBox("state"),
+      Hive.openBox("activity"),
+    ]);
     Networks.initialize();
     SettingsData.loadFromJson(null);
     AddressData.loadRecoveryRequest();
+    AddressData.loadTransactionsActivity(Networks.get(SettingsData.network)!.chainId.toInt());
     if (AddressData.recoveryRequestId != null){ // todo re-enable
       RecoveryRequest? request = await SecurityGateway.fetchById(AddressData.recoveryRequestId!);
       if (request != null){

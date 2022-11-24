@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:candide_mobile_app/services/transaction_watchdog.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
@@ -10,8 +11,11 @@ import 'package:web3dart/web3dart.dart';
 class AddressData {
   // Load from Box called "wallet" at "main"
   static late WalletInstance wallet;
+  // Load from Box called "activity" at "transactions(chainId)"
+  static late int _loadedChainId;
+  static List<TransactionActivity> transactionsActivity = [];
   // Load from Box called "state" at "guardians_metadata"
-  static late List<WalletGuardian> guardians = [];
+  static List<WalletGuardian> guardians = [];
   // Load from Box called "state" at "recovery_request_id"
   static String? recoveryRequestId;
   // Load from Box called "state" at "address_data"
@@ -64,6 +68,45 @@ class AddressData {
       currencies = _currencies;
     }
     //
+  }
+
+  static updateTransactionActivityStorage(TransactionActivity activity, int chainId) async {
+    List transactionsAsJson = Hive.box("activity").get("transactions($chainId)") ?? [];
+    List<Map> newTransactionsJson = [];
+    for (Map transactionJson in transactionsAsJson){
+      var temp = TransactionActivity.fromJson(transactionJson);
+      if (temp.hash == activity.hash){
+        newTransactionsJson.add(activity.toJson());
+      }else{
+        newTransactionsJson.add(temp.toJson());
+      }
+    }
+    await Hive.box("activity").put("transactions($chainId)", newTransactionsJson);
+  }
+
+  static storeNewTransactionActivity(TransactionActivity activity, int chainId){
+    List transactionsAsJson = Hive.box("activity").get("transactions($chainId)") ?? [];
+    transactionsAsJson.add(activity.toJson());
+    Hive.box("activity").put("transactions($chainId)", transactionsAsJson);
+    if (_loadedChainId == chainId){
+      transactionsActivity.add(activity);
+    }
+    if (activity.status == "pending"){
+      TransactionWatchdog.addTransactionActivity(activity);
+    }
+  }
+
+  static loadTransactionsActivity(int chainId){
+    _loadedChainId = chainId;
+    transactionsActivity.clear();
+    List transactionsAsJson = Hive.box("activity").get("transactions($chainId)") ?? []; // List<Json>
+    for (Map transactionJson in transactionsAsJson){
+      var activity = TransactionActivity.fromJson(transactionJson);
+      transactionsActivity.add(activity);
+      if (activity.status == "pending"){
+        TransactionWatchdog.addTransactionActivity(activity);
+      }
+    }
   }
 
   static loadGuardians() async {
@@ -248,5 +291,62 @@ class WalletGuardian {
     'type': type,
     'email': email,
     'creationDate': creationDate != null ? DateFormat("dd/MM/yyy").format(creationDate!) : null,
+  };
+}
+
+class TransactionActivity {
+  DateTime date;
+  String action;
+  String title;
+  String status;
+  String? hash;
+  Map<String, String> data;
+  late TransactionFeeActivityData fee;
+
+  TransactionActivity({required this.date,
+    required this.action,
+    required this.title,
+    required this.status,
+    this.hash,
+    required this.data});
+
+  TransactionActivity.fromJson(Map json)
+      : date = DateFormat("dd/MM/yyy").parse(json['date']),
+        action = json['action'],
+        title = json['title'],
+        status = json['status'],
+        hash = json['hash'],
+        data = Map<String, String>.from(json['data']),
+        fee = TransactionFeeActivityData.fromJson(json['fee']);
+
+  Map<String, dynamic> toJson() => {
+    'date': DateFormat("dd/MM/yyy").format(date),
+    'action': action,
+    'title': title,
+    'status': status,
+    'hash': hash,
+    'data': data,
+    'fee': fee.toJson(),
+  };
+}
+
+class TransactionFeeActivityData {
+  String paymasterAddress;
+  String currency;
+  BigInt fee;
+
+  TransactionFeeActivityData({required this.paymasterAddress,
+    required this.currency,
+    required this.fee});
+
+  TransactionFeeActivityData.fromJson(Map json)
+      : paymasterAddress = json['paymasterAddress'],
+        currency = json['currency'],
+        fee = BigInt.parse(json['fee']);
+
+  Map<String, dynamic> toJson() => {
+    'paymasterAddress': paymasterAddress,
+    'currency': currency,
+    'fee': fee.toString(),
   };
 }

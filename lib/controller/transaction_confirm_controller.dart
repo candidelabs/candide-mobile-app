@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
@@ -9,6 +10,7 @@ import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -29,7 +31,7 @@ class TransactionConfirmController {
     }
   }
 
-  static onPressConfirm(Batch batch) async {
+  static onPressConfirm(Batch batch, TransactionActivity transactionActivity) async {
     var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
     if (biometricsEnabled){
       String? password = await _getPasswordThroughBiometrics();
@@ -41,18 +43,18 @@ class TransactionConfirmController {
         );
         return;
       }else{
-        confirmTransactions(password, batch);
+        confirmTransactions(password, batch, transactionActivity);
       }
     }else{
       Get.dialog(PromptPasswordDialog(
         onConfirm: (String password){
-          confirmTransactions(password, batch);
+          confirmTransactions(password, batch, transactionActivity);
         },
       ));
     }
   }
 
-  static confirmTransactions(String masterPassword, Batch batch) async {
+  static confirmTransactions(String masterPassword, Batch batch, TransactionActivity transactionActivity) async {
     var cancelLoad = Utils.showLoading();
     Credentials? signer = await WalletHelpers.decryptSigner(
       AddressData.wallet,
@@ -108,9 +110,17 @@ class TransactionConfirmController {
         contentColor: Get.theme.colorScheme.primary,
         align: Alignment.topCenter,
       );
-    }else if (response?.status.toLowerCase() == "fail"){
+    }else if (response?.status.toLowerCase() == "failed") {
       BotToast.showText(
         text: "Transaction failed, contact us for help",
+        textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        duration: const Duration(seconds: 5),
+        contentColor: Colors.red,
+        align: Alignment.topCenter,
+      );
+    }else if (response?.status.toLowerCase() == "failed-to-submit"){
+      BotToast.showText(
+        text: "Transaction failed to submit, contact us for help",
         textStyle: const TextStyle(fontWeight: FontWeight.bold),
         duration: const Duration(seconds: 5),
         contentColor: Colors.red,
@@ -125,6 +135,15 @@ class TransactionConfirmController {
         align: Alignment.topCenter,
       );
     }
+    transactionActivity.hash = response?.hash;
+    transactionActivity.status = response?.status ?? "fail";
+    transactionActivity.fee = TransactionFeeActivityData(
+      paymasterAddress: batch.includesPaymaster ? Constants.addressZeroHex : Batch.paymasterAddress.hexEip55,
+      currency: batch.getFeeCurrency(),
+      fee: batch.getFee(),
+    );
+    transactionActivity.date = DateTime.now();
+    AddressData.storeNewTransactionActivity(transactionActivity, Networks.get(SettingsData.network)!.chainId.toInt());
     cancelLoad();
     Get.back(result: true);
   }

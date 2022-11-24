@@ -21,7 +21,7 @@ import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 
 class Batch {
-  static final EthereumAddress _paymasterAddress = EthereumAddress.fromHex("0x83DAc8e36D8FDeCF69CD78f9f86f25664EEE72f4");
+  static final EthereumAddress paymasterAddress = EthereumAddress.fromHex("0x83DAc8e36D8FDeCF69CD78f9f86f25664EEE72f4");
   static final EthereumAddress _multiSendCallAddress = EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D");
   BigInt baseGas = BigInt.zero;
   FeeCurrency? _feeCurrency;
@@ -49,7 +49,7 @@ class Batch {
         to: EthereumAddress.fromHex(feeCurrency.currency.address),
         value: BigInt.zero,
         data: hexToBytes(EncodeFunctionData.erc20Approve(
-          _paymasterAddress,
+          paymasterAddress,
           feeCurrency.fee,
         )),
         type: GnosisTransactionType.execTransactionFromModule,
@@ -111,7 +111,7 @@ class Batch {
 
   Future<void> _addPaymasterToUserOps(List<UserOperation> userOps) async {
     for (UserOperation op in userOps){
-      op.paymaster = _paymasterAddress;
+      op.paymaster = paymasterAddress;
     }
     List<String>? paymasterData = await Bundler.getPaymasterSignature(userOps, feeCurrency!.currency.address);
     if (paymasterData == null){ // todo network: handle fetching errors
