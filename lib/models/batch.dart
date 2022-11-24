@@ -65,7 +65,7 @@ class Batch {
 
   Future<void> _adjustFeeCurrencyCosts() async{
     configureNonces(AddressData.walletStatus.nonce);
-    List<UserOperation> userOps = await toUserOperations(AddressData.wallet, proxyDeployed: AddressData.walletStatus.proxyDeployed, skipPaymasterData: true);
+    List<UserOperation> userOps = [await toSingleUserOperation(AddressData.wallet, AddressData.walletStatus.nonce, proxyDeployed: AddressData.walletStatus.proxyDeployed, skipPaymasterData: true)];
     for (FeeCurrency feeCurrency in _feeCurrencies){
       bool isEther = feeCurrency.currency.symbol == Networks.get(SettingsData.network)!.nativeCurrency;
       feeCurrency.fee = FeeCurrencyUtils.calculateFee(userOps, feeCurrency.conversion, isEther);
@@ -176,11 +176,11 @@ class Batch {
     userOp.maxFeePerGas = gasEstimates[0].maxFeePerGas;
     userOp.maxPriorityFeePerGas = gasEstimates[0].maxPriorityFeePerGas;
     if (userOp.initCode != "0x"){
-      userOp.callGas = 2150000;
-      userOp.preVerificationGas = 4000000;
+      userOp.preVerificationGas = 400000;
+      userOp.verificationGas = 600000;
     }
     if (transactions.any((element) => element.id == "social-deploy")){
-      userOp.callGas += 2150000;
+      userOp.callGas += 2500000;
     }
     if (includesPaymaster && !skipPaymasterData){
       await _addPaymasterToUserOps([userOp]);
@@ -246,6 +246,7 @@ class Batch {
     //
     return userOps;
   }
+
 }
 
 class BatchUtils {
@@ -273,7 +274,7 @@ class BatchUtils {
     List<int> networkFees = await getNetworkGasFees(chainId) ?? [0, 0];
     for (UserOperation op in userOps){
       int preVerificationGas = op.pack().length * 5 + 18000;
-      GasEstimate gasEstimate = GasEstimate(callGas: 1000000, verificationGas: 1000000, preVerificationGas: preVerificationGas, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
+      GasEstimate gasEstimate = GasEstimate(callGas: 250000, verificationGas: 100000, preVerificationGas: preVerificationGas, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
       results.add(gasEstimate);
     }
     return results;

@@ -107,7 +107,6 @@ class Bundler {
         );
         result.add(estimate);
       }
-
       return result;
     } on DioError catch(e){
       print("Error occurred ${e.type.toString()}");
