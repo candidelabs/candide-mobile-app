@@ -1,15 +1,16 @@
 <!-- logo -->
 <p align="center">
-  <img src="assets/images/logov3.svg">
+  <img src="https://user-images.githubusercontent.com/7014833/203773780-04a0c8c0-93a6-43a4-bb75-570cb951dfa0.png">
 </p>
 
 <h3 align='center' style='margin: 1em;'> Join the <b>Beta Testnet</b> on Android and IOS</h3>
 
 <p align="center">
   <a href="https://discord.gg/NM5HakA9nC">
-    <img width="50" height="50"src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6918e57475a843f59f_icon_clyde_black_RGB.svg">
+    <img width="70" height="70"src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a69f118df70ad7828d4_icon_clyde_blurple_RGB.svg">
   </a>
 </p>
+
 
 ## Development
 ### Getting Started
