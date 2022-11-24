@@ -67,6 +67,7 @@ dependencies:
   intl: ^0.17.0
   logger: ^1.1.0
   package_info_plus: ^1.4.2
+  pausable_timer: ^1.0.0+6
   #
   flutter:
     sdk: flutter

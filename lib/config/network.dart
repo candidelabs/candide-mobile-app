@@ -42,7 +42,7 @@ class Networks {
             symbol: "USDT",
             displaySymbol: "\$",
             decimals: 6,
-            logo: SvgPicture.asset("assets/images/fee-coin.svg"),
+            logo: SvgPicture.asset("assets/images/fee-coin2.svg"),
           ),
         }
       )

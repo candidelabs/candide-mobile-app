@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:candide_mobile_app/screens/home/activity/activity_screen.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardians_page.dart';
 import 'package:candide_mobile_app/screens/home/overview_screen.dart';
 import 'package:candide_mobile_app/screens/home/settings/settings_screen.dart';
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   var pagesList = [
     const OverviewScreen(),
+    const ActivityScreen(),
     const GuardiansPage(),
     const SettingsScreen(),
   ];
@@ -64,11 +66,11 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text("Assets"),
               selectedColor: Get.theme.colorScheme.primary,
             ),
-            /*SalomonBottomBarItem(
-              icon: const Icon(PhosphorIcons.squaresFourLight, size: 25,),
-              title: const Text("DApps"),
+            SalomonBottomBarItem(
+              icon: const Icon(PhosphorIcons.listBulletsFill, size: 25,),
+              title: const Text("Activity"),
               selectedColor: const Color(0xff9fd8df),
-            ),*/
+            ),
             SalomonBottomBarItem(
               icon: const Icon(PhosphorIcons.shieldLight, size: 25,),
               title: const Text("Security"),

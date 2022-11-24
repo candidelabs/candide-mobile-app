@@ -1,6 +1,7 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/config/swap.dart';
+import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
@@ -10,6 +11,7 @@ import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/controller/swap_controller.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_main_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 
@@ -56,6 +58,7 @@ class _SwapSheetState extends State<SwapSheet> {
     baseCurrency = bc;
     quoteCurrency = qc;
     quote = _quote;
+    var cancelLoad = Utils.showLoading();
     //
     swapBatch = Batch();
     //
@@ -74,6 +77,15 @@ class _SwapSheetState extends State<SwapSheet> {
       await swapBatch!.changeFeeCurrencies(feeCurrencies);
     }
     //
+    cancelLoad();
+    TransactionActivity transactionActivity = TransactionActivity(
+      date: DateTime.now(),
+      action: "swap",
+      title: "Swap",
+      status: "pending",
+      data: {"currency": baseCurrency, "amount": baseValue.toString(), "swapCurrency": quoteCurrency, "swapReceive": quote!.amount.toString()},
+    );
+
     pagesList[1] = TransactionReviewSheet(
       modalId: "swap_modal",
       leading: SwapReviewLeadingWidget(
@@ -88,6 +100,7 @@ class _SwapSheetState extends State<SwapSheet> {
       currency: baseCurrency,
       value: baseValue,
       batch: swapBatch!,
+      transactionActivity: transactionActivity,
       onBack: (){
         gotoPage(0);
       },
