@@ -255,6 +255,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     await Hive.box("wallet").delete("main");
                     await Hive.box("state").clear();
                     await Hive.box("activity").clear();
+                    AddressData.transactionsActivity.clear();
+                    AddressData.guardians.clear();
                     Get.off(const LandingScreen());
                   }
                 },
