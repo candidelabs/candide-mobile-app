@@ -71,7 +71,7 @@ class TransactionConfirmController {
       );
       Get.dialog(PromptPasswordDialog(
         onConfirm: (String password){
-          confirmTransactions(password, batch);
+          confirmTransactions(password, batch, transactionActivity);
         },
       ));
       return;
