@@ -3,6 +3,7 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class SendReviewLeadingWidget extends StatelessWidget {
   final String currency;
@@ -37,7 +38,7 @@ class SendReviewLeadingWidget extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                    child: Icon(Icons.arrow_upward_rounded, color: Get.theme.colorScheme.onPrimary, size: 18,)
+                    child: Icon(PhosphorIcons.paperPlaneTiltFill, color: Get.theme.colorScheme.onPrimary, size: 18,)
                 ),
               ),
             ),
