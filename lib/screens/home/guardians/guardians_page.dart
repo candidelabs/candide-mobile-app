@@ -195,8 +195,8 @@ class _GuardiansPageState extends State<GuardiansPage> {
               builder: (context) => SingleChildScrollView(
                 controller: ModalScrollController.of(context),
                 child: MagicEmailSheet(
-                  onProceed: (String email) async {
-                    bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email);
+                  onProceed: (String email, String? nickname) async {
+                    bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email, nickname);
                     if (result){
                       fetchGuardians();
                     }
@@ -223,9 +223,9 @@ class _GuardiansPageState extends State<GuardiansPage> {
               builder: (context) => SingleChildScrollView(
                 controller: ModalScrollController.of(context),
                 child: GuardianAddressSheet(
-                  onProceed: (String address) async {
+                  onProceed: (String address, String? nickname) async {
                     Get.back();
-                    bool refresh = await GuardianOperationsHelper.grantGuardian(address);
+                    bool refresh = await GuardianOperationsHelper.grantGuardian(address, nickname);
                     if (refresh){
                       fetchGuardians();
                     }
@@ -321,8 +321,9 @@ class _GuardianCard extends StatelessWidget { // todo move to components
                       Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
                     ],
                   ),
-                  Text(Utils.truncate(guardian.address), style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  (guardian.nickname?.isNotEmpty ?? false) ? Text("\n${guardian.nickname!}\n", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13, height: 0.5)) : const SizedBox.shrink(),
                   guardian.type == "magic-link" ? Text(guardian.email!, style: const TextStyle(fontSize: 12, color: Colors.grey)) : const SizedBox.shrink(),
+                  Text(Utils.truncate(guardian.address), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                 ],
               ),
               const SizedBox(width: 5,),
