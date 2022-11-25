@@ -185,7 +185,9 @@ class GuardianOperationsHelper {
       if (isLoggedIn){
         await magic.user.logout();
       }
+      cancelLoad.call();
       await magic.auth.loginWithMagicLink(email: email);
+      cancelLoad = Utils.showLoading();
       var metadata = await magic.user.getMetadata();
       cancelLoad.call();
       cancelLoad = null;
