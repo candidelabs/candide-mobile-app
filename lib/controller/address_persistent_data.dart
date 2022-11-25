@@ -120,7 +120,7 @@ class AddressData {
     //
     if (json != null){
       for (var guardianMetadata in json){
-        metadata[guardianMetadata["address"].toString().toLowerCase()] = [guardianMetadata["type"], guardianMetadata["email"], guardianMetadata['creationDate'] != null ? DateFormat("dd/MM/yyy").parse(guardianMetadata['creationDate']) : null];
+        metadata[guardianMetadata["address"].toString().toLowerCase()] = [guardianMetadata["type"], guardianMetadata["nickname"], guardianMetadata["email"], guardianMetadata['creationDate'] != null ? DateFormat("dd/MM/yyy").parse(guardianMetadata['creationDate']) : null];
       }
     }
     //
@@ -135,12 +135,14 @@ class AddressData {
           (e) => walletInterface.friends(BigInt.from(e))
           .then((value){
             var guardianMetadata = metadata.containsKey(value.hex.toLowerCase()) ? metadata[value.hex.toLowerCase()] : null;
+            print(guardianMetadata);
             guardians.add(WalletGuardian(
               index: e,
               address: value.hex,
               type: guardianMetadata?[0] ?? "unknown",
-              creationDate: guardianMetadata?[2],
-              email: guardianMetadata?[1],
+              nickname: guardianMetadata?[1],
+              email: guardianMetadata?[2],
+              creationDate: guardianMetadata?[3],
             ));
           })
         ),
@@ -151,6 +153,7 @@ class AddressData {
   static storeGuardians() async {
     List guardiansJson = [];
     for (WalletGuardian guardian in guardians){
+      print(guardian.toJson());
       guardiansJson.add(guardian.toJson());
     }
     await Hive.box("state").put("guardians_metadata", guardiansJson);
@@ -269,12 +272,14 @@ class WalletGuardian {
   int index;
   String address;
   String type;
+  String? nickname;
   String? email;
   DateTime? creationDate;
 
   WalletGuardian({required this.index,
     required this.address,
     required this.type,
+    this.nickname,
     this.email,
     this.creationDate});
 
@@ -282,6 +287,7 @@ class WalletGuardian {
       : index = json['index'],
         address = json['address'],
         type = json['type'],
+        nickname = json['nickname'],
         email = json['email'],
         creationDate = json['creationDate'] != null ? DateFormat("dd/MM/yyy").parse(json['creationDate']) : null;
 
@@ -289,6 +295,7 @@ class WalletGuardian {
     'index': index,
     'address': address,
     'type': type,
+    'nickname': nickname,
     'email': email,
     'creationDate': creationDate != null ? DateFormat("dd/MM/yyy").format(creationDate!) : null,
   };

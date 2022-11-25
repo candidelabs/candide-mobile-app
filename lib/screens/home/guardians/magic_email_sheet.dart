@@ -6,7 +6,7 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MagicEmailSheet extends StatefulWidget {
-  final Function(String) onProceed;
+  final Function(String, String?) onProceed;
   const MagicEmailSheet({Key? key, required this.onProceed}) : super(key: key);
 
   @override
@@ -15,6 +15,7 @@ class MagicEmailSheet extends StatefulWidget {
 
 class _MagicEmailSheetState extends State<MagicEmailSheet> {
   String email = "";
+  String? nickname = "";
   bool valid = false;
 
   @override
@@ -28,7 +29,7 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
           Text("Enter your email", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
           const SizedBox(height: 35,),
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 25),
+            margin: const EdgeInsets.symmetric(horizontal: 15),
             child: TextFormField(
               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 22),
               textAlign: TextAlign.center,
@@ -48,6 +49,20 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
                 return null;
               },
               autovalidateMode: AutovalidateMode.always,
+            ),
+          ),
+          const SizedBox(height: 10,),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 15),
+            child: TextFormField(
+              style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
+              decoration: const InputDecoration(
+                label: Text("Guardian nickname"),
+                border: ContinousInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(35)),
+                ),
+              ),
+              onChanged: (val) => nickname = val,
             ),
           ),
           const SizedBox(height: 25,),
@@ -104,7 +119,10 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
             child: ElevatedButton(
               onPressed: (){
                 if (!valid) return;
-                widget.onProceed.call(email);
+                if (nickname?.removeAllWhitespace.isEmpty ?? true){
+                  nickname = null;
+                }
+                widget.onProceed.call(email, nickname);
               },
               child: Text("Proceed to Magic Link Auth", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
             ),

@@ -33,7 +33,7 @@ class GuardianOperationsHelper {
 
   static Batch? grantBatch;
 
-  static Future<bool> grantGuardian(String address, {Map? magicLinkData}) async {
+  static Future<bool> grantGuardian(String address, String? nickname, {Map? magicLinkData}) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     Batch grantBatch = Batch();
     bool setupSocialModule = true;
@@ -99,6 +99,7 @@ class GuardianOperationsHelper {
           index: friendsCount,
           type: "magic-link",
           address: address,
+          nickname: nickname,
           email: magicLinkData["email"],
           creationDate: DateTime.now(),
         ));
@@ -107,6 +108,7 @@ class GuardianOperationsHelper {
           index: friendsCount,
           type: "family-and-friends",
           address: address,
+          nickname: nickname,
           email: null,
           creationDate: DateTime.now(),
         ));
@@ -174,7 +176,7 @@ class GuardianOperationsHelper {
     return (refresh ?? false);
   }
 
-  static Future<bool> setupMagicLinkGuardian(String email) async {
+  static Future<bool> setupMagicLinkGuardian(String email, String? nickname) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     bool? refresh = false;
     try {
@@ -188,7 +190,7 @@ class GuardianOperationsHelper {
       cancelLoad.call();
       cancelLoad = null;
       if (metadata.publicAddress == null) return false;
-      refresh = await grantGuardian(metadata.publicAddress!, magicLinkData: {"email":email});
+      refresh = await grantGuardian(metadata.publicAddress!, nickname, magicLinkData: {"email":email});
     } on Exception catch (e) {
       cancelLoad?.call();
       print(e);
