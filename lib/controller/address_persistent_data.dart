@@ -311,7 +311,7 @@ class TransactionActivity {
     required this.data});
 
   TransactionActivity.fromJson(Map json)
-      : date = DateFormat("dd/MM/yyy").parse(json['date']),
+      : date = DateTime.fromMillisecondsSinceEpoch(int.parse(json['date'])),
         action = json['action'],
         title = json['title'],
         status = json['status'],
@@ -320,7 +320,7 @@ class TransactionActivity {
         fee = TransactionFeeActivityData.fromJson(json['fee']);
 
   Map<String, dynamic> toJson() => {
-    'date': DateFormat("dd/MM/yyy").format(date),
+    'date': date.millisecondsSinceEpoch.toString(),
     'action': action,
     'title': title,
     'status': status,
