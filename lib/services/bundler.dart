@@ -54,7 +54,7 @@ class Bundler {
       return RelayResponse(status: response.data["result"]["status"], hash: response.data["result"]["txHash"]);
     } on DioError catch(e){
       print("Error occurred ${e.type.toString()}");
-      return null;
+      return RelayResponse(status: "failed-to-submit", hash: null);
     }
   }
 
