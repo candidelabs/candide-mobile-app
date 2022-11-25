@@ -315,10 +315,17 @@ class _TransactionDetailsCardState extends State<_TransactionDetailsCard> {
   void initState() {
     transactionStatusSubscription = eventBus.on<OnTransactionStatusChange>().listen((event) {
       if (!mounted) return;
-      if (event.hash != widget.transaction.hash) return;
+      if (widget.transaction.hash == null) return;
+      if (event.activity.hash != widget.transaction.hash) return;
       setState(() {});
     });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    transactionStatusSubscription.cancel();
+    super.dispose();
   }
 
 

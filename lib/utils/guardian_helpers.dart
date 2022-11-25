@@ -170,10 +170,6 @@ class GuardianOperationsHelper {
         );
       },
     );
-    if (refresh ?? false){
-      AddressData.guardians.removeWhere((element) => element.address.toLowerCase() == address.toLowerCase());
-      await AddressData.storeGuardians();
-    }
     cancelLoad?.call();
     return (refresh ?? false);
   }

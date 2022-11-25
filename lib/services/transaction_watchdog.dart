@@ -33,19 +33,19 @@ class TransactionWatchdog {
 
   static _checkAllTransactions() async {
     List<Future> futures = [];
-    List<String> removedHashes = [];
+    List<TransactionActivity> removedActivities = [];
     for (MapEntry<String, TransactionActivity> entry in transactions.entries){
       futures.add(getTransactionStatus(entry.key).then((status) async {
         if (status == "pending") return;
         entry.value.status = status;
-        removedHashes.add(entry.key);
+        removedActivities.add(entry.value);
         await AddressData.updateTransactionActivityStorage(entry.value, Networks.get(SettingsData.network)!.chainId.toInt());
       }));
     }
     await Future.wait(futures);
-    for (String hash in removedHashes){
-      transactions.remove(hash);
-      eventBus.fire(OnTransactionStatusChange(hash: hash));
+    for (TransactionActivity activity in removedActivities){
+      transactions.remove(activity.hash);
+      eventBus.fire(OnTransactionStatusChange(activity: activity));
     }
     if (transactions.isNotEmpty){
       _timer?..reset()..start();

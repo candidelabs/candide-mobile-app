@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_sheet.dart';
@@ -9,6 +11,7 @@ import 'package:candide_mobile_app/screens/home/components/currency_balance_card
 import 'package:candide_mobile_app/screens/home/components/deposit_sheet.dart';
 import 'package:candide_mobile_app/screens/home/components/network_bar.dart';
 import 'package:candide_mobile_app/screens/home/send/send_sheet.dart';
+import 'package:candide_mobile_app/utils/events.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
@@ -24,6 +27,7 @@ class OverviewScreen extends StatefulWidget {
 
 class _OverviewScreenState extends State<OverviewScreen> {
   final RefreshController _refreshController = RefreshController(initialRefresh: true);
+  late final StreamSubscription transactionStatusSubscription;
   bool balancesVisible = true;
 
   fetchOverview() async {
@@ -41,7 +45,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
   @override
   void initState() {
     AddressData.loadExplorerJson(null);
+    transactionStatusSubscription = eventBus.on<OnTransactionStatusChange>().listen((event) {
+      if (!mounted) return;
+      if (event.activity.action == "transfer" || event.activity.action == "swap"){ // todo(walletconnect/dapps) add contract interaction in the future
+        _refreshController.requestRefresh();
+      }
+    });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    transactionStatusSubscription.cancel();
+    super.dispose();
   }
 
   @override

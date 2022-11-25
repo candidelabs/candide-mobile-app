@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_system_onboarding.dart';
 import 'package:candide_mobile_app/screens/home/guardians/magic_email_sheet.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
+import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +25,7 @@ class GuardiansPage extends StatefulWidget {
 
 class _GuardiansPageState extends State<GuardiansPage> {
   bool _loading = true;
+  late final StreamSubscription transactionStatusSubscription;
 
   void fetchGuardians() async {
     setState(() => _loading = true);
@@ -45,7 +49,23 @@ class _GuardiansPageState extends State<GuardiansPage> {
   void initState() {
     checkGuardianSystemOnboarding();
     fetchGuardians();
+    transactionStatusSubscription = eventBus.on<OnTransactionStatusChange>().listen((event) async {
+      if (!mounted) return;
+      if (event.activity.action.contains("guardian-")){
+        if (event.activity.action == "guardian-revoke"){
+          AddressData.guardians.removeWhere((element) => element.address.toLowerCase() == event.activity.data["guardian"]!.toLowerCase());
+          await AddressData.storeGuardians();
+        }
+        fetchGuardians();
+      }
+    });
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    transactionStatusSubscription.cancel();
+    super.dispose();
   }
 
   @override
