@@ -36,13 +36,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.3.1"
-  asn1lib:
-    dependency: transitive
-    description:
-      name: asn1lib
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.1.0"
   async:
     dependency: transitive
     description:
@@ -204,20 +197,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
-  encrypt:
-    dependency: transitive
-    description:
-      name: encrypt
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "5.0.1"
-  encryptor:
-    dependency: transitive
-    description:
-      name: encryptor
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.1"
   ens_dart:
     dependency: "direct main"
     description:
@@ -659,7 +638,7 @@ packages:
       name: pointycastle
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.6.1"
+    version: "3.6.2"
   process:
     dependency: transitive
     description:
