@@ -274,7 +274,7 @@ class BatchUtils {
     List<int> networkFees = await getNetworkGasFees(chainId) ?? [0, 0];
     for (UserOperation op in userOps){
       int preVerificationGas = op.pack().length * 5 + 18000;
-      GasEstimate gasEstimate = GasEstimate(callGas: 300000, verificationGas: 100000, preVerificationGas: preVerificationGas, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
+      GasEstimate gasEstimate = GasEstimate(callGas: 300000, verificationGas: 150000, preVerificationGas: preVerificationGas, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
       results.add(gasEstimate);
     }
     return results;
