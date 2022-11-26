@@ -36,7 +36,8 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   navigateToHome(){
     AddressData.loadExplorerJson(null);
     SettingsData.loadFromJson(null);
-    Get.off(const HomeScreen());
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> const HomeScreen()));
   }
 
   copyEmojis() async {
@@ -59,7 +60,12 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   void refreshData() async {
     if (refreshing) return;
     setState(() => refreshing = true);
-    request = (await SecurityGateway.fetchById(request.id!))!;
+    RecoveryRequest? _updatedRequest = (await SecurityGateway.fetchById(request.id!));
+    if (_updatedRequest == null){
+      setState(() => refreshing = false);
+      return;
+    }
+    request = _updatedRequest;
     await fetchMinimumSignatures();
     bool _isOwner = await isOwner();
     setState(() => refreshing = false);
