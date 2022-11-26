@@ -55,7 +55,8 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   navigateToHome(){
     AddressData.loadExplorerJson(null);
     SettingsData.loadFromJson(null);
-    Get.off(const HomeScreen());
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> const HomeScreen()));
   }
 
   @override
