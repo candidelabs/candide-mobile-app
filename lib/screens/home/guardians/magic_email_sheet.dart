@@ -15,6 +15,7 @@ class MagicEmailSheet extends StatefulWidget {
 
 class _MagicEmailSheetState extends State<MagicEmailSheet> {
   final FocusNode emailFocus = FocusNode();
+  final FocusNode nicknameFocus = FocusNode();
   String email = "";
   String? nickname = "";
   bool valid = false;
@@ -51,12 +52,14 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
                 return null;
               },
               autovalidateMode: AutovalidateMode.always,
+              onFieldSubmitted: (_) => nicknameFocus.requestFocus(),
             ),
           ),
           const SizedBox(height: 10,),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 15),
             child: TextFormField(
+              focusNode: nicknameFocus,
               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
               decoration: const InputDecoration(
                 label: Text("Guardian nickname"),
@@ -122,6 +125,7 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
               onPressed: (){
                 if (!valid) return;
                 emailFocus.unfocus();
+                nicknameFocus.unfocus();
                 if (nickname?.removeAllWhitespace.isEmpty ?? true){
                   nickname = null;
                 }
