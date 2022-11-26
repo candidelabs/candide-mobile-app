@@ -857,9 +857,11 @@ packages:
   wallet_dart:
     dependency: "direct main"
     description:
-      path: "../wallet_dart"
-      relative: true
-    source: path
+      path: "."
+      ref: main
+      resolved-ref: "898b2771d28d864c16a4660ac16ee7e20da43486"
+      url: "https://github.com/candidelabs/wallet-dart.git"
+    source: git
     version: "0.0.1"
   watcher:
     dependency: transitive
