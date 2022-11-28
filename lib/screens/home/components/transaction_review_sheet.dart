@@ -124,7 +124,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                         for (MapEntry entry in widget.tableEntriesData.entries)
                           SummaryTableEntry(
                             title: entry.key,
-                            titleStyle: entry.key == "Network" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color) : null,
+                            titleStyle: null,
                             value: entry.value,
                             valueStyle: entry.key == "Network" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color) : null,
                           )
