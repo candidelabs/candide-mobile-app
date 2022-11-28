@@ -21,7 +21,6 @@ class SwapReviewLeadingWidget extends StatelessWidget {
         _CurrencySwapIcon(
           currency: baseCurrency,
           value: CurrencyUtils.formatCurrency(baseValue, baseCurrency, includeSymbol: false, formatSmallDecimals: true),
-          icon: const Icon(Icons.arrow_downward_rounded, color: Color(0xFFF44336), size: 18,),
         ),
         const Spacer(),
         Container(
@@ -40,7 +39,6 @@ class SwapReviewLeadingWidget extends StatelessWidget {
         _CurrencySwapIcon(
           currency: quoteCurrency,
           value: CurrencyUtils.formatCurrency(quoteValue, quoteCurrency, includeSymbol: false, formatSmallDecimals: true),
-          icon: const Icon(Icons.arrow_upward_rounded, color: Color(0xFF4CAF50), size: 18,),
         ),
         const Spacer(flex: 2,),
       ],
@@ -51,8 +49,7 @@ class SwapReviewLeadingWidget extends StatelessWidget {
 class _CurrencySwapIcon extends StatelessWidget {
   final String currency;
   final String value;
-  final Icon icon;
-  const _CurrencySwapIcon({Key? key, required this.currency, required this.value, required this.icon}) : super(key: key);
+  const _CurrencySwapIcon({Key? key, required this.currency, required this.value}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -69,22 +66,6 @@ class _CurrencySwapIcon extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: CurrencyMetadata.metadata[currency]!.logo,
-            ),
-            Positioned(
-              right: 0,
-              bottom: 0,
-              child: Container(
-                padding: const EdgeInsets.all(5),
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: Get.theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: icon,
-                ),
-              ),
             ),
           ],
         ),
