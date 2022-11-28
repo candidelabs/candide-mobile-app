@@ -353,7 +353,7 @@ class _TransactionDetailsCardState extends State<_TransactionDetailsCard> {
                         for (MapEntry entry in getTableEntries().entries)
                           SummaryTableEntry(
                             title: entry.key,
-                            titleStyle: entry.key == "Network" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color) : null,
+                            titleStyle: null,
                             value: entry.value,
                             valueStyle: entry.key == "Network" || entry.key == "Status" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: entry.key == "Status" ? getStatusColor(widget.transaction.status) : Networks.get(SettingsData.network)!.color) : null,
                           )
