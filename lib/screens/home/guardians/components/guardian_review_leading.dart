@@ -19,7 +19,7 @@ class GuardianReviewLeadingWidget extends StatelessWidget {
             color: Get.theme.cardColor,
             shape: BoxShape.circle,
           ),
-          child: const Icon(PhosphorIcons.userLight, size: 30,),
+          child: const Icon(PhosphorIcons.shield, size: 30,),
         ),
         Positioned(
           right: 0,
@@ -33,7 +33,7 @@ class GuardianReviewLeadingWidget extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: Center(
-                child: Icon(operation == GuardianOperation.grant ? Icons.add : (operation == GuardianOperation.revoke ? Icons.remove : Icons.refresh), color: Get.theme.colorScheme.onPrimary, size: 18,)
+                child: Icon(operation == GuardianOperation.grant ? PhosphorIcons.userPlus : (operation == GuardianOperation.revoke ? PhosphorIcons.userMinus : Icons.refresh), color: Get.theme.colorScheme.onPrimary, size: 18,)
             ),
           ),
         ),
