@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
@@ -26,7 +27,10 @@ class TransactionConfirmController {
       String? password = await store.read();
       return password;
     } on AuthException catch(_) {
-      BotToast.showText(text: "User cancelled authentication");
+      BotToast.showText(
+        text: "User cancelled authentication",
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
+      );
       return null;
     }
   }
@@ -38,6 +42,7 @@ class TransactionConfirmController {
       if (password == null){
         BotToast.showText(
           text: "User cancelled authentication",
+          textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
           contentColor: Colors.red,
           align: Alignment.topCenter,
         );
@@ -65,7 +70,7 @@ class TransactionConfirmController {
       cancelLoad();
       BotToast.showText(
         text: "Incorrect password",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
         contentColor: Colors.red,
         align: Alignment.topCenter,
       );
@@ -96,7 +101,7 @@ class TransactionConfirmController {
     //
     BotToast.showText(
       text: "Transaction sent, this might take a minute...",
-      textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+      textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
       contentColor: Get.theme.colorScheme.primary,
       align: Alignment.topCenter,
     );
@@ -105,7 +110,7 @@ class TransactionConfirmController {
     if (response?.status.toLowerCase() == "pending"){
       BotToast.showText(
         text: "Transaction still pending, refresh later...",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
         duration: const Duration(seconds: 5),
         contentColor: Get.theme.colorScheme.primary,
         align: Alignment.topCenter,
@@ -113,7 +118,7 @@ class TransactionConfirmController {
     }else if (response?.status.toLowerCase() == "failed") {
       BotToast.showText(
         text: "Transaction failed, contact us for help",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
         duration: const Duration(seconds: 5),
         contentColor: Colors.red,
         align: Alignment.topCenter,
@@ -121,7 +126,7 @@ class TransactionConfirmController {
     }else if (response?.status.toLowerCase() == "failed-to-submit"){
       BotToast.showText(
         text: "Transaction failed to submit, contact us for help",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold),
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
         duration: const Duration(seconds: 5),
         contentColor: Colors.red,
         align: Alignment.topCenter,
@@ -129,7 +134,7 @@ class TransactionConfirmController {
     }else if (response?.status.toLowerCase() == "success"){
       BotToast.showText(
         text: "Transaction completed!",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white),
         duration: const Duration(seconds: 5),
         contentColor: Colors.green,
         align: Alignment.topCenter,

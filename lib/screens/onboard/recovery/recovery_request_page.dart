@@ -44,7 +44,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     Clipboard.setData(ClipboardData(text: request.emoji));
     BotToast.showText(
         text: "Emojis copied to clipboard!",
-        textStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
         contentColor: Get.theme.colorScheme.primary,
         align: Alignment.topCenter,
     );

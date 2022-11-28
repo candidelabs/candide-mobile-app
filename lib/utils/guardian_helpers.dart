@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
+import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
@@ -275,6 +276,7 @@ class GuardianRecoveryHelper{
       } on AuthException catch(_) {
         BotToast.showText(
             text: "User cancelled biometrics auth, please try again",
+            textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
             contentColor: Colors.red.shade900,
             align: Alignment.topCenter,
             borderRadius: BorderRadius.circular(20)

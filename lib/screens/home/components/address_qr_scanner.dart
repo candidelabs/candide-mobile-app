@@ -44,6 +44,7 @@ class _AddressQRScannerState extends State<AddressQRScanner> {
           text: "Invalid address",
           contentColor: Colors.red,
           align: Alignment.topCenter,
+          textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
         );
       }
     });

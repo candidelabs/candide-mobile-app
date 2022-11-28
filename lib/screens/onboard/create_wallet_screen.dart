@@ -34,6 +34,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       } on AuthException catch(_) {
         BotToast.showText(
             text: "User cancelled biometrics auth, please try again",
+            textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
             contentColor: Colors.red.shade900,
             align: Alignment.topCenter,
             borderRadius: BorderRadius.circular(20)
