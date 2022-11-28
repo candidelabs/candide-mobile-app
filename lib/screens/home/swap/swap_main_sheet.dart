@@ -245,7 +245,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                         onPressed: (){
                           swapCurrencies();
                         },
-                        icon: const Icon(FontAwesomeIcons.upDown),
+                        icon: const Icon(FontAwesomeIcons.arrowDown),
                       ),
                     ),
                     const SizedBox(height: 20,),
