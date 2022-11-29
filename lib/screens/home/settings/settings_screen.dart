@@ -31,7 +31,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   BiometricStorageFile? biometricStorage;
-
+  late String tweetUrl;
 
   Future<String?> getPasswordThroughBiometrics() async {
     try{
@@ -130,6 +130,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
   }
 
+  tweetToClaimTestTokens() async {
+    var tweetUrl = "https://twitter.com/intent/tweet?text=I%27m+claiming+testnet+tokens+for+%40candidewallet%2C+a+smart+contract+wallet+based+on+ERC4337!%0A%0AMy+Address%3A+${AddressData.wallet.walletAddress.hexEip55}";
+    if(await canLaunchUrl(Uri.parse(tweetUrl))) {
+      await launchUrl(Uri.parse(tweetUrl), mode: LaunchMode.externalApplication);
+    } else {
+      throw "Could not launch $tweetUrl";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -196,6 +205,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: Hive.box("settings").get("biometrics_enabled"),
                 activeColor: Colors.blue,
               ),
+            ),
+            _MenuItem(
+              leading: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.yellow,
+                      Colors.green,
+                    ],
+                  ),
+                ),
+                child: const CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Icon(PhosphorIcons.coins, color: Colors.white,),
+                ),
+              ),
+              label: RichText(
+                text: TextSpan(
+                  text: "Request Test Tokens",
+                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
+                ),
+              ),
+              trailing: const Icon(PhosphorIcons.twitterLogo),
+              onPress: () {
+                tweetToClaimTestTokens();
+              },
+              description: const Text("Use the social faucet to get test tokens",),
             ),
             _MenuItem(
               onPress: () async {

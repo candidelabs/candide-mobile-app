@@ -8,7 +8,6 @@ import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class DepositSheet extends StatefulWidget {
   final String address;
@@ -20,11 +19,9 @@ class DepositSheet extends StatefulWidget {
 
 class _DepositSheetState extends State<DepositSheet> {
   bool _addressCopied = false;
-  late String tweetUrl;
 
   @override
   void initState() {
-    tweetUrl = "https://twitter.com/intent/tweet?text=I%27m+claiming+testnet+tokens+for+%40candidewallet%2C+a+smart+contract+wallet+based+on+ERC4337!%0A%0AMy+Address%3A+${widget.address}";
     super.initState();
   }
 
@@ -34,14 +31,6 @@ class _DepositSheetState extends State<DepositSheet> {
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
     setState(() => _addressCopied = false);
-  }
-
-  tweetToClaimTestTokens() async {
-    if(await canLaunchUrl(Uri.parse(tweetUrl))) {
-      await launchUrl(Uri.parse(tweetUrl), mode: LaunchMode.externalApplication);
-    } else {
-      throw "Could not launch $tweetUrl";
-    }
   }
 
   @override
@@ -128,22 +117,6 @@ class _DepositSheetState extends State<DepositSheet> {
                           Text("Copied!", style: TextStyle(color: Colors.green),),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 5,),
-                  SizedBox(
-                    width: 65,
-                    child: ElevatedButton(
-                      onPressed: tweetToClaimTestTokens,
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                        elevation: MaterialStateProperty.all(0),
-                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                            borderRadius: const BorderRadius.all(Radius.circular(0)),
-                            side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 1.5)
-                        )),
-                      ),
-                      child: const Icon(PhosphorIcons.twitterLogo, color: Colors.black, size: 20,),
                     ),
                   ),
                 ],
