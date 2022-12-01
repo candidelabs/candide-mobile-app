@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
+import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_system_onboarding.dart';
 import 'package:candide_mobile_app/screens/home/guardians/magic_email_sheet.dart';
@@ -10,9 +13,11 @@ import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -289,62 +294,65 @@ class _GuardianAddCard extends StatelessWidget { // todo move to components
 }
 
 
-class _GuardianCard extends StatelessWidget { // todo move to components
+class _GuardianCard extends StatefulWidget { // todo move to components
   final WalletGuardian guardian;
   final Widget logo;
   final VoidCallback onPressDelete;
   const _GuardianCard({Key? key, required this.guardian, required this.logo, required this.onPressDelete}) : super(key: key);
 
   @override
+  State<_GuardianCard> createState() => _GuardianCardState();
+}
+
+class _GuardianCardState extends State<_GuardianCard> {
+  @override
   Widget build(BuildContext context) {
-    String title = guardian.type.replaceAll("-", " ").capitalize!;
-    if (guardian.type == "magic-link"){
+    String title = widget.guardian.type.replaceAll("-", " ").capitalize!;
+    if (widget.guardian.type == "magic-link"){
       title = "Email Guardian";
     }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       child: Card(
         elevation: 3,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-          child: Row(
-            children: [
-              const SizedBox(width: 5,),
-              logo,
-              const SizedBox(width: 15,),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                    ],
-                  ),
-                  (guardian.nickname?.isNotEmpty ?? false) ? Text("\n${guardian.nickname!}\n", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13, height: 0.5)) : const SizedBox.shrink(),
-                  guardian.type == "magic-link" ? Text(guardian.email!, style: const TextStyle(fontSize: 12, color: Colors.grey)) : const SizedBox.shrink(),
-                  Text(Utils.truncate(guardian.address), style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                ],
-              ),
-              const SizedBox(width: 5,),
-              const Spacer(),
-              TextButton(
-                onPressed: onPressDelete,
-                style: ButtonStyle(
-                  foregroundColor: MaterialStateProperty.all(Colors.white),
-                  padding: MaterialStateProperty.all(EdgeInsets.zero),
-                  visualDensity: VisualDensity.compact
-                ),
-                child: Column(
-                  children: const [
-                    Icon(PhosphorIcons.trashLight),
-                    SizedBox(height: 5,),
-                    Text("Remove"),
+        child: InkWell(
+          onTap: () async {
+            await showBarModalBottomSheet(
+              context: context,
+              builder: (context) {
+                Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "guardian_details_modal");
+                return _GuardianDetailsCard(
+                  guardian: widget.guardian,
+                  onPressDelete: widget.onPressDelete,
+                  logo: widget.logo,
+                );
+              },
+            );
+            setState((){});
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+            child: Row(
+              children: [
+                const SizedBox(width: 5,),
+                widget.logo,
+                const SizedBox(width: 15,),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                      ],
+                    ),
+                    (widget.guardian.nickname?.isNotEmpty ?? false) ? Text("\n${widget.guardian.nickname!}\n", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13, height: 0.5)) : const SizedBox.shrink(),
+                    widget.guardian.type == "magic-link" ? Text(widget.guardian.email!, style: const TextStyle(fontSize: 12, color: Colors.grey)) : const SizedBox.shrink(),
+                    Text(Utils.truncate(widget.guardian.address), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
-              ),
-              const SizedBox(width: 5,),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -393,3 +401,148 @@ class _GuardianCountAlert extends StatelessWidget { // todo move to components
   }
 }
 
+class _GuardianDetailsCard extends StatefulWidget {
+  final WalletGuardian guardian;
+  final VoidCallback onPressDelete;
+  final Widget logo;
+  const _GuardianDetailsCard({Key? key, required this.guardian, required this.logo, required this.onPressDelete}) : super(key: key);
+
+  @override
+  State<_GuardianDetailsCard> createState() => _GuardianDetailsCardState();
+}
+
+class _GuardianDetailsCardState extends State<_GuardianDetailsCard> {
+  late final StreamSubscription transactionStatusSubscription;
+  final TextEditingController nicknameController = TextEditingController();
+  final FocusNode nicknameFocus = FocusNode();
+
+  copyAddress() async {
+    Clipboard.setData(ClipboardData(text: widget.guardian.address));
+    BotToast.showText(
+        text: "Address copied to clipboard!",
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
+        contentColor: Get.theme.colorScheme.primary,
+        align: Alignment.topCenter,
+    );
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+  }
+
+  saveNickname(String newNickname) async {
+    widget.guardian.nickname = newNickname;
+    await AddressData.storeGuardians();
+    BotToast.showText(
+        text: "New nickname saved!",
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
+        contentColor: Get.theme.colorScheme.primary,
+        align: Alignment.topCenter,
+    );
+  }
+
+
+  @override
+  void initState(){
+    if (widget.guardian.nickname == null || widget.guardian.nickname!.isEmpty){
+      nicknameController.text = "";
+    }else{
+      nicknameController.text = widget.guardian.nickname!;
+    }
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String title = widget.guardian.type.replaceAll("-", " ").capitalize!;
+    if (widget.guardian.type == "magic-link"){
+      title = "Email Guardian";
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          controller: Get.find<ScrollController>(tag: "guardian_details_modal"),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth, minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  const SizedBox(height: 15,),
+                  Text("Guardian Details", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
+                  const SizedBox(height: 50,),
+                  Transform.scale(
+                    scale: 2.5,
+                    child: widget.logo
+                  ),
+                  const SizedBox(height: 50,),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 15),
+                    child: TextFormField(
+                      controller: nicknameController,
+                      focusNode: nicknameFocus,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
+                      decoration: const InputDecoration(
+                        label: Text("Nickname", style: TextStyle(fontSize: 25),),
+                        border: ContinousInputBorder(
+                          borderSide: BorderSide(color: Colors.transparent),
+                          borderRadius: BorderRadius.all(Radius.circular(35)),
+                        ),
+                      ),
+                      onFieldSubmitted: (value) => saveNickname(value),
+                    ),
+                  ),
+                  const SizedBox(height: 20,),
+                  widget.guardian.type == "magic-link" 
+                  ? Text(widget.guardian.email!, style: const TextStyle(fontSize: 15, color: Colors.grey)) 
+                  : const SizedBox.shrink(),
+                  const SizedBox(height: 15,),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: Get.width * 0.03),
+                    child: SummaryTable(
+                      entries: [
+                          SummaryTableEntry(
+                            title: "Guardian Address",
+                            value: Utils.truncate(widget.guardian.address, trailingDigits: 4),
+                            trailing: IconButton(
+                              splashRadius: 12,
+                              style: const ButtonStyle(
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              onPressed: copyAddress,
+                              icon: Icon(PhosphorIcons.copyLight, color: Get.theme.colorScheme.primary , size: 20),
+                            ),
+                          ),
+                          SummaryTableEntry(
+                            title: "Connection",
+                            value: title,
+                          ),
+                         SummaryTableEntry(
+                            title: "Date Added",
+                            value: intl.DateFormat.yMMMMd().format(widget.guardian.creationDate!),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20,),   
+                  ElevatedButton(
+                    onPressed: (){
+                      widget.onPressDelete();
+                    },
+                    style: ButtonStyle(
+                     backgroundColor: MaterialStateProperty.all(Colors.orange[600]),
+                    ),
+                    child: Text("Remove", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),),
+                  ),
+                  const Spacer(),
+                  const SizedBox(height: 25,),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+    );
+  }
+}
