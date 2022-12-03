@@ -11,6 +11,7 @@ class PromptPasswordDialog extends StatefulWidget {
 
 class _PromptPasswordDialogState extends State<PromptPasswordDialog> {
   final GlobalKey<FormState> _formKey = GlobalKey();
+  bool _isObscured = true;
   String password = "";
 
   @override
@@ -25,11 +26,20 @@ class _PromptPasswordDialogState extends State<PromptPasswordDialog> {
       content: Form(
         key: _formKey,
         child: TextFormField(
-          obscureText: true,
-          decoration: const InputDecoration(
-            label: Text("Password"),
-            border: OutlineInputBorder(
-            ),
+          obscureText: _isObscured,     
+          decoration: InputDecoration(
+            label: const Text("Password"),
+            border: const OutlineInputBorder(),
+              suffixIcon: IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isObscured = !_isObscured;
+                  });
+                },
+                icon: Icon(_isObscured
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined),
+              ),
           ),
           validator: (val){
             if (val == null || val.isEmpty) return 'required';
