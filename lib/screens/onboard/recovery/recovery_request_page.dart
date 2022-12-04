@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
@@ -8,7 +8,6 @@ import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -32,6 +31,9 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   late RecoveryRequest request;
   bool refreshing = false;
   int? minimumSignatures;
+  List<EthereumAddress> guardians = [];
+  late List<SummaryTableEntry> recoveryInfoList;
+  bool _showGuardianAddresses = false;
 
   navigateToHome(){
     AddressData.loadExplorerJson(null);
@@ -40,20 +42,14 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> const HomeScreen()));
   }
 
-  copyEmojis() async {
-    Clipboard.setData(ClipboardData(text: request.emoji));
-    BotToast.showText(
-        text: "Emojis copied to clipboard!",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
-        contentColor: Get.theme.colorScheme.primary,
-        align: Alignment.topCenter,
-    );
-    await Future.delayed(const Duration(seconds: 3));
-    if (!mounted) return;
-  }
-
   Future<void> fetchMinimumSignatures() async {
     minimumSignatures = (await CWallet.recoveryInterface(EthereumAddress.fromHex(request.socialRecoveryAddress)).threshold()).toInt();
+    setState(() {});
+  }
+
+  Future<void> getFriends() async {
+    guardians = await CWallet.recoveryInterface(EthereumAddress.fromHex(request.socialRecoveryAddress)).getFriends();
+
     setState(() {});
   }
 
@@ -88,10 +84,64 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     return false;
   }
 
+  List<SummaryTableEntry> getRecoveryInfoEntries() {
+    recoveryInfoList = [
+      SummaryTableEntry(
+        title: "Wallet Address",
+        value: refreshing ? "..." : request.walletAddress,
+      ),
+      SummaryTableEntry(
+        title: "Recovery status",
+        value: refreshing ? "..." : request.status!,
+      ),
+      SummaryTableEntry(
+        title: "Minimum approvals",
+        value: refreshing ? "..." : minimumSignatures?.toString() ?? "...",
+      ),
+      SummaryTableEntry(
+        title: "Approvals acquired",
+        value: refreshing ? "..." : request.signaturesAcquired!.toString(),
+        trailing: IconButton(
+          onPressed: (()=> setState(() {
+            _showGuardianAddresses = !_showGuardianAddresses;
+          })),
+          iconSize: 18,
+            icon: !_showGuardianAddresses 
+            ? const Icon(PhosphorIcons.caretDown) 
+            : const Icon(PhosphorIcons.caretUp),
+        ),
+      ),
+    ];
+
+    if (_showGuardianAddresses && guardians.isNotEmpty) {
+      int index = 1;
+      for (EthereumAddress guardian in guardians) {
+        var guardianAddressFormatted = guardian.toString();
+        recoveryInfoList.add(
+          SummaryTableEntry(
+            title: "Guardian ${index++}",
+            value: guardianAddressFormatted,
+            trailing: IconButton(
+              splashRadius: 12,
+              style: const ButtonStyle(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              ),
+              onPressed: () => Utils.copyText(guardianAddressFormatted, message: "Address copied to clipboard!"),
+              icon: Icon(PhosphorIcons.copyLight, color: Get.theme.colorScheme.primary , size: 20),
+            ),
+          ),
+        );
+      }
+    }
+    return recoveryInfoList;
+  }
+
   @override
   void initState() {
     request = widget.request;
     refreshData();
+    getFriends();
     super.initState();
   }
 
@@ -155,7 +205,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                 height: 50,
                 margin: const EdgeInsets.symmetric(horizontal: 20),
                 child: ElevatedButton(
-                  onPressed: copyEmojis,
+                  onPressed: () => Utils.copyText(request.emoji.toString(), message: "Emojis copied to clipboard!"),
                   style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.all(Colors.transparent),
@@ -221,24 +271,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 child: SummaryTable(
-                  entries: [
-                    SummaryTableEntry(
-                      title: "Wallet Address",
-                      value: refreshing ? "..." : request.walletAddress,
-                    ),
-                    SummaryTableEntry(
-                      title: "Recovery status",
-                      value: refreshing ? "..." : request.status!,
-                    ),
-                    SummaryTableEntry(
-                      title: "Minimum approvals",
-                      value: refreshing ? "..." : minimumSignatures?.toString() ?? "...",
-                    ),
-                    SummaryTableEntry(
-                      title: "Approvals acquired",
-                      value: refreshing ? "..." : request.signaturesAcquired!.toString(),
-                    ),
-                  ],
+                  entries: getRecoveryInfoEntries(),
                 ),
               )
             ],
