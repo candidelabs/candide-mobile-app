@@ -2,9 +2,11 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bot_toast/bot_toast.dart';
+import 'package:candide_mobile_app/config/theme.dart';
 import 'package:eth_sig_util/util/keccak.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
 import 'package:get/get.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
@@ -12,6 +14,16 @@ import 'package:logger/logger.dart';
 
 class Utils {
   static final Logger logger = Logger();
+
+  static void copyText(String text, {String? message}) {
+    Clipboard.setData(ClipboardData(text: text));
+    BotToast.showText(
+        text: message ?? "Copied to clipboard!",
+        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
+        contentColor: Get.theme.colorScheme.primary,
+        align: Alignment.topCenter,
+    );
+  }
 
   static void showError({required String title, required String message}){
     DangerAlertBox(
