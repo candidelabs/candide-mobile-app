@@ -65,7 +65,7 @@ class BalanceCard extends StatelessWidget {
                         ))
                     ),
                     icon: const Icon(PhosphorIcons.arrowDownLight, size: 19,),
-                    label: Text("Deposit", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),),
+                    label: Text("Receive", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),),
                   ),
                 ),
                 const SizedBox(width: 5,),
