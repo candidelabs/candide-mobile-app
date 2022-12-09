@@ -297,8 +297,8 @@ class WalletConnectController {
     _showSignatureRequest(payload.id, "personal", payload.params?[0] ?? "");
   }
 
-  void _showSignatureRequest(int requestId, String type, String payload){
-    showDialog(
+  void _showSignatureRequest(int requestId, String type, String payload) async {
+    await showDialog(
       context: Get.context!,
       builder: (_) => WCSignatureRejectDialog(connector: connector,),
       useRootNavigator: false,
