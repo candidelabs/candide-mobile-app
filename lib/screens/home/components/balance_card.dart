@@ -8,12 +8,13 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class BalanceCard extends StatelessWidget {
   final VoidCallback onPressVisibilityIcon;
+  final VoidCallback onPressWalletConnect;
   final VoidCallback? onPressDeposit;
   final VoidCallback? onPressSend;
   final VoidCallback? onPressSwap;
   final WalletBalance balance;
   final bool balanceVisible;
-  const BalanceCard({Key? key, required this.onPressVisibilityIcon, required this.balance, this.onPressDeposit, this.onPressSend, this.onPressSwap, required this.balanceVisible}) : super(key: key);
+  const BalanceCard({Key? key, required this.onPressVisibilityIcon, required this.onPressWalletConnect, required this.balance, this.onPressDeposit, this.onPressSend, this.onPressSwap, required this.balanceVisible}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,12 +33,18 @@ class BalanceCard extends StatelessWidget {
               children: [
                 const SizedBox(width: 10,),
                 Text("Overview", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
-                const SizedBox(width: 15,),
+                const SizedBox(width: 10,),
                 IconButton(
                   onPressed: onPressVisibilityIcon,
                   iconSize: 18,
                   icon: const Icon(PhosphorIcons.eye, size: 25,),
-                )
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: onPressWalletConnect,
+                  iconSize: 18,
+                  icon: const Icon(PhosphorIcons.scan, size: 25,),
+                ),
               ],
             ),
             Container(

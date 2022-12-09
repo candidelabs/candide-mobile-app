@@ -19,7 +19,19 @@ class TransactionReviewSheet extends StatefulWidget {
   final TransactionActivity transactionActivity;
   final Map<String, String> tableEntriesData;
   final VoidCallback? onBack;
-  const TransactionReviewSheet({Key? key, this.modalId, required this.leading, required this.batch, required this.transactionActivity, required this.tableEntriesData, this.onBack, this.currency, this.value}) : super(key: key);
+  final bool showRejectButton;
+  const TransactionReviewSheet({
+    Key? key,
+    this.modalId,
+    required this.leading,
+    required this.batch,
+    required this.transactionActivity,
+    required this.tableEntriesData,
+    this.onBack,
+    this.currency,
+    this.value,
+    this.showRejectButton = false,
+  }) : super(key: key);
 
   @override
   State<TransactionReviewSheet> createState() => _TransactionReviewSheetState();
@@ -157,7 +169,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                     ),
                   ) : const SizedBox.shrink(),
                   SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
-                  ElevatedButton(
+                  !widget.showRejectButton ? ElevatedButton(
                     onPressed: errorMessage.isEmpty ? (){
                       TransactionConfirmController.onPressConfirm(widget.batch, widget.transactionActivity);
                     } : null,
@@ -170,6 +182,40 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                       )),
                     ),
                     child: Text("Confirm", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),),
+                  ) : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () async {
+                          Get.back();
+                        },
+                        style: ButtonStyle(
+                            minimumSize: MaterialStateProperty.all(Size(Get.width * 0.30, 40)),
+                            backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                            elevation: MaterialStateProperty.all(0),
+                            shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25),
+                                side: BorderSide(color: Get.theme.colorScheme.primary)
+                            ))
+                        ),
+                        child: Text("Reject", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary),),
+                      ),
+                      const SizedBox(width: 15,),
+                      ElevatedButton(
+                        onPressed: errorMessage.isEmpty ? (){
+                          TransactionConfirmController.onPressConfirm(widget.batch, widget.transactionActivity);
+                        } : null,
+                        style: ButtonStyle(
+                            minimumSize: MaterialStateProperty.all(Size(Get.width * 0.30, 40)),
+                            elevation: MaterialStateProperty.all(0),
+                            shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25),
+                                side: BorderSide(color: Get.theme.colorScheme.primary)
+                            ))
+                        ),
+                        child: Text("Confirm", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 25,),
                 ],

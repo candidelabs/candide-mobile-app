@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/screens/components/confirm_dialog.dart';
 import 'package:candide_mobile_app/screens/home/components/change_password_dialog.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
 import 'package:candide_mobile_app/screens/home/settings/custom_license_page.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/wc_connections_page.dart';
 import 'package:candide_mobile_app/screens/onboard/landing_screen.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -214,6 +216,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
+                      Colors.indigo,
+                      Colors.indigoAccent,
+                    ],
+                  ),
+                ),
+                child: const CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Icon(PhosphorIcons.link, color: Colors.white,),
+                ),
+              ),
+              label: RichText(
+                text: TextSpan(
+                  text: "Connected dApps",
+                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
+                ),
+              ),
+              trailing: const Icon(PhosphorIcons.arrowRightBold),
+              onPress: () {
+                Get.to(const WCConnectionsPage());
+              },
+              description: const Text("Manage dApp connections",),
+            ),
+            _MenuItem(
+              leading: Container(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
                       Colors.yellow,
                       Colors.green,
                     ],
@@ -291,9 +323,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     content: const Text("You are about to delete your wallet locally from this device. \n\nYou will need your Guardians and your public address / ENS to regain access to your account again"),
                   );
                   if (delete){
+                    await WalletConnectController.disconnectAllSessions();
                     await Hive.box("wallet").delete("main");
                     await Hive.box("state").clear();
                     await Hive.box("activity").clear();
+                    await Hive.box("wallet_connect").clear();
                     AddressData.transactionsActivity.clear();
                     AddressData.guardians.clear();
                     Get.off(const LandingScreen());

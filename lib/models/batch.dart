@@ -129,8 +129,10 @@ class Batch {
   }
 
   GnosisTransaction _getMultiSendTransaction(){
+    BigInt suggestedGasLimit = BigInt.zero;
     LengthTrackingByteSink sink = LengthTrackingByteSink();
     for (GnosisTransaction transaction in transactions){
+      suggestedGasLimit = suggestedGasLimit + transaction.suggestedGasLimit;
       Uint8List data = AbiUtil.solidityPack(
         ["uint8", "address", "uint256", "uint256", "bytes"],
         [BigInt.zero, transaction.to.addressBytes, transaction.value, transaction.data.length, transaction.data],
@@ -145,6 +147,7 @@ class Batch {
       data: multiSendCallData,
       operation: BigInt.one,
       type: GnosisTransactionType.execTransactionFromModule,
+      suggestedGasLimit: suggestedGasLimit,
     );
     return transaction;
   }
@@ -182,6 +185,10 @@ class Batch {
     if (transactions.any((element) => element.id == "social-deploy")){
       userOp.callGas += 2500000;
     }
+    userOp.callGas += multiSendTransaction.suggestedGasLimit.toInt();
+    print(">>>>>>>>>");
+    print(userOp.callGas);
+    print(userOp.toJson());
     if (includesPaymaster && !skipPaymasterData){
       await _addPaymasterToUserOps([userOp]);
     }

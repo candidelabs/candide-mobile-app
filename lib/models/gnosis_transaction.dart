@@ -15,6 +15,7 @@ class GnosisTransaction {
   EthereumAddress to;
   BigInt value;
   Uint8List data;
+  late BigInt suggestedGasLimit;
   late BigInt operation;
   late BigInt safeTxGas;
   late BigInt nonce;
@@ -27,6 +28,7 @@ class GnosisTransaction {
     required this.value,
     required this.data,
     required this.type,
+    BigInt? suggestedGasLimit,
     BigInt? operation,
     BigInt? safeTxGas,
     BigInt? nonce,
@@ -34,7 +36,9 @@ class GnosisTransaction {
     this.nonce = nonce ?? BigInt.from(0);
     this.operation = operation ?? BigInt.zero;
     this.safeTxGas = safeTxGas ?? BigInt.from(38306);
+    this.suggestedGasLimit = suggestedGasLimit ?? BigInt.zero;
   }
+
 
   Uint8List getHash(
     EthereumAddress address,

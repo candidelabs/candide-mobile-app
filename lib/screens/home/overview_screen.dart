@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_sheet.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_scan_sheet.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
@@ -18,6 +20,7 @@ import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:pull_to_refresh_flutter3/pull_to_refresh_flutter3.dart';
+import 'package:short_uuids/short_uuids.dart';
 
 
 class OverviewScreen extends StatefulWidget {
@@ -102,6 +105,22 @@ class _OverviewScreenState extends State<OverviewScreen> {
           ),
           BalanceCard(
             balanceVisible: balancesVisible,
+            onPressWalletConnect: () async {
+              await showBarModalBottomSheet(
+                context: context,
+                builder: (context) {
+                  return WCScanSheet(
+                    onScanResult: (String uri){
+                      var wcController = WalletConnectController();
+                      wcController.connect(
+                        uri,
+                        const ShortUuid().generate(),
+                      );
+                    },
+                  );
+                },
+              );
+            },
             onPressVisibilityIcon: () async {
               setState(() {
                 balancesVisible = !balancesVisible;
