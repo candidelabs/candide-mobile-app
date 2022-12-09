@@ -9,6 +9,10 @@ class OnChangeOnboardPage {
   OnChangeOnboardPage({required this.index});
 }
 
+class OnWalletConnectDisconnect {
+  OnWalletConnectDisconnect();
+}
+
 class OnTransactionStatusChange {
   TransactionActivity activity;
 

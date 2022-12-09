@@ -46,7 +46,7 @@ class SummaryTableEntry extends StatelessWidget {
             leading ?? const SizedBox.shrink(),
             Text(title, style: titleStyle ?? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),),
             const Spacer(),
-            Text(Utils.truncate(value), style: valueStyle ?? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white),),
+            Text(Utils.truncateIfAddress(value), style: valueStyle ?? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white),),
             trailing ?? const SizedBox.shrink(),
             const SizedBox(width: 5,),
           ],

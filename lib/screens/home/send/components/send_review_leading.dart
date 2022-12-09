@@ -4,11 +4,13 @@ import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:walletconnect_dart/walletconnect_dart.dart';
 
 class SendReviewLeadingWidget extends StatelessWidget {
   final String currency;
   final BigInt value;
-  const SendReviewLeadingWidget({Key? key, required this.currency, required this.value}) : super(key: key);
+  final WalletConnect? connector;
+  const SendReviewLeadingWidget({Key? key, required this.currency, required this.value, this.connector}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +51,22 @@ class SendReviewLeadingWidget extends StatelessWidget {
           CurrencyUtils.formatCurrency(value, currency, formatSmallDecimals: true),
           style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 28),
         ),
+        connector != null ? Container(
+          margin: const EdgeInsets.only(right: 15, left: 15, top: 20),
+          child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+                text: connector!.session.peerMeta!.name,
+                style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 22, color: Get.theme.colorScheme.primary),
+                children: const [
+                  TextSpan(
+                    text: " wants your permission to execute this transaction",
+                    style: TextStyle(fontSize: 20, color: Colors.white),
+                  )
+                ]
+            ),
+          ),
+        ) : const SizedBox.shrink(),
       ],
     );
   }

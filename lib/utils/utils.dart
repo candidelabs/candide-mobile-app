@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
@@ -33,9 +32,17 @@ class Utils {
       messageText: message
     );
   }
-
-  static String truncate(String input, {int? trailingDigits}){
+  static String truncateIfAddress(String input, {int? leadingDigits, int? trailingDigits}){
     var regex = RegExp('^(0x[a-zA-Z0-9]{${trailingDigits ?? 6}})[a-zA-Z0-9]+([a-zA-Z0-9]{${trailingDigits ?? 6}})\$');
+    var matches = regex.allMatches(input);
+    if (matches.isEmpty) {
+      return input;
+    }
+    return "${matches.first.group(1)}...${matches.first.group(2)}";
+  }
+
+  static String truncate(String input, {int? leadingDigits, int? trailingDigits}){
+    var regex = RegExp('^((?:0x)?.{${leadingDigits ?? 6}}).+(.{${trailingDigits ?? 6}})\$');
     var matches = regex.allMatches(input);
     if (matches.isEmpty) {
       return input;

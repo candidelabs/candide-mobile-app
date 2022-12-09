@@ -25,9 +25,9 @@ class _AddressQRScannerState extends State<AddressQRScanner> {
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
+    controller.resumeCamera();
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code == null) return;
-
       var address = "";
       if (scanData.code!.contains(':')) {
         address = scanData.code!.split(":")[1];

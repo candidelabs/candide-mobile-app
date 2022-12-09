@@ -1,4 +1,7 @@
 import 'package:animations/animations.dart';
+import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/screens/home/activity/activity_screen.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardians_page.dart';
 import 'package:candide_mobile_app/screens/home/overview_screen.dart';
@@ -24,6 +27,13 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
   bool reverse = false;
   int currentIndex = 0;
+
+  @override
+  void initState() {
+    WalletConnectController.restoreAllSessions(Networks.get(SettingsData.network)!.chainId.toInt());
+    WalletConnectController.startConnectivityAssuranceTimer();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
