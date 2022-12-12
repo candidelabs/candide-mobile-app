@@ -75,7 +75,6 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
                 if (nickname?.removeAllWhitespace.isEmpty ?? true){
                   nickname = null;
                 }
-                print("Nickname is $nickname");
                 if (ensResponse != null){
                   widget.onProceed.call(ensResponse!["address"], nickname);
                   return;

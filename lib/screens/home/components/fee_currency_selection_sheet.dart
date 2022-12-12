@@ -1,21 +1,22 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class FeeCurrenciesSelectionSheet extends StatelessWidget {
-  final List<FeeCurrency> currencies;
-  final String? initialSelection;
-  final Function(FeeCurrency) onSelected;
+  final List<FeeToken> currencies;
+  final TokenInfo? initialSelection;
+  final Function(FeeToken) onSelected;
   const FeeCurrenciesSelectionSheet({Key? key, required this.currencies, this.initialSelection, required this.onSelected}) : super(key: key);
 
   void sortByAvailability(){
     currencies.sort((a, b){
-      CurrencyBalance? _aBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == a.currency.symbol);
-      CurrencyBalance? _bBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == b.currency.symbol);
+      CurrencyBalance? _aBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == a.token.address.toLowerCase());
+      CurrencyBalance? _bBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == b.token.address.toLowerCase());
       //
       BigInt aBalance = _aBalance?.balance ?? BigInt.zero;
       BigInt bBalance = _bBalance?.balance ?? BigInt.zero;
@@ -50,17 +51,17 @@ class FeeCurrenciesSelectionSheet extends StatelessWidget {
           margin: const EdgeInsets.only(left: 15),
           child: Text("Pay with", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15),)
         ),
-        for (FeeCurrency feeCurrency in currencies)
+        for (FeeToken feeCurrency in currencies)
           Builder(
               builder: (context) {
-                CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == feeCurrency.currency.symbol);
+                CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == feeCurrency.token.address.toLowerCase());
                 if (currencyBalance == null){
                   return const SizedBox.shrink();
                 }
                 return _FeeCurrencySelectionCard(
                   feeCurrency: feeCurrency,
                   currencyBalance: currencyBalance,
-                  selected: initialSelection != null && currencyBalance.currency == initialSelection,
+                  selected: initialSelection != null && currencyBalance.currencyAddress.toLowerCase() == initialSelection?.address.toLowerCase(),
                   onSelected: (){
                     onSelected(feeCurrency);
                     Get.back();
@@ -76,7 +77,7 @@ class FeeCurrenciesSelectionSheet extends StatelessWidget {
 
 
 class _FeeCurrencySelectionCard extends StatelessWidget {
-  final FeeCurrency feeCurrency;
+  final FeeToken feeCurrency;
   final CurrencyBalance currencyBalance;
   final bool selected;
   final VoidCallback onSelected;
@@ -92,10 +93,6 @@ class _FeeCurrencySelectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool disabled = currencyBalance.balance < feeCurrency.fee;
-    CurrencyMetadata? metadata = CurrencyMetadata.metadata[feeCurrency.currency.symbol];
-    if (metadata == null){
-      return const SizedBox.shrink();
-    }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       child: Card(
@@ -113,24 +110,23 @@ class _FeeCurrencySelectionCard extends StatelessWidget {
               child: Row(
                 children: [
                   const SizedBox(width: 5,),
-                  SizedBox(
-                      height: 40,
-                      width: 40,
-                      child: metadata.logo
+                  TokenLogo(
+                    token: feeCurrency.token,
+                    size: 40,
                   ),
                   const SizedBox(width: 7,),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(metadata.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18, color: disabled ? Colors.grey[700] : Colors.white)),
+                      Text(feeCurrency.token.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18, color: disabled ? Colors.grey[700] : Colors.white)),
                       !disabled ? RichText(
                         text: TextSpan(
-                          text: CurrencyUtils.formatCurrency(currencyBalance.balance, metadata.symbol, includeSymbol: false),
+                          text: CurrencyUtils.formatCurrency(currencyBalance.balance, feeCurrency.token, includeSymbol: false),
                           style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                           children: [
                             TextSpan(
-                              text: " ${metadata.symbol}",
+                              text: " ${feeCurrency.token.symbol}",
                               style: const TextStyle(fontSize: 11, color: Colors.grey),
                             )
                           ]
@@ -145,7 +141,7 @@ class _FeeCurrencySelectionCard extends StatelessWidget {
                         : Column(
                       children: [
                         Text("Fee", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 14, color: Colors.white)),
-                        Text(CurrencyUtils.formatCurrency(feeCurrency.fee, feeCurrency.currency.symbol), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 11)),
+                        Text(CurrencyUtils.formatCurrency(feeCurrency.fee, feeCurrency.token), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 11)),
                       ],
                     )
                   ),

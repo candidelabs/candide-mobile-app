@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
@@ -160,7 +161,7 @@ class WalletConnectController {
   }
 
   void _handleSessionRequest(WCSessionRequest? payload){
-    print(payload);
+    //print(payload);
     if (payload == null) return;
     if (payload.peerMeta == null) return;
     connector.session.clientMeta = payload.peerMeta;
@@ -176,14 +177,14 @@ class WalletConnectController {
   }
 
   void _handleSessionUpdate(Object? payload){
-    print(payload.runtimeType);
-    print(payload);
+    //print(payload.runtimeType);
+    //print(payload);
     if (payload == null) return;
   }
 
   void _ethSendTransaction(JsonRpcRequest? payload) async {
     if (payload == null) return;
-    print(payload.toJson());
+    //print(payload.toJson());
     var cancelLoad = Utils.showLoading();
     Batch wcBatch = Batch();
     String hexValue = "0x00";
@@ -216,7 +217,7 @@ class WalletConnectController {
     );
     wcBatch.transactions.add(transaction);
     //
-    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
     if (feeCurrencies == null){
       // todo handle network errors
       return;
@@ -237,7 +238,7 @@ class WalletConnectController {
       "To": payload.params![0]["to"],
     };
     if (value > BigInt.zero){
-      tableEntriesData["Value"] = CurrencyUtils.formatCurrency(value, "ETH", includeSymbol: true, formatSmallDecimals: true);
+      tableEntriesData["Value"] = CurrencyUtils.formatCurrency(value, TokenInfoStorage.getTokenBySymbol("ETH")!, includeSymbol: true, formatSmallDecimals: true);
     }
     tableEntriesData["Network"] = SettingsData.network;
     //
@@ -248,7 +249,7 @@ class WalletConnectController {
         return TransactionReviewSheet(
           modalId: "wc_transaction_review_modal",
           leading: isTransfer ? SendReviewLeadingWidget(
-            currency: "ETH",
+            token: TokenInfoStorage.getTokenBySymbol("ETH")!,
             value: value,
             connector: connector,
           ) : WCReviewLeading(
@@ -287,13 +288,13 @@ class WalletConnectController {
 
   void _ethSign(JsonRpcRequest? payload){
     if (payload == null) return;
-    print(payload.toJson());
+    //print(payload.toJson());
     _showSignatureRequest(payload.id, "sign", payload.params?[1] ?? "");
   }
 
   void _ethPersonalSign(JsonRpcRequest? payload) {
     if (payload == null) return;
-    print(payload.toJson());
+    //print(payload.toJson());
     _showSignatureRequest(payload.id, "personal", payload.params?[0] ?? "");
   }
 

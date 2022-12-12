@@ -1,12 +1,12 @@
-import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 
-class FeeCurrency {
-  CurrencyMetadata currency;
+class FeeToken {
+  TokenInfo token;
   BigInt fee;
   BigInt conversion;
 
-  FeeCurrency({required this.currency, required this.fee, required this.conversion});
+  FeeToken({required this.token, required this.fee, required this.conversion});
 }
 
 class FeeCurrencyUtils {

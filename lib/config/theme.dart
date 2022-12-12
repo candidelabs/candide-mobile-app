@@ -24,7 +24,16 @@ class _Fonts{
 }
 
 class _MiscColors{
-  final Color welcomeBackground = const Color.fromRGBO(216, 153, 247, 1);
+  final List<Color> randomColors = const [
+    Color(0xff7b7ff2),
+    Color(0xff8aa7db),
+    Color(0xffe0699e),
+    Color(0xff8e6ec1),
+    Color(0xffd88070),
+    Color(0xffea8fa1),
+    Color(0xff4ed376),
+    Color(0xff0aa859),
+  ];
 
   const _MiscColors();
 }

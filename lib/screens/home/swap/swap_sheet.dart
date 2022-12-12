@@ -2,6 +2,7 @@
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
@@ -29,8 +30,8 @@ class _SwapSheetState extends State<SwapSheet> {
   bool reverse = false;
   int currentIndex = 0;
   //
-  String baseCurrency = "";
-  String quoteCurrency = "";
+  TokenInfo baseCurrency = TokenInfoStorage.getTokenBySymbol("ETH")!;
+  TokenInfo quoteCurrency = TokenInfoStorage.getTokenBySymbol("UNI")!;
   OptimalQuote? quote;
   List<UserOperation> userOperations = [];
   List<UserOperation>? unsignedUserOperations = [];
@@ -54,7 +55,7 @@ class _SwapSheetState extends State<SwapSheet> {
   }
   //
 
-  onPressReview(String bc, BigInt baseValue, String qc, OptimalQuote _quote) async {
+  onPressReview(TokenInfo bc, BigInt baseValue, TokenInfo qc, OptimalQuote _quote) async {
     baseCurrency = bc;
     quoteCurrency = qc;
     quote = _quote;
@@ -69,7 +70,7 @@ class _SwapSheetState extends State<SwapSheet> {
     );
     swapBatch!.transactions.addAll(transactions);
     //
-    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
     if (feeCurrencies == null){
       // todo handle network errors
       return;
@@ -83,7 +84,7 @@ class _SwapSheetState extends State<SwapSheet> {
       action: "swap",
       title: "Swap",
       status: "pending",
-      data: {"currency": baseCurrency, "amount": baseValue.toString(), "swapCurrency": quoteCurrency, "swapReceive": quote!.amount.toString()},
+      data: {"currency": baseCurrency.address, "amount": baseValue.toString(), "swapCurrency": quoteCurrency.address, "swapReceive": quote!.amount.toString()},
     );
 
     pagesList[1] = TransactionReviewSheet(

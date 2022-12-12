@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
@@ -44,7 +45,7 @@ class Bundler {
           })
       );
       //
-      print(response.data);
+      //print(response.data);
       if ((response.data as Map).containsKey("error")){
         if (response.data["error"]["data"]["status"] == "failed-to-submit"){
           return RelayResponse(status: "failed-to-submit", hash: response.data["error"]["data"]["txHash"]);
@@ -58,7 +59,7 @@ class Bundler {
     }
   }
 
-  static Future<List<FeeCurrency>?> fetchPaymasterFees() async {
+  static Future<List<FeeToken>?> fetchPaymasterFees() async {
     try{
       var response = await Dio().post("${Env.bundlerUri}/jsonrpc/paymaster",
         data: jsonEncode({
@@ -68,12 +69,12 @@ class Bundler {
         })
       );
       //
-      List<FeeCurrency> result = [];
+      List<FeeToken> result = [];
       for (String tokenData in response.data['result']){
         var _tokenData = jsonDecode(tokenData.replaceAll("'", '"'));
-        CurrencyMetadata? _currency = CurrencyMetadata.findByAddress(_tokenData["address"]);
-        if (_currency == null) continue;
-        result.add(FeeCurrency(currency: _currency, fee: BigInt.zero, conversion: _tokenData["tokenToEthPrice"].runtimeType == String ? BigInt.parse(_tokenData["tokenToEthPrice"]) : BigInt.from(_tokenData["tokenToEthPrice"])));
+        TokenInfo? _token = TokenInfoStorage.getTokenByAddress(_tokenData["address"]);
+        if (_token == null) continue;
+        result.add(FeeToken(token: _token, fee: BigInt.zero, conversion: _tokenData["tokenToEthPrice"].runtimeType == String ? BigInt.parse(_tokenData["tokenToEthPrice"]) : BigInt.from(_tokenData["tokenToEthPrice"])));
       }
       return result;
     } on DioError catch(e){

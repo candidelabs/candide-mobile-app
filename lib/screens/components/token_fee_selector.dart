@@ -1,5 +1,6 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/screens/home/components/fee_currency_selection_sheet.dart';
@@ -11,7 +12,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class TokenFeeSelector extends StatefulWidget {
   final Batch batch;
-  final Function(FeeCurrency)? onFeeCurrencyChange;
+  final Function(FeeToken)? onFeeCurrencyChange;
   const TokenFeeSelector({Key? key, required this.batch, this.onFeeCurrencyChange}) : super(key: key);
 
   @override
@@ -27,7 +28,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
         controller: ModalScrollController.of(context),
         child: FeeCurrenciesSelectionSheet(
           currencies: widget.batch.feeCurrencies,
-          initialSelection: widget.batch.feeCurrency?.currency.symbol,
+          initialSelection: widget.batch.feeCurrency?.token,
           onSelected: (feeCurrency){
             setState(() {
               widget.batch.changeFeeCurrency(feeCurrency);
@@ -69,8 +70,8 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
               const Spacer(),
               Column(
                 children: [
-                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(widget.batch.feeCurrency!.fee, widget.batch.feeCurrency!.currency.symbol) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
-                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(CurrencyUtils.convertToQuote(widget.batch.feeCurrency!.currency.symbol, SettingsData.quoteCurrency, widget.batch.feeCurrency!.fee), SettingsData.quoteCurrency) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
+                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(widget.batch.feeCurrency!.fee, widget.batch.feeCurrency!.token) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
+                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(CurrencyUtils.convertToQuote(widget.batch.feeCurrency!.token.address.toLowerCase(), SettingsData.quoteCurrency, widget.batch.feeCurrency!.fee), TokenInfoStorage.getTokenBySymbol(SettingsData.quoteCurrency)!) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
                 ],
               ),
               const SizedBox(width: 5,),

@@ -1,5 +1,6 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
@@ -51,7 +52,7 @@ class BalanceCard extends StatelessWidget {
                 margin: const EdgeInsets.only(left: 10),
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  balanceVisible ? CurrencyUtils.formatCurrency(balance.currentBalance, balance.quoteCurrency) : "••••••••••••",
+                  balanceVisible ? CurrencyUtils.formatCurrency(balance.currentBalance, TokenInfoStorage.getTokenBySymbol(balance.quoteCurrency)!) : "••••••••••••",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
                 )
             ),

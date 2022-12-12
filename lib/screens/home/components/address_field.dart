@@ -14,11 +14,12 @@ import 'package:web3dart/credentials.dart';
 
 class AddressField extends StatefulWidget {
   final String hint;
+  final bool scanENS;
   final bool filled;
   final Function(String) onAddressChanged;
   final Function(Map?) onENSChange;
   final Widget qrAlertWidget;
-  const AddressField({Key? key, required this.onAddressChanged, required this.onENSChange, required this.hint, this.filled=true, required this.qrAlertWidget}) : super(key: key);
+  const AddressField({Key? key, required this.onAddressChanged, required this.onENSChange, required this.hint, this.filled=true, this.scanENS=true, required this.qrAlertWidget}) : super(key: key);
 
   @override
   State<AddressField> createState() => _AddressFieldState();
@@ -38,6 +39,7 @@ class _AddressFieldState extends State<AddressField> {
   //
   // Starts/restarts ENS Timer, or stops the timer if regex doesn't match
   void restartENSListener() async {
+    if (!widget.scanENS) return;
     if (!ensRegex.hasMatch(address)){
       if (!ensTimerActive) return;
       setState(() {
@@ -159,7 +161,7 @@ class _AddressFieldState extends State<AddressField> {
               ),
               validator: (val) {
                 if (val == null || val.isEmpty) return 'required';
-                if (!Utils.isValidAddress(val) && !ensRegex.hasMatch(address)){
+                if (!Utils.isValidAddress(val) && (!widget.scanENS || !ensRegex.hasMatch(address))){
                   return 'Invalid address';
                 }
                 if (ensError?.isNotEmpty ?? false) return ensError;

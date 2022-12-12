@@ -59,6 +59,7 @@ dependencies:
   blockies: ^0.1.2
   keyboard_actions: ^4.1.0
   onboarding: ^3.1.0
+  cached_network_image: ^3.2.3
   # Typography
   phosphor_flutter: ^1.4.0
   font_awesome_flutter: ^10.1.0
@@ -73,6 +74,7 @@ dependencies:
   package_info_plus: ^1.4.2
   pausable_timer: ^1.0.0+6
   short_uuids: ^2.0.0
+  flutter_cache_manager: ^3.3.0
   #
   flutter:
     sdk: flutter

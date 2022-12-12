@@ -1,6 +1,8 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +13,7 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SendAmountSheet extends StatefulWidget {
   final VoidCallback onPressBack;
-  final Function(String, BigInt) onPressReview;
+  final Function(TokenInfo, BigInt) onPressReview;
   const SendAmountSheet({Key? key, required this.onPressBack, required this.onPressReview}) : super(key: key);
 
   @override
@@ -21,7 +23,7 @@ class SendAmountSheet extends StatefulWidget {
 class _SendAmountSheetState extends State<SendAmountSheet> {
   final FocusNode _amountFocus = FocusNode();
   final TextEditingController _amountController = TextEditingController();
-  String selectedCurrency = "ETH";
+  TokenInfo selectedToken = TokenInfoStorage.getTokenBySymbol("ETH")!;
   String errorMessage = "Sending amount must be greater than zero";
   final _errors = {
     "balance": "Insufficient Balance",
@@ -32,14 +34,14 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
   //
   @override
   void initState() {
-    _amountController.text = "$amount $selectedCurrency";
+    _amountController.text = "$amount ${selectedToken.symbol}";
     _amountFocus.addListener((){
       if (_amountFocus.hasFocus){
         _amountController.text = amount.toString();
       }else{
         if (_amountController.value.text.contains("<")) return;
         amount = double.parse(_amountController.value.text.isEmpty ? "0" : _amountController.value.text);
-        _amountController.text = "$amount $selectedCurrency";
+        _amountController.text = "$amount ${selectedToken.symbol}";
       }
     });
     super.initState();
@@ -52,15 +54,15 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: CurrenciesSelectionSheet(
-          currencies: const ["ETH", "UNI", "CTT"],
-          initialSelection: selectedCurrency,
-          onSelected: (currency){
+          currencies: TokenInfoStorage.tokens.where((element) => element.address == Constants.addressZeroHex || AddressData.getCurrencyBalance(element.address.toLowerCase()) > BigInt.zero).toList(),
+          initialSelection: selectedToken,
+          onSelected: (token){
             setState(() {
-              if (selectedCurrency != currency){
+              if (selectedToken != token){
                 amount = 0;
               }
-              selectedCurrency = currency;
-              _amountController.text = "$amount $selectedCurrency";
+              selectedToken = token;
+              _amountController.text = "$amount ${selectedToken.symbol}";
               _validateAmountInput(amount.toString());
             });
           },
@@ -75,7 +77,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
     }
     amount = double.parse(input);
     if (setActualAmount){
-      actualAmount = CurrencyUtils.parseCurrency(amount.toString(), selectedCurrency);
+      actualAmount = CurrencyUtils.parseCurrency(amount.toString(), selectedToken);
     }
     if (actualAmount == BigInt.zero){
       if (errorMessage != _errors["zero"]) {
@@ -83,7 +85,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
           errorMessage = _errors["zero"]!;
         });
       }
-    }else if (actualAmount > AddressData.getCurrencyBalance(selectedCurrency)){
+    }else if (actualAmount > AddressData.getCurrencyBalance(selectedToken.address.toLowerCase())){
       if (errorMessage != _errors["balance"]){
         setState(() {
           errorMessage = _errors["balance"]!;
@@ -145,19 +147,19 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                               )),
                             ),
                             icon: Icon(Icons.arrow_drop_down, color: Get.theme.colorScheme.primary,),
-                            label: Text(selectedCurrency, style: TextStyle(color: Get.theme.colorScheme.primary),),
+                            label: Text(selectedToken.symbol, style: TextStyle(color: Get.theme.colorScheme.primary),),
                           ),
                         ),
                         const Spacer(),
                         TextButton(
                           onPressed: (){
                             _amountFocus.unfocus();
-                            actualAmount = AddressData.getCurrencyBalance(selectedCurrency);
-                            amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, selectedCurrency, includeSymbol: false));
-                            _amountController.text = "$amount $selectedCurrency";
+                            actualAmount = AddressData.getCurrencyBalance(selectedToken.address.toLowerCase());
+                            amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, selectedToken, includeSymbol: false));
+                            _amountController.text = "$amount $selectedToken";
                             _validateAmountInput(amount.toString(), setActualAmount: false);
                             if (amount.toString() == "0.0" && actualAmount > BigInt.zero){
-                              _amountController.text = "<0.000001 $selectedCurrency";
+                              _amountController.text = "<0.000001 $selectedToken";
                             }
                           },
                           child: Text("USE MAX", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
@@ -186,14 +188,14 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                     const SizedBox(height: 35,),
                     RichText(
                       text: TextSpan(
-                        text: "Balance: ${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(selectedCurrency), selectedCurrency, includeSymbol: false, formatSmallDecimals: true)} ",
+                        text: "Balance: ${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(selectedToken.address.toLowerCase()), selectedToken, includeSymbol: false, formatSmallDecimals: true)} ",
                         style: TextStyle(
                           fontFamily: AppThemes.fonts.gilroyBold,
                           fontSize: 16
                         ),
                         children: [
                           TextSpan(
-                            text: selectedCurrency,
+                            text: selectedToken.symbol,
                             style: const TextStyle(fontSize: 12, color: Colors.grey),
                           )
                         ]
@@ -218,7 +220,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                     SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
                     ElevatedButton(
                       onPressed: errorMessage.isEmpty ? (){
-                        widget.onPressReview.call(selectedCurrency, actualAmount);
+                        widget.onPressReview.call(selectedToken, actualAmount);
                       } : null,
                       style: ButtonStyle(
                         minimumSize: MaterialStateProperty.all(Size(Get.width * 0.8, 35)),

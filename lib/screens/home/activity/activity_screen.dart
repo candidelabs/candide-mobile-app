@@ -4,6 +4,7 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_review_leading.dart';
@@ -153,7 +154,7 @@ class _TransactionCardState extends State<_TransactionCard> {
         Text(
           CurrencyUtils.formatCurrency(
             BigInt.parse(widget.transaction.data["amount"]!),
-            widget.transaction.data["currency"]!,
+            TokenInfoStorage.getTokenByAddress(widget.transaction.data["currency"]!)!,
             includeSymbol: true,
             formatSmallDecimals: true,
           ),
@@ -163,7 +164,7 @@ class _TransactionCardState extends State<_TransactionCard> {
         Text(
           CurrencyUtils.formatCurrency(
             BigInt.parse(widget.transaction.data["swapReceive"]!),
-            widget.transaction.data["swapCurrency"]!,
+            TokenInfoStorage.getTokenByAddress(widget.transaction.data["swapCurrency"]!)!,
             includeSymbol: true,
             formatSmallDecimals: true,
           ),
@@ -234,7 +235,12 @@ class _TransactionCardState extends State<_TransactionCard> {
             ),
             const Spacer(),
             widget.transaction.action == "transfer" ? Text(
-                CurrencyUtils.formatCurrency(BigInt.parse(widget.transaction.data["amount"]!), widget.transaction.data["currency"]!, includeSymbol: true, formatSmallDecimals: true),
+                CurrencyUtils.formatCurrency(
+                  BigInt.parse(widget.transaction.data["amount"]!),
+                  TokenInfoStorage.getTokenByAddress(widget.transaction.data["currency"]!)!,
+                  includeSymbol: true,
+                  formatSmallDecimals: true
+                ),
                 style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
               ) : widget.transaction.action == "swap" ? swapValueWidget() : const SizedBox.shrink(),
           ],
@@ -269,14 +275,14 @@ class _TransactionDetailsCardState extends State<_TransactionDetailsCard> {
   Widget getLeadingWidget(){
     if (widget.transaction.action == "transfer"){
       return SendReviewLeadingWidget(
-        currency: widget.transaction.data["currency"]!,
+        token: TokenInfoStorage.getTokenByAddress(widget.transaction.data["currency"]!)!,
         value: BigInt.parse(widget.transaction.data["amount"]!),
       );
     }else if (widget.transaction.action == "swap"){
       return SwapReviewLeadingWidget(
-        baseCurrency: widget.transaction.data["currency"]!,
+        baseCurrency: TokenInfoStorage.getTokenByAddress(widget.transaction.data["currency"]!)!,
         baseValue: BigInt.parse(widget.transaction.data["amount"]!),
-        quoteCurrency: widget.transaction.data["swapCurrency"]!,
+        quoteCurrency: TokenInfoStorage.getTokenByAddress(widget.transaction.data["swapCurrency"]!)!,
         quoteValue: BigInt.parse(widget.transaction.data["swapReceive"]!),
       );
     }else if (widget.transaction.action.startsWith("guardian-")){
@@ -302,9 +308,13 @@ class _TransactionDetailsCardState extends State<_TransactionDetailsCard> {
       });
     }
     entries["Status"] = widget.transaction.status.replaceAll("-", " ").capitalizeFirst;
-    entries["Transaction fee"] = "< ${CurrencyUtils.formatCurrency(widget.transaction.fee.fee, widget.transaction.fee.currency, includeSymbol: true, formatSmallDecimals: true)}";
+    entries["Transaction fee"] = "< ${CurrencyUtils.formatCurrency(
+        widget.transaction.fee.fee,
+        TokenInfoStorage.getTokenByAddress(widget.transaction.fee.currencyAddress)!,
+        includeSymbol: true,
+        formatSmallDecimals: true)}";
     if (widget.transaction.status == "failed-to-submit"){
-      entries["Transaction fee"] = CurrencyUtils.formatCurrency(BigInt.zero, widget.transaction.fee.currency, includeSymbol: true, formatSmallDecimals: true);
+      entries["Transaction fee"] = CurrencyUtils.formatCurrency(BigInt.zero, TokenInfoStorage.getTokenByAddress(widget.transaction.fee.currencyAddress)!, includeSymbol: true, formatSmallDecimals: true);
     }
     entries["Network"] = SettingsData.network;
     return entries;

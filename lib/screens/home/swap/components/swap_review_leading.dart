@@ -1,14 +1,15 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 
 class SwapReviewLeadingWidget extends StatelessWidget {
-  final String baseCurrency;
+  final TokenInfo baseCurrency;
   final BigInt baseValue;
-  final String quoteCurrency;
+  final TokenInfo quoteCurrency;
   final BigInt quoteValue;
   const SwapReviewLeadingWidget({Key? key, required this.baseCurrency, required this.baseValue, required this.quoteCurrency, required this.quoteValue}) : super(key: key);
 
@@ -47,7 +48,7 @@ class SwapReviewLeadingWidget extends StatelessWidget {
 }
 
 class _CurrencySwapIcon extends StatelessWidget {
-  final String currency;
+  final TokenInfo currency;
   final String value;
   const _CurrencySwapIcon({Key? key, required this.currency, required this.value}) : super(key: key);
 
@@ -55,19 +56,16 @@ class _CurrencySwapIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Stack(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              width: 95,
-              height: 95,
-              decoration: BoxDecoration(
-                color: Get.theme.cardColor,
-                shape: BoxShape.circle,
-              ),
-              child: CurrencyMetadata.metadata[currency]!.logo,
-            ),
-          ],
+        Container(
+          padding: const EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Get.theme.cardColor,
+            shape: BoxShape.circle,
+          ),
+          child: TokenLogo(
+            token: currency,
+            size: 95
+          ),
         ),
         const SizedBox(height: 25,),
         RichText(
@@ -76,7 +74,7 @@ class _CurrencySwapIcon extends StatelessWidget {
               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),
               children: [
                 TextSpan(
-                    text: currency,
+                    text: currency.symbol,
                     style: const TextStyle(fontSize: 13, color: Colors.grey)
                 )
               ]

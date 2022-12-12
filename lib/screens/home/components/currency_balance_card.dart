@@ -1,20 +1,19 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class CurrencyBalanceCard extends StatelessWidget {
-  final CurrencyBalance currencyBalance;
+  final TokenInfo token;
   final bool balanceVisible;
-  const CurrencyBalanceCard({Key? key, required this.currencyBalance, required this.balanceVisible}) : super(key: key);
+  const CurrencyBalanceCard({Key? key, required this.token, required this.balanceVisible}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    CurrencyMetadata? metadata = CurrencyMetadata.metadata[currencyBalance.currency];
-    if (metadata == null){
-      return const SizedBox.shrink();
-    }
+    CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == token.address.toLowerCase());
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       child: Card(
@@ -28,24 +27,23 @@ class CurrencyBalanceCard extends StatelessWidget {
           child: Row(
             children: [
               const SizedBox(width: 5,),
-              SizedBox(
-                  height: 40,
-                  width: 40,
-                  child: metadata.logo
+              TokenLogo(
+                token: token,
+                size: 40,
               ),
               const SizedBox(width: 7,),
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(metadata.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)),
+                  Text(token.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)),
                   RichText(
                     text: TextSpan(
-                        text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance.balance, metadata.symbol, includeSymbol: false, formatSmallDecimals: true) : "••••••",
+                        text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance?.balance ?? BigInt.zero, token, includeSymbol: false, formatSmallDecimals: true) : "••••••",
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                         children: [
                           TextSpan(
-                            text: " ${metadata.symbol}",
+                            text: " ${token.symbol}",
                             style: const TextStyle(fontSize: 11, color: Colors.grey),
                           )
                         ]
@@ -56,11 +54,11 @@ class CurrencyBalanceCard extends StatelessWidget {
               const Spacer(),
               RichText(
                 text: TextSpan(
-                  text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance.currentBalanceInQuote, currencyBalance.quoteCurrency, includeSymbol: currencyBalance.quoteCurrency == "USDT") : "••••••",
+                  text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance?.currentBalanceInQuote ?? BigInt.zero, TokenInfoStorage.getTokenBySymbol(currencyBalance?.quoteCurrency ?? "USDT")!, includeSymbol: (currencyBalance?.quoteCurrency ?? "USDT") == "USDT") : "••••••",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                   children: [
-                    currencyBalance.quoteCurrency != "USDT" ? TextSpan(
-                      text: CurrencyMetadata.metadata[currencyBalance.quoteCurrency]!.displaySymbol,
+                    (currencyBalance?.quoteCurrency ?? "USDT") != "USDT" ? TextSpan(
+                      text: token.symbol,
                       style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ) : const WidgetSpan(child: SizedBox.shrink())
                   ]

@@ -2,6 +2,7 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/controller/transaction_confirm_controller.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
@@ -13,7 +14,7 @@ import 'package:get/get.dart';
 class TransactionReviewSheet extends StatefulWidget {
   final String? modalId;
   final Widget leading;
-  final String? currency;
+  final TokenInfo? currency;
   final BigInt? value;
   final Batch batch;
   final TransactionActivity transactionActivity;
@@ -44,14 +45,14 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     "fee": "Insufficient balance to cover network fee",
   };
   //
-  FeeCurrency? selectDefaultFeeCurrency(List<FeeCurrency> feeCurrencies){
-    FeeCurrency? result;
+  FeeToken? selectDefaultFeeCurrency(List<FeeToken> feeCurrencies){
+    FeeToken? result;
     BigInt maxQuoteBalance = BigInt.from(-1);
-    for (FeeCurrency feeCurrency in feeCurrencies){
-      CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == feeCurrency.currency.symbol);
+    for (FeeToken feeCurrency in feeCurrencies){
+      CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == feeCurrency.token.address.toLowerCase());
       if (currencyBalance == null) continue;
       if (feeCurrency.fee > currencyBalance.balance) continue;
-      if (feeCurrency.currency.symbol == widget.currency){
+      if (feeCurrency.token.address.toLowerCase() == widget.currency?.address.toLowerCase()){
         if (feeCurrency.fee + (widget.value ?? BigInt.zero) > currencyBalance.balance) continue;
       }
       if (currencyBalance.currentBalanceInQuote > maxQuoteBalance){
@@ -66,21 +67,21 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     errorMessage = "";
     BigInt fee = widget.batch.getFee();
     if (widget.currency != null){
-      if (widget.currency == widget.batch.feeCurrency!.currency.symbol){
-        if ((widget.value ?? BigInt.zero) + fee > AddressData.getCurrencyBalance(widget.currency!)){
+      if (widget.currency?.address.toLowerCase() == widget.batch.feeCurrency!.token.address.toLowerCase()){
+        if ((widget.value ?? BigInt.zero) + fee > AddressData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
           errorMessage = _errors["fee"]!;
         }
       }else{
-        if ((widget.value ?? BigInt.zero) > AddressData.getCurrencyBalance(widget.currency!)){
+        if ((widget.value ?? BigInt.zero) > AddressData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
           errorMessage = _errors["balance"]!;
         }else{
-          if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.currency.symbol) < fee){
+          if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
             errorMessage = _errors["fee"]!;
           }
         }
       }
     }else{
-      if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.currency.symbol) < fee){
+      if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
         errorMessage = _errors["fee"]!;
       }
     }
@@ -89,7 +90,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
 
   @override
   void initState() {
-    FeeCurrency? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
+    FeeToken? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
     if (feeCurrency != null){
       widget.batch.changeFeeCurrency(feeCurrency);
       validateFeeBalance();
@@ -147,7 +148,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                     margin: EdgeInsets.symmetric(horizontal: Get.width * 0.03),
                     child: TokenFeeSelector(
                       batch: widget.batch,
-                      onFeeCurrencyChange: (FeeCurrency feeCurrency){
+                      onFeeCurrencyChange: (FeeToken feeCurrency){
                         validateFeeBalance();
                       },
                     ),
