@@ -4,6 +4,7 @@ import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/token_add_page.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -85,12 +86,17 @@ class _TokenCard extends StatelessWidget {
                 size: 40,
               ),
               const SizedBox(width: 5,),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(token.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)),
-                  Text(token.symbol, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12, color: Colors.grey)),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.fitWidth,
+                      child: Text(Utils.truncate(token.name, leadingDigits: 30, trailingDigits: 0), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18))
+                    ),
+                    Text(token.symbol, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12, color: Colors.grey)),
+                  ],
+                ),
               ),
             ],
           ),
