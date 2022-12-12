@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:candide_mobile_app/config/theme.dart';
@@ -8,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:web3dart/crypto.dart';
 
 class TokenLogo extends StatelessWidget {
   final TokenInfo token;
@@ -44,9 +42,7 @@ class TokenLogo extends StatelessWidget {
           seed: token.address,
         ),
       );*/
-      String seed = bytesToHex(keccak256(
-        Uint8List.fromList(token.address.toLowerCase().codeUnits + token.name.toLowerCase().codeUnits + token.symbol.toLowerCase().codeUnits)
-      )).substring(0, 8);
+      String seed = token.address.toLowerCase().replaceAll("0x", "").substring(0, 8);
       Random random = Random(BigInt.parse(seed, radix: 16).toInt());
       return Center(
         child: Container(

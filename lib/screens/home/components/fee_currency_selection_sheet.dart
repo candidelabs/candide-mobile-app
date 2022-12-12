@@ -3,7 +3,7 @@ import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
-import 'package:candide_mobile_app/utils/currency.dart';
+import 'package:candide_mobile_app/utils/currency.dart';import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -115,26 +115,31 @@ class _FeeCurrencySelectionCard extends StatelessWidget {
                     size: 40,
                   ),
                   const SizedBox(width: 7,),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(feeCurrency.token.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18, color: disabled ? Colors.grey[700] : Colors.white)),
-                      !disabled ? RichText(
-                        text: TextSpan(
-                          text: CurrencyUtils.formatCurrency(currencyBalance.balance, feeCurrency.token, includeSymbol: false),
-                          style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
-                          children: [
-                            TextSpan(
-                              text: " ${feeCurrency.token.symbol}",
-                              style: const TextStyle(fontSize: 11, color: Colors.grey),
-                            )
-                          ]
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.fitWidth,
+                          child: Text(Utils.truncate(feeCurrency.token.name, leadingDigits: 23, trailingDigits: 0), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18))
                         ),
-                      ) : const SizedBox.shrink(),
-                    ],
+                        !disabled ? RichText(
+                          text: TextSpan(
+                            text: CurrencyUtils.formatCurrency(currencyBalance.balance, feeCurrency.token, includeSymbol: false),
+                            style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
+                            children: [
+                              TextSpan(
+                                text: " ${feeCurrency.token.symbol}",
+                                style: const TextStyle(fontSize: 11, color: Colors.grey),
+                              )
+                            ]
+                          ),
+                        ) : const SizedBox.shrink(),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 10,),
                   SizedBox(
                     width: 100,
                     child: disabled ? Text("Insufficient Balance", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey[700]),)
