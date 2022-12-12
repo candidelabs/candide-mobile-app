@@ -144,7 +144,7 @@ class TransactionConfirmController {
     transactionActivity.status = response?.status ?? "fail";
     transactionActivity.fee = TransactionFeeActivityData(
       paymasterAddress: batch.includesPaymaster ? Constants.addressZeroHex : Batch.paymasterAddress.hexEip55,
-      currency: batch.getFeeCurrency(),
+      currencyAddress: batch.getFeeToken(),
       fee: batch.getFee(),
     );
     transactionActivity.date = DateTime.now();

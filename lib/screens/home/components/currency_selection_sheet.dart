@@ -1,14 +1,15 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CurrenciesSelectionSheet extends StatelessWidget {
-  final List<String> currencies;
-  final String? initialSelection;
-  final Function(String) onSelected;
+  final List<TokenInfo> currencies;
+  final TokenInfo? initialSelection;
+  final Function(TokenInfo) onSelected;
   const CurrenciesSelectionSheet({Key? key, required this.currencies, this.initialSelection, required this.onSelected}) : super(key: key);
 
   @override
@@ -18,18 +19,18 @@ class CurrenciesSelectionSheet extends StatelessWidget {
         const SizedBox(height: 15,),
         Text("Currency", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
         const SizedBox(height: 35,),
-        for (String currency in currencies)
+        for (TokenInfo currency in currencies)
           Builder(
               builder: (context) {
-                CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currency == currency);
+                CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == currency.address.toLowerCase());
                 if (currencyBalance == null){
                   return const SizedBox.shrink();
                 }
                 return _CurrencySelectionCard(
                   currencyBalance: currencyBalance,
-                  selected: initialSelection != null && currencyBalance.currency == initialSelection,
+                  selected: initialSelection != null && currencyBalance.currencyAddress.toLowerCase() == initialSelection?.address.toLowerCase(),
                   onSelected: (){
-                    onSelected(currencyBalance.currency);
+                    onSelected(currency);
                     Get.back();
                   },
                 );
@@ -49,8 +50,8 @@ class _CurrencySelectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    CurrencyMetadata? metadata = CurrencyMetadata.metadata[currencyBalance.currency];
-    if (metadata == null){
+    TokenInfo? tokenInfo = TokenInfoStorage.getTokenByAddress(currencyBalance.currencyAddress);
+    if (tokenInfo == null){
       return const SizedBox.shrink();
     }
     return Container(
@@ -68,24 +69,23 @@ class _CurrencySelectionCard extends StatelessWidget {
             child: Row(
               children: [
                 const SizedBox(width: 5,),
-                SizedBox(
-                    height: 40,
-                    width: 40,
-                    child: metadata.logo
+                TokenLogo(
+                  token: tokenInfo,
+                  size: 40,
                 ),
                 const SizedBox(width: 7,),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(metadata.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)),
+                    Text(tokenInfo.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)),
                     RichText(
                       text: TextSpan(
-                          text: CurrencyUtils.formatCurrency(currencyBalance.balance, metadata.symbol, includeSymbol: false),
+                          text: CurrencyUtils.formatCurrency(currencyBalance.balance, tokenInfo, includeSymbol: false),
                           style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                           children: [
                             TextSpan(
-                              text: " ${metadata.symbol}",
+                              text: " ${tokenInfo.symbol}",
                               style: const TextStyle(fontSize: 11, color: Colors.grey),
                             )
                           ]

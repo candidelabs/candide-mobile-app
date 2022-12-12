@@ -57,7 +57,7 @@ class GuardianOperationsHelper {
     );
     grantBatch.transactions.addAll(transactions);
     //
-    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
     if (feeCurrencies == null){
       // todo handle network errors
       return false;
@@ -136,7 +136,7 @@ class GuardianOperationsHelper {
     );
     revokeBatch.transactions.addAll(transactions);
     //
-    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
     if (feeCurrencies == null){
       // todo handle network errors
       return false;

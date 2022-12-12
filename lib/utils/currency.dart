@@ -2,23 +2,23 @@
 
 import 'dart:math';
 
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 
 class CurrencyUtils {
   static const int DECIMAL_PLACES = 6;
   static final MULTIPLIER = pow(10, DECIMAL_PLACES);
 
 
-  static BigInt convertToQuote(String base, String quote, BigInt value){
+  static BigInt convertToQuote(String baseAddress, String quote, BigInt value){
     if (quote != AddressData.walletBalance.quoteCurrency){
       throw ArgumentError("Quote currency not supported"); // todo add simple routing
     }
-    if (base == quote){
+    if (baseAddress == quote){ // todo: this condition will never satisfy because we're comparing an address to a symbol
       return value;
     }
     for (CurrencyBalance balance in AddressData.currencies){
-      if (balance.currency == base){
+      if (balance.currencyAddress == baseAddress){
         if (balance.balance == BigInt.zero) return BigInt.zero;
         return (value * balance.currentBalanceInQuote) ~/ balance.balance;
       }
@@ -26,15 +26,15 @@ class CurrencyUtils {
     return BigInt.zero;
   }
 
-  static String formatCurrency(BigInt value, String symbol, {bool includeSymbol=true, bool formatSmallDecimals=false}){
-    String result = displayGenericToken(value, symbol);
+  static String formatCurrency(BigInt value, TokenInfo token, {bool includeSymbol=true, bool formatSmallDecimals=false}){
+    String result = displayGenericToken(value, token);
     if (formatSmallDecimals){
       var doubleString = result.split(" ")[0];
       if (doubleString == "0.0" && value > BigInt.zero){
-        result = "<0.000001 $symbol";
+        result = "<0.000001 ${token.symbol}";
       }
     }
-    if (symbol == "USDT" && includeSymbol){
+    if (token.symbol == "USDT" && includeSymbol){
       return "\$"+result.split(" ")[0];
     }
     if (!includeSymbol){
@@ -43,15 +43,15 @@ class CurrencyUtils {
     return result;
   }
 
-  static String displayGenericToken(BigInt value, String symbol){
+  static String displayGenericToken(BigInt value, TokenInfo token){
     //return formatUnits(value, CurrencyMetadata.metadata[symbol]!.decimals);
     return commify(((double.parse(
-        formatUnits(value, CurrencyMetadata.metadata[symbol]!.decimals)
-    ) * MULTIPLIER).floor() / MULTIPLIER).toStringAsFixed(DECIMAL_PLACES)) + " " + CurrencyMetadata.metadata[symbol]!.displaySymbol;
+        formatUnits(value, token.decimals)
+    ) * MULTIPLIER).floor() / MULTIPLIER).toStringAsFixed(DECIMAL_PLACES)) + " " + token.symbol;
   }
 
-  static BigInt parseCurrency(String value, String symbol){
-    return parseUnits(value, CurrencyMetadata.metadata[symbol]!.decimals);
+  static BigInt parseCurrency(String value, TokenInfo token){
+    return parseUnits(value, token.decimals);
   }
 
   static String formatUnits(BigInt value, int decimals){
@@ -87,11 +87,11 @@ class CurrencyUtils {
     return result;
   }
 
-  static String formatRate(String baseCurrency, String quoteCurrency, BigInt rate){
+  static String formatRate(TokenInfo baseToken, TokenInfo quoteToken, BigInt rate){
     return "${formatCurrency(
-      parseUnits('1', CurrencyMetadata.metadata[baseCurrency]!.decimals),
-      baseCurrency,
-    )} ≈ ${formatCurrency(rate, quoteCurrency)}";
+      parseUnits('1', baseToken.decimals),
+      baseToken,
+    )} ≈ ${formatCurrency(rate, quoteToken)}";
   }
 
   static BigInt parseUnits(String value, int decimals){

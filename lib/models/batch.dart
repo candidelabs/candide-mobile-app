@@ -24,21 +24,21 @@ class Batch {
   static final EthereumAddress paymasterAddress = EthereumAddress.fromHex("0x83DAc8e36D8FDeCF69CD78f9f86f25664EEE72f4");
   static final EthereumAddress _multiSendCallAddress = EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D");
   BigInt baseGas = BigInt.zero;
-  FeeCurrency? _feeCurrency;
+  FeeToken? _feeToken;
   EthereumAddress refundReceiver = Constants.addressZero;
-  List<FeeCurrency> _feeCurrencies = [];
+  List<FeeToken> _feeTokens = [];
   List<GnosisTransaction> transactions = [];
 
-  bool get includesPaymaster => _feeCurrency?.currency.symbol != Networks.get(SettingsData.network)!.nativeCurrency;
-  FeeCurrency? get feeCurrency => _feeCurrency;
-  List<FeeCurrency> get feeCurrencies => _feeCurrencies;
+  bool get includesPaymaster => _feeToken?.token.symbol != Networks.get(SettingsData.network)!.nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
+  FeeToken? get feeCurrency => _feeToken;
+  List<FeeToken> get feeCurrencies => _feeTokens;
 
   GnosisTransaction? getById(String id){
     return transactions.firstWhereOrNull((e) => e.id == id);
   }
 
-  Future<void> changeFeeCurrency(FeeCurrency? feeCurrency) async {
-    _feeCurrency = feeCurrency;
+  Future<void> changeFeeCurrency(FeeToken? feeCurrency) async {
+    _feeToken = feeCurrency;
     if (transactions[0].id == "paymaster-allowance"){
       transactions.removeAt(0);
     }
@@ -46,7 +46,7 @@ class Batch {
     if (includesPaymaster){
       GnosisTransaction approveTransaction = GnosisTransaction(
         id: "paymaster-allowance",
-        to: EthereumAddress.fromHex(feeCurrency.currency.address),
+        to: EthereumAddress.fromHex(feeCurrency.token.address),
         value: BigInt.zero,
         data: hexToBytes(EncodeFunctionData.erc20Approve(
           paymasterAddress,
@@ -58,23 +58,23 @@ class Batch {
     }
   }
 
-  Future<void> changeFeeCurrencies(List<FeeCurrency> feeCurrencies) async {
-    _feeCurrencies = feeCurrencies;
+  Future<void> changeFeeCurrencies(List<FeeToken> feeCurrencies) async {
+    _feeTokens = feeCurrencies;
     await _adjustFeeCurrencyCosts();
   }
 
   Future<void> _adjustFeeCurrencyCosts() async{
     configureNonces(AddressData.walletStatus.nonce);
     List<UserOperation> userOps = [await toSingleUserOperation(AddressData.wallet, AddressData.walletStatus.nonce, proxyDeployed: AddressData.walletStatus.proxyDeployed, skipPaymasterData: true)];
-    for (FeeCurrency feeCurrency in _feeCurrencies){
-      bool isEther = feeCurrency.currency.symbol == Networks.get(SettingsData.network)!.nativeCurrency;
+    for (FeeToken feeCurrency in _feeTokens){
+      bool isEther = feeCurrency.token.symbol == Networks.get(SettingsData.network)!.nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
       feeCurrency.fee = FeeCurrencyUtils.calculateFee(userOps, feeCurrency.conversion, isEther);
     }
   }
 
 
-  String getFeeCurrency(){
-    return CurrencyMetadata.findByAddress(feeCurrency?.currency.address ?? "0x")?.symbol ?? "ETH";
+  String getFeeToken(){
+    return feeCurrency?.token.symbol ?? "ETH";
   }
 
   BigInt getFee(){
@@ -103,7 +103,7 @@ class Batch {
         instance.walletAddress,
         baseGas: baseGas,
         gasPrice: feeCurrency?.fee ?? BigInt.zero,
-        gasToken: EthereumAddress.fromHex(feeCurrency?.currency.address ?? Constants.addressZero.hex),
+        gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex),
         refundReceiver: refundReceiver
       );
     }
@@ -113,7 +113,7 @@ class Batch {
     for (UserOperation op in userOps){
       op.paymaster = paymasterAddress;
     }
-    List<String>? paymasterData = await Bundler.getPaymasterSignature(userOps, feeCurrency!.currency.address);
+    List<String>? paymasterData = await Bundler.getPaymasterSignature(userOps, feeCurrency!.token.address);
     if (paymasterData == null){ // todo network: handle fetching errors
       for (UserOperation op in userOps){
         op.paymaster = EthereumAddress(Uint8List(EthereumAddress.addressByteLength));
@@ -168,7 +168,7 @@ class Batch {
       sender: instance.walletAddress,
       initCode: initCode,
       nonce: nonce,
-      callData: multiSendTransaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.currency.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver),
+      callData: multiSendTransaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver),
       moduleManagerSalt: managerSalt,
     );
     //
@@ -186,9 +186,6 @@ class Batch {
       userOp.callGas += 2500000;
     }
     userOp.callGas += multiSendTransaction.suggestedGasLimit.toInt();
-    print(">>>>>>>>>");
-    print(userOp.callGas);
-    print(userOp.toJson());
     if (includesPaymaster && !skipPaymasterData){
       await _addPaymasterToUserOps([userOp]);
     }
@@ -217,7 +214,7 @@ class Batch {
       UserOperation userOp = UserOperation.get(
         sender: instance.walletAddress,
         initCode: initCode,
-        callData: transaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.currency.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver),
+        callData: transaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver),
         nonce: nonce,
         moduleManagerSalt: managerSalt,
       );

@@ -55,6 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Hive.openBox("state"),
       Hive.openBox("activity"),
       Hive.openBox("wallet_connect"),
+      Hive.openBox("tokens_storage"),
     ]);
     Networks.initialize();
     SettingsData.loadFromJson(null);

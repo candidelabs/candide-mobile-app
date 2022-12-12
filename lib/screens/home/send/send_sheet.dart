@@ -2,6 +2,7 @@
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
@@ -30,7 +31,7 @@ class _SendSheetState extends State<SendSheet> {
   int currentIndex = 0;
   //
   String toAddress = "";
-  String currency = "";
+  late TokenInfo currency;
   List<UserOperation> userOperations = [];
   List<UserOperation>? unsignedUserOperations = [];
   Map fee = {};
@@ -63,21 +64,21 @@ class _SendSheetState extends State<SendSheet> {
   }
   //
 
-  onPressReview(String _currency, BigInt value) async {
+  onPressReview(TokenInfo _currency, BigInt value) async {
     currency = _currency;
     var cancelLoad = Utils.showLoading();
     //
     sendBatch = Batch();
     //
     GnosisTransaction transaction = SendController.buildTransaction(
-      sendCurrency: _currency,
+      sendToken: _currency,
       to: toAddress,
       value: value,
     );
     //
     sendBatch!.transactions.add(transaction);
     //
-    List<FeeCurrency>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
     if (feeCurrencies == null){
       // todo handle network errors
       return;
@@ -89,15 +90,15 @@ class _SendSheetState extends State<SendSheet> {
     TransactionActivity transactionActivity = TransactionActivity(
       date: DateTime.now(),
       action: "transfer",
-      title: "Sent $currency",
+      title: "Sent ${currency.symbol}",
       status: "pending",
-      data: {"currency": currency, "amount": value.toString(), "to": toAddress},
+      data: {"currency": currency.address, "amount": value.toString(), "to": toAddress},
     );
 
     pagesList[2] = TransactionReviewSheet(
       modalId: "send_modal",
       leading: SendReviewLeadingWidget(
-        currency: currency,
+        token: currency,
         value: value,
       ),
       tableEntriesData: {

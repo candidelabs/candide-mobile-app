@@ -1,7 +1,7 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
@@ -17,7 +17,7 @@ import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 class SwapMainSheet extends StatefulWidget {
-  final Function(String, BigInt, String, OptimalQuote) onPressReview;
+  final Function(TokenInfo, BigInt, TokenInfo, OptimalQuote) onPressReview;
   const SwapMainSheet({Key? key, required this.onPressReview}) : super(key: key);
 
   @override
@@ -35,11 +35,11 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     "liquidity": "Not enough liquidity",
   };
   //
-  String baseCurrency = "ETH";
+  TokenInfo baseCurrency = TokenInfoStorage.getTokenBySymbol("ETH")!;
   BigInt actualAmount = BigInt.zero;
   double amount = 0.0;
   //
-  String quoteCurrency = "UNI";
+  TokenInfo quoteCurrency = TokenInfoStorage.getTokenBySymbol("UNI")!;
   OptimalQuote? quote;
   BigInt _lastFetchedActualAmount = BigInt.zero;
   bool _retrievingSwapData = false;
@@ -117,7 +117,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
           errorMessage = _errors["zero"]!;
         });
       }
-    }else if (actualAmount > AddressData.getCurrencyBalance(baseCurrency)){
+    }else if (actualAmount > AddressData.getCurrencyBalance(baseCurrency.address.toLowerCase())){
       if (errorMessage != _errors["balance"]){
         setState(() {
           errorMessage = _errors["balance"]!;
@@ -157,7 +157,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                         TextButton(
                           onPressed: (){
                             _baseFocusNode.unfocus();
-                            actualAmount = AddressData.getCurrencyBalance(baseCurrency);
+                            actualAmount = AddressData.getCurrencyBalance(baseCurrency.address.toLowerCase());
                             amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, baseCurrency, includeSymbol: false));
                             _baseController.text = "$amount";
                             _validateAmountInput(amount.toString(), setActualAmount: false);
@@ -229,7 +229,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                           style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),
                           children: [
                             TextSpan(
-                              text: "${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency), baseCurrency, includeSymbol: false, formatSmallDecimals: true)} $baseCurrency",
+                              text: "${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency.address.toLowerCase()), baseCurrency, includeSymbol: false, formatSmallDecimals: true)} ${baseCurrency.symbol}",
                               style: const TextStyle(color: Colors.white),
                             )
                           ]
@@ -328,8 +328,8 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
 
 
 class _CurrencySelector extends StatelessWidget {
-  final String currency;
-  final Function(String) onChange;
+  final TokenInfo currency;
+  final Function(TokenInfo) onChange;
   const _CurrencySelector({Key? key, required this.currency, required this.onChange}) : super(key: key);
 
   showCurrencySelectionModal(){
@@ -338,7 +338,7 @@ class _CurrencySelector extends StatelessWidget {
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: CurrenciesSelectionSheet(
-          currencies: const ["ETH", "UNI"],
+          currencies: const ["ETH", "UNI"].map((e) => TokenInfoStorage.getTokenBySymbol(e)!).toList(),
           initialSelection: currency,
           onSelected: (selectedCurrency){
             if (selectedCurrency != currency){
@@ -372,13 +372,13 @@ class _CurrencySelector extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(currency, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20, color: Get.theme.colorScheme.primary),),
+            Text(currency.symbol, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20, color: Get.theme.colorScheme.primary),),
             const SizedBox(width: 10,),
-            SizedBox(
+            /*SizedBox(
               width: 25,
               height: 25,
               child: CurrencyMetadata.metadata[currency]!.logo,
-            ),
+            ),*/
           ],
         ),
       ),

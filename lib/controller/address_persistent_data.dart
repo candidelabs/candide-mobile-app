@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/services/token_info_fetcher.dart';
 import 'package:candide_mobile_app/services/transaction_watchdog.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -62,7 +66,16 @@ class AddressData {
     if (json["currencies"] != null){
       List<CurrencyBalance> _currencies = [];
       for (var currency in json["currencies"]){
-        _currencies.add(CurrencyBalance.fromJson(currency));
+        CurrencyBalance currencyBalance = CurrencyBalance.fromJson(currency);
+        if (TokenInfoStorage.getTokenByAddress(currencyBalance.currencyAddress.toLowerCase()) == null){
+          TokenInfo? token = await TokenInfoFetcher.fetchTokenInfo(currencyBalance.currencyAddress, Networks.get(SettingsData.network)!.chainId.toInt());
+          if (token != null){
+            await TokenInfoStorage.addToken(token);
+            _currencies.add(currencyBalance);
+          }
+        }else{
+          _currencies.add(currencyBalance);
+        }
       }
       currencies.clear();
       currencies = _currencies;
@@ -135,7 +148,6 @@ class AddressData {
           (e) => walletInterface.friends(BigInt.from(e))
           .then((value){
             var guardianMetadata = metadata.containsKey(value.hex.toLowerCase()) ? metadata[value.hex.toLowerCase()] : null;
-            print(guardianMetadata);
             guardians.add(WalletGuardian(
               index: e,
               address: value.hex,
@@ -153,7 +165,6 @@ class AddressData {
   static storeGuardians() async {
     List guardiansJson = [];
     for (WalletGuardian guardian in guardians){
-      print(guardian.toJson());
       guardiansJson.add(guardian.toJson());
     }
     await Hive.box("state").put("guardians_metadata", guardiansJson);
@@ -187,8 +198,8 @@ class AddressData {
     loadGuardians();
   }
 
-  static BigInt getCurrencyBalance(String currencySymbol){
-    CurrencyBalance? balance = currencies.firstWhereOrNull((element) => element.currency == currencySymbol);
+  static BigInt getCurrencyBalance(String currencyAddress){
+    CurrencyBalance? balance = currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == currencyAddress.toLowerCase());
     if (balance == null) return BigInt.zero;
     return balance.balance;
   }
@@ -229,24 +240,24 @@ class WalletBalance {
 
 
 class CurrencyBalance {
-  String currency;
+  String currencyAddress;
   String quoteCurrency;
   BigInt balance;
   BigInt currentBalanceInQuote;
 
-  CurrencyBalance({required this.currency,
+  CurrencyBalance({required this.currencyAddress,
     required this.quoteCurrency,
     required this.balance,
     required this.currentBalanceInQuote});
 
   CurrencyBalance.fromJson(Map json)
-      : currency = json['currency'],
+      : currencyAddress = json['currency'],
         quoteCurrency = json['quoteCurrency'],
         balance = BigInt.parse(json['balance']),
         currentBalanceInQuote = BigInt.parse(json['currentBalanceInQuoteCurrency']);
 
   Map<String, dynamic> toJson() => {
-    'currency': currency,
+    'currency': currencyAddress,
     'quoteCurrency': quoteCurrency,
     'balance': balance.toString(),
     'currentBalanceInQuote': currentBalanceInQuote.toString(),
@@ -339,21 +350,22 @@ class TransactionActivity {
 
 class TransactionFeeActivityData {
   String paymasterAddress;
-  String currency;
+  /// Currency Address
+  String currencyAddress;
   BigInt fee;
 
   TransactionFeeActivityData({required this.paymasterAddress,
-    required this.currency,
+    required this.currencyAddress,
     required this.fee});
 
   TransactionFeeActivityData.fromJson(Map json)
       : paymasterAddress = json['paymasterAddress'],
-        currency = json['currency'],
+        currencyAddress = json['currency'],
         fee = BigInt.parse(json['fee']);
 
   Map<String, dynamic> toJson() => {
     'paymasterAddress': paymasterAddress,
-    'currency': currency,
+    'currency': currencyAddress,
     'fee': fee.toString(),
   };
 }
