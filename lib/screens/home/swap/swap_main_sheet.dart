@@ -340,6 +340,7 @@ class _CurrencySelector extends StatelessWidget {
         child: CurrenciesSelectionSheet(
           currencies: const ["ETH", "UNI"].map((e) => TokenInfoStorage.getTokenBySymbol(e)!).toList(),
           initialSelection: currency,
+          forceVisibility: true,
           onSelected: (selectedCurrency){
             if (selectedCurrency != currency){
               onChange.call(selectedCurrency);
