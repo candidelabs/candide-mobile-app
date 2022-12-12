@@ -98,19 +98,19 @@ class _TokenImportPageState extends State<TokenImportPage> {
           fetching ? Text(
             "Fetching token info...",
             style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),
-          ) : Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildTokenProperty("Name", token?.name),
-                  const SizedBox(width: 25,),
-                  _buildTokenProperty("Symbol", token?.symbol),
-                ],
-              ),
-              const SizedBox(height: 10,),
-              _buildTokenProperty("Decimals", token?.decimals.toString()),
-            ],
+          ) : Container(
+            width: double.maxFinite,
+            margin: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildTokenProperty("Name", token?.name),
+                const SizedBox(height: 10,),
+                _buildTokenProperty("Symbol", token?.symbol),
+                const SizedBox(height: 10,),
+                _buildTokenProperty("Decimals", token?.decimals.toString()),
+              ],
+            ),
           ),
           const Spacer(),
           Row(

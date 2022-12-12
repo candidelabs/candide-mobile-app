@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:bot_toast/bot_toast.dart';
@@ -47,7 +48,10 @@ class Utils {
     if (matches.isEmpty) {
       return input;
     }
-    return "${matches.first.group(1)}...${matches.first.group(2)}";
+    String result = "${matches.first.group(1)}...${matches.first.group(2)}";
+    result = utf8.decode(result.codeUnits, allowMalformed: true);
+    result = result.replaceAll('\uFFFD', "");
+    return result;
   }
 
   static bool _isChecksumAddress(String address){
