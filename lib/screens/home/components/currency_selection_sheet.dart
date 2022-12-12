@@ -9,8 +9,9 @@ import 'package:get/get.dart';
 class CurrenciesSelectionSheet extends StatelessWidget {
   final List<TokenInfo> currencies;
   final TokenInfo? initialSelection;
+  final bool forceVisibility; // forces token to be visible in selection even if there's no previous balance of the token
   final Function(TokenInfo) onSelected;
-  const CurrenciesSelectionSheet({Key? key, required this.currencies, this.initialSelection, required this.onSelected}) : super(key: key);
+  const CurrenciesSelectionSheet({Key? key, required this.currencies, this.initialSelection, this.forceVisibility=false, required this.onSelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +25,16 @@ class CurrenciesSelectionSheet extends StatelessWidget {
               builder: (context) {
                 CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == currency.address.toLowerCase());
                 if (currencyBalance == null){
-                  return const SizedBox.shrink();
+                  if (forceVisibility){
+                    currencyBalance = CurrencyBalance(
+                      currencyAddress: currency.address,
+                      balance: BigInt.zero,
+                      currentBalanceInQuote: BigInt.zero,
+                      quoteCurrency: "USDT", // todo dynamic in future
+                    );
+                  }else{
+                    return const SizedBox.shrink();
+                  }
                 }
                 return _CurrencySelectionCard(
                   currencyBalance: currencyBalance,
