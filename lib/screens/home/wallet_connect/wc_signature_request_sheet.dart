@@ -6,7 +6,7 @@ import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:wallet_dart/utils/encode.dart';
+import 'package:wallet_dart/utils/abi_utils.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/message.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';

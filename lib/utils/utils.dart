@@ -54,6 +54,28 @@ class Utils {
     return result;
   }
 
+  static bool _isUpperCase(String s) {
+    return s == s.toUpperCase();
+  }
+
+  static String camelCaseToLowerUnderscore(String s) {
+    var sb = StringBuffer();
+    var first = true;
+    for (var rune in s.runes) {
+      var char = String.fromCharCode(rune);
+      if (_isUpperCase(char) && !first) {
+        if (char != '_') {
+          sb.write('_');
+        }
+        sb.write(char.toLowerCase());
+      } else {
+        first = false;
+        sb.write(char.toLowerCase());
+      }
+    }
+    return sb.toString();
+  }
+
   static bool _isChecksumAddress(String address){
     address = address.replaceAll('0x','');
     var addressHash = bytesToHex(keccakAscii(address.toLowerCase()));

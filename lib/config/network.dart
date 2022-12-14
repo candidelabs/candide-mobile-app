@@ -13,6 +13,7 @@ class Networks {
         logo: SvgPicture.asset("assets/images/optimism.svg"),
         nativeCurrency: 'ETH',
         chainId: BigInt.from(5),
+        explorerUrl: "https://goerli.etherscan.io",
       )
     );
   }
@@ -26,11 +27,13 @@ class Network{
   Widget logo;
   String nativeCurrency;
   BigInt chainId;
+  String explorerUrl;
 
   Network(
       {required this.name,
       required this.color,
       required this.logo,
       required this.nativeCurrency,
-      required this.chainId});
+      required this.chainId,
+      required this.explorerUrl});
 }
