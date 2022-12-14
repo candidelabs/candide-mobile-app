@@ -456,6 +456,12 @@ class _GuardianDetailsCardState extends State<_GuardianDetailsCard> {
     if (widget.guardian.type == "magic-link"){
       title = "Email Guardian";
     }
+    String dateAdded;
+    if (widget.guardian.creationDate == null) {
+      dateAdded = "Unknown";
+    } else {
+      dateAdded = intl.DateFormat.yMMMMd().format(widget.guardian.creationDate!);
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -520,7 +526,7 @@ class _GuardianDetailsCardState extends State<_GuardianDetailsCard> {
                           ),
                          SummaryTableEntry(
                             title: "Date Added",
-                            value: intl.DateFormat.yMMMMd().format(widget.guardian.creationDate!),
+                            value: dateAdded,
                           ),
                       ],
                     ),
