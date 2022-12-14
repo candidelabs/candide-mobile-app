@@ -999,7 +999,7 @@ packages:
     description:
       path: "."
       ref: main
-      resolved-ref: edfb466b8669ae60c442a27fd09bfb4892af6697
+      resolved-ref: fc4117aaae32bfbe3619df1c9e5bfae79e3d0702
       url: "https://github.com/candidelabs/wallet-dart.git"
     source: git
     version: "0.0.1"
