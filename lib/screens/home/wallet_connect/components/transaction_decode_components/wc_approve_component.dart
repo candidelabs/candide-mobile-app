@@ -16,7 +16,16 @@ import 'package:web3dart/web3dart.dart';
 class WCApproveComponent extends StatelessWidget {
   final HexTransactionDetails transactionDetails;
   final TokenInfo token;
-  const WCApproveComponent({Key? key, required this.transactionDetails, required this.token}) : super(key: key);
+  final EdgeInsets margin;
+  final double? elevation;
+
+  const WCApproveComponent({
+    Key? key,
+    required this.transactionDetails,
+    required this.token,
+    this.margin = const EdgeInsets.symmetric(horizontal: 10),
+    this.elevation,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +36,9 @@ class WCApproveComponent extends StatelessWidget {
       value = CurrencyUtils.commify(CurrencyUtils.formatUnits(transactionDetails.parameterValues[1], token.decimals));
     }
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: margin,
       child: Card(
+        elevation: elevation ?? Get.theme.cardTheme.elevation,
         child: Container(
           width: double.maxFinite,
           padding: const EdgeInsets.all(5),
@@ -42,10 +52,6 @@ class WCApproveComponent extends StatelessWidget {
                     text: "By approving this transaction you are giving the following address access to spend ",
                     style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15),
                     children: [
-                      /*TextSpan(
-                        text: (transactionDetails.parameterValues[0] as EthereumAddress).hexEip55,
-                        style: const TextStyle(fontSize: 12, color: Colors.blue),
-                      ),*/
                       TextSpan(
                         text: value,
                         style: const TextStyle(fontSize: 17, color: Colors.orange),
