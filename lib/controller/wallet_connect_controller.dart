@@ -7,12 +7,15 @@ import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
+import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/components/send_review_leading.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_activity_bundle_status_leading.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_signature_reject_dialog.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/wc_session_request_sheet.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/services/transaction_watchdog.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/events.dart';
@@ -136,7 +139,7 @@ class WalletConnectController {
     connector.on('disconnect', _handleDisconnect);
     connector.on('session_request', _handleSessionRequest);
     connector.on('session_update', _handleSessionUpdate);
-    connector.on('eth_sendTransaction', _ethSendTransaction);
+    //
     connector.on('eth_sign', _ethSign);
     connector.on('eth_signTypedData', _ethSignTypedData);
     connector.on('eth_signTypedData_v1', _ethSignTypedData);
@@ -144,6 +147,12 @@ class WalletConnectController {
     connector.on('eth_signTypedData_v3', _ethSignTypedData);
     connector.on('eth_signTypedData_v4', _ethSignTypedData);
     connector.on('personal_sign', _ethPersonalSign);
+    //
+    connector.on('eth_sendTransaction', _ethSendTransaction);
+    //
+    connector.on('wallet_sendFunctionCallBundle', walletSendFunctionCallBundle);
+    connector.on('wallet_getBundleStatus', walletGetBundleStatus);
+    connector.on('wallet_showBundleStatus', walletShowBundleStatus);
   }
 
   void _handleConnect(Object? session) async {
@@ -184,7 +193,7 @@ class WalletConnectController {
 
   void _ethSendTransaction(JsonRpcRequest? payload) async {
     if (payload == null) return;
-    //print(payload.toJson());
+    print(jsonEncode(payload.toJson()));
     var cancelLoad = Utils.showLoading();
     Batch wcBatch = Batch();
     String hexValue = "0x00";
@@ -255,11 +264,8 @@ class WalletConnectController {
           ) : WCReviewLeading(
             connector: connector,
             request: payload,
+            isMultiCall: false,
           ),
-          /*leading: WCReviewLeading(
-            connector: connector,
-            request: payload,
-          ),*/
           tableEntriesData: tableEntriesData,
           batch: wcBatch,
           transactionActivity: transactionActivity,
@@ -274,6 +280,129 @@ class WalletConnectController {
         connector.approveRequest(id: payload.id, result: transactionActivity.hash!);
       }
     }
+  }
+
+  void walletSendFunctionCallBundle(JsonRpcRequest? payload) async {
+    if (payload == null) return;
+    if (payload.params == null) return;
+    //print(payload.toJson());
+    var cancelLoad = Utils.showLoading();
+    Batch wcBatch = Batch();
+    BigInt totalValue = BigInt.zero;
+    for (Map call in payload.params![0]["calls"]){
+      String hexValue = "0x00";
+      String gasLimit = "0x00";
+      String data = "0x";
+      if (call.containsKey("value")){
+        hexValue = call["value"];
+      }
+      if (call.containsKey("gas")){
+        gasLimit = call["gas"];
+      }
+      if (call.containsKey("data")){
+        data = call["data"];
+      }
+      hexValue = hexValue.replaceAll("0x", "");
+      gasLimit = gasLimit.replaceAll("0x", "");
+      BigInt value = BigInt.parse(hexValue, radix: 16);
+      BigInt gasValue = BigInt.parse(gasLimit, radix: 16);
+      totalValue += value;
+      EthereumAddress toAddress = EthereumAddress.fromHex(call["to"]);
+      //
+      GnosisTransaction transaction = GnosisTransaction(
+        id: "wc-$sessionId-${const ShortUuid().generate()}",
+        to: toAddress,
+        value: value,
+        data: hexToBytes(data),
+        type: GnosisTransactionType.execTransactionFromModule,
+        suggestedGasLimit: gasValue,
+      );
+      wcBatch.transactions.add(transaction);
+    }
+    //
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    if (feeCurrencies == null){
+      // todo handle network errors
+      return;
+    }else{
+      await wcBatch.changeFeeCurrencies(feeCurrencies);
+    }
+    //
+    cancelLoad();
+    TransactionActivity transactionActivity = TransactionActivity(
+      date: DateTime.now(),
+      action: "wc-transaction",
+      title: "Contract Interaction",
+      status: "pending",
+      data: {"currency": "ETH", "amount": totalValue.toString(), "to": "multi-call"},
+    );
+    //
+    Map<String, String> tableEntriesData = {};
+    if (totalValue > BigInt.zero){
+      tableEntriesData["Value"] = CurrencyUtils.formatCurrency(totalValue, TokenInfoStorage.getTokenBySymbol("ETH")!, includeSymbol: true, formatSmallDecimals: true);
+    }
+    tableEntriesData["Network"] = SettingsData.network;
+    //
+    var executed = await showBarModalBottomSheet(
+      context: Get.context!,
+      builder: (context) {
+        Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "wc_transaction_review_modal");
+        return TransactionReviewSheet(
+          modalId: "wc_transaction_review_modal",
+          leading: WCReviewLeading(
+            connector: connector,
+            request: payload,
+            isMultiCall: true,
+          ),
+          tableEntriesData: tableEntriesData,
+          batch: wcBatch,
+          transactionActivity: transactionActivity,
+          showRejectButton: true,
+        );
+      },
+    );
+    if (executed == null || !executed){
+      connector.rejectRequest(id: payload.id, errorMessage: "Rejected by user");
+    }else{
+      if (transactionActivity.hash != null){
+        connector.approveRequest(id: payload.id, result: transactionActivity.hash!);
+      }
+    }
+  }
+
+  void walletGetBundleStatus(JsonRpcRequest? payload) async {
+    if (payload == null) return;
+    if (payload.params == null) return;
+    Map? result = await TransactionWatchdog.getBundleStatus(payload.params![0]);
+    if (result == null){
+      connector.rejectRequest(id: payload.id);
+      return;
+    }
+    print(jsonEncode(result));
+    connector.approveRequest(id: payload.id, result: jsonEncode(result));
+  }
+
+  void walletShowBundleStatus(JsonRpcRequest? payload) async {
+    if (payload == null) return;
+    if (payload.params == null) return;
+    TransactionActivity? activity = AddressData.transactionsActivity.firstWhereOrNull((element) => element.hash == payload.params![0]);
+    if (activity == null){
+      connector.rejectRequest(id: payload.id);
+      return;
+    }
+    connector.approveRequest(id: payload.id, result: "");
+    await showBarModalBottomSheet(
+      context: Get.context!,
+      builder: (context) {
+        Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
+        return TransactionActivityDetailsCard(
+          leading: WCBundleStatusLeading(
+            connector: connector,
+          ),
+          transaction: activity,
+        );
+      },
+    );
   }
 
   void _ethSignTypedData(JsonRpcRequest? payload){

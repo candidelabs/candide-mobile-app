@@ -61,17 +61,26 @@ class Utils {
   static String camelCaseToLowerUnderscore(String s) {
     var sb = StringBuffer();
     var first = true;
+    String? lastChar;
     for (var rune in s.runes) {
       var char = String.fromCharCode(rune);
       if (_isUpperCase(char) && !first) {
         if (char != '_') {
-          sb.write('_');
+          if (lastChar != null && !_isUpperCase(lastChar)){
+            sb.write('_');
+          }
         }
         sb.write(char.toLowerCase());
       } else {
+        if (lastChar != null && _isUpperCase(lastChar) && sb.toString()[sb.length-2] != "_"){
+          String _temp = sb.toString().substring(0, sb.length-1);
+          _temp += "_$lastChar";
+          sb = StringBuffer(_temp);
+        }
         first = false;
         sb.write(char.toLowerCase());
       }
+      lastChar = char;
     }
     return sb.toString();
   }

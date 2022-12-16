@@ -4,16 +4,26 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:web3dart/credentials.dart';
+import 'package:web3dart/crypto.dart';
 
 class KnownParamsComponent extends StatelessWidget {
   final HexTransactionDetails transactionDetails;
-  const KnownParamsComponent({Key? key, required this.transactionDetails}) : super(key: key);
+  final EdgeInsets margin;
+  final double? elevation;
+
+  const KnownParamsComponent({
+    Key? key,
+    required this.transactionDetails,
+    this.margin = const EdgeInsets.symmetric(horizontal: 10),
+    this.elevation,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: margin,
       child: Card(
+        elevation: elevation ?? Get.theme.cardTheme.elevation,
         child: Container(
           width: double.maxFinite,
           padding: const EdgeInsets.all(5),
@@ -39,6 +49,9 @@ class KnownParamsComponent extends StatelessWidget {
                     }
                     if (transactionDetails.parameterTypes[i] == "address"){
                       value = (transactionDetails.parameterValues[i] as EthereumAddress).hexEip55;
+                    }
+                    if (transactionDetails.parameterValues[i].runtimeType.toString() == "_Uint8ArrayView"){
+                      value = bytesToHex(transactionDetails.parameterValues[i], include0x: true);
                     }
                     return Container(
                       margin: const EdgeInsets.only(top: 5),
