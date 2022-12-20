@@ -137,28 +137,36 @@ class AddressData {
       }
     }
     //
+    Set<String> pendingRevocations = {};
+    for (TransactionActivity activity in transactionsActivity){
+      if (activity.status.toLowerCase() != "pending") continue;
+      if (activity.action == "guardian-revoke"){
+        pendingRevocations.add(activity.data["guardian"]!.toLowerCase());
+      }
+    }
+    //
     guardians.clear();
     var walletInterface = CWallet.recoveryInterface(wallet.socialRecovery);
     List<EthereumAddress> _guardians = (await walletInterface.getFriends());
     int guardiansCount = _guardians.length;
     if (guardiansCount > 0){
-      var _indexesList = List<int>.generate(guardiansCount, (i) => i);
-      await Future.wait(
-        _indexesList.map(
-          (e) => walletInterface.friends(BigInt.from(e))
-          .then((value){
-            var guardianMetadata = metadata.containsKey(value.hex.toLowerCase()) ? metadata[value.hex.toLowerCase()] : null;
-            guardians.add(WalletGuardian(
-              index: e,
-              address: value.hex,
-              type: guardianMetadata?[0] ?? "unknown",
-              nickname: guardianMetadata?[1],
-              email: guardianMetadata?[2],
-              creationDate: guardianMetadata?[3],
-            ));
-          })
-        ),
-      );
+      int index = 0;
+      for (EthereumAddress guardianAddress in _guardians){
+        var guardianMetadata = metadata.containsKey(guardianAddress.hex.toLowerCase()) ? metadata[guardianAddress.hex.toLowerCase()] : null;
+        var guardian = WalletGuardian(
+          index: index,
+          address: guardianAddress.hex,
+          type: guardianMetadata?[0] ?? "unknown",
+          nickname: guardianMetadata?[1],
+          email: guardianMetadata?[2],
+          creationDate: guardianMetadata?[3],
+        );
+        if (pendingRevocations.contains(guardianAddress.hex.toLowerCase())){
+          guardian.isBeingRemoved = true;
+        }
+        guardians.add(guardian);
+        index++;
+      }
     }
   }
 
@@ -286,13 +294,15 @@ class WalletGuardian {
   String? nickname;
   String? email;
   DateTime? creationDate;
+  bool isBeingRemoved; // flag to determine if a guardian has a current removal operation
 
   WalletGuardian({required this.index,
     required this.address,
     required this.type,
     this.nickname,
     this.email,
-    this.creationDate});
+    this.creationDate,
+    this.isBeingRemoved = false});
 
   WalletGuardian.fromJson(Map json)
       : index = json['index'],
@@ -300,7 +310,8 @@ class WalletGuardian {
         type = json['type'],
         nickname = json['nickname'],
         email = json['email'],
-        creationDate = json['creationDate'] != null ? DateFormat("dd/MM/yyy").parse(json['creationDate']) : null;
+        creationDate = json['creationDate'] != null ? DateFormat("dd/MM/yyy").parse(json['creationDate']) : null,
+        isBeingRemoved = false;
 
   Map<String, dynamic> toJson() => {
     'index': index,

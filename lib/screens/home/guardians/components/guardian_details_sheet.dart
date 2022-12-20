@@ -145,6 +145,7 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
                     const SizedBox(height: 20,),
                     ElevatedButton(
                       onPressed: (){
+                        Get.back();
                         widget.onPressDelete();
                       },
                       style: ButtonStyle(

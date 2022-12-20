@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_details_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_system_onboarding.dart';
@@ -33,7 +35,6 @@ class _GuardiansPageState extends State<GuardiansPage> {
     setState(() => _loading = true);
     await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hex,);
     await AddressData.loadGuardians();
-    //AddressData.guardians = [];
     if (!mounted) return;
     setState(() => _loading = false);
   }
@@ -310,48 +311,105 @@ class _GuardianCardState extends State<_GuardianCard> {
     }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
-      child: Card(
-        elevation: 3,
-        child: InkWell(
-          onTap: () async {
-            await showBarModalBottomSheet(
-              context: context,
-              builder: (context) {
-                Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "guardian_details_modal");
-                return GuardianDetailsSheet(
-                  guardian: widget.guardian,
-                  onPressDelete: widget.onPressDelete,
-                  logo: widget.logo,
+      child: Stack(
+        children: [
+          Card(
+            elevation: 3,
+            child: InkWell(
+              onTap: widget.guardian.isBeingRemoved ? null : () async {
+                await showBarModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "guardian_details_modal");
+                    return GuardianDetailsSheet(
+                      guardian: widget.guardian,
+                      onPressDelete: widget.onPressDelete,
+                      logo: widget.logo,
+                    );
+                  },
                 );
+                setState((){});
               },
-            );
-            setState((){});
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-            child: Row(
-              children: [
-                const SizedBox(width: 5,),
-                widget.logo,
-                const SizedBox(width: 15,),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                child: Row(
                   children: [
-                    Row(
+                    const SizedBox(width: 5,),
+                    widget.logo,
+                    const SizedBox(width: 15,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                        Row(
+                          children: [
+                            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
+                          ],
+                        ),
+                        (widget.guardian.nickname?.isNotEmpty ?? false) ? Text("\n${widget.guardian.nickname!}\n", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13, height: 0.5)) : const SizedBox.shrink(),
+                        widget.guardian.type == "magic-link" ? Text(widget.guardian.email!, style: const TextStyle(fontSize: 12, color: Colors.grey)) : const SizedBox.shrink(),
+                        Text(Utils.truncate(widget.guardian.address), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
-                    (widget.guardian.nickname?.isNotEmpty ?? false) ? Text("\n${widget.guardian.nickname!}\n", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13, height: 0.5)) : const SizedBox.shrink(),
-                    widget.guardian.type == "magic-link" ? Text(widget.guardian.email!, style: const TextStyle(fontSize: 12, color: Colors.grey)) : const SizedBox.shrink(),
-                    Text(Utils.truncate(widget.guardian.address), style: const TextStyle(fontSize: 12, color: Colors.grey)),
                   ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+          widget.guardian.isBeingRemoved ? Positioned.fill(
+            child: ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 1.75, sigmaY: 1.75),
+                child: Container(
+                  margin: const EdgeInsets.all(4.6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.45),
+                    borderRadius: BorderRadius.circular(3)
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () async {
+                        TransactionActivity? activity = AddressData.transactionsActivity.reversed.toList().firstWhereOrNull(
+                          (element) => element.action == "guardian-revoke"
+                              && element.data["guardian"]?.toLowerCase() == widget.guardian.address.toLowerCase()
+                        );
+                        if (activity == null) return;
+                        await showBarModalBottomSheet(
+                          context: Get.context!,
+                          builder: (context) {
+                            Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
+                            return TransactionActivityDetailsCard(
+                              transaction: activity,
+                            );
+                          },
+                        );
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(
+                            width: 15,
+                            height: 15,
+                            child: CircularProgressIndicator()
+                          ),
+                          const SizedBox(width: 15,),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text("Removal in progress", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20)),
+                              const Text("Tap to view transaction status", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ) : const SizedBox.shrink(),
+        ],
       ),
     );
   }
