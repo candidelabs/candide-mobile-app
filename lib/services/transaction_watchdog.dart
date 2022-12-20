@@ -3,9 +3,14 @@ import 'dart:async';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/events.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:eth_sig_util/util/utils.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pausable_timer/pausable_timer.dart';
 
 class TransactionWatchdog {
@@ -85,6 +90,34 @@ class TransactionWatchdog {
     for (TransactionActivity activity in removedActivities){
       transactions.remove(activity.hash);
       eventBus.fire(OnTransactionStatusChange(activity: activity));
+      if (activity.status.toLowerCase() == "success"){
+        Utils.showBottomStatus(
+          "Transaction completed!",
+          "Tap to view transaction details",
+          loading: false,
+          success: true,
+          duration: const Duration(seconds: 6),
+          onClick: () async {
+            await showBarModalBottomSheet(
+              context: Get.context!,
+              builder: (context) {
+                Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
+                return TransactionActivityDetailsCard(
+                  transaction: activity,
+                );
+              },
+            );
+          }
+        );
+      }else{
+        Utils.showBottomStatus(
+          "Transaction failed",
+          "Contact us for help",
+          loading: false,
+          success: false,
+          duration: const Duration(seconds: 6),
+        );
+      }
     }
     if (transactions.isNotEmpty){
       _timer?..reset()..start();

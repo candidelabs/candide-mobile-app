@@ -2,6 +2,7 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -141,6 +142,12 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
               onPressed: (){
                 widget.connector.approveSession(accounts: [AddressData.wallet.walletAddress.hexEip55], chainId: Networks.get(SettingsData.network)!.chainId.toInt());
                 Get.back();
+                Utils.showBottomStatus(
+                  "Connected to ${widget.connector.session.peerMeta!.name}",
+                  "Please check the application",
+                  loading: false,
+                  success: true,
+                );
               },
               style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(Size(Get.width * 0.30, 40)),
