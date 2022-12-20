@@ -15,24 +15,6 @@ import 'package:logger/logger.dart';
 class Utils {
   static final Logger logger = Logger();
 
-  static void copyText(String text, {String? message}) {
-    Clipboard.setData(ClipboardData(text: text));
-    BotToast.showText(
-        text: message ?? "Copied to clipboard!",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
-        contentColor: Get.theme.colorScheme.primary,
-        align: Alignment.topCenter,
-    );
-  }
-
-  static void showError({required String title, required String message}){
-    DangerAlertBox(
-      context: Get.context,
-      title: title,
-      titleTextColor: Get.theme.colorScheme.primary,
-      messageText: message
-    );
-  }
   static String truncateIfAddress(String input, {int? leadingDigits, int? trailingDigits}){
     var regex = RegExp('^(0x[a-zA-Z0-9]{${trailingDigits ?? 6}})[a-zA-Z0-9]+([a-zA-Z0-9]{${trailingDigits ?? 6}})\$');
     var matches = regex.allMatches(input);
@@ -116,9 +98,89 @@ class Utils {
     return ret;
   }
 
+  static void copyText(String text, {String? message}) {
+    Clipboard.setData(ClipboardData(text: text));
+    BotToast.showText(
+      text: message ?? "Copied to clipboard!",
+      textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
+      contentColor: Get.theme.colorScheme.primary,
+      align: Alignment.topCenter,
+    );
+  }
+
+  static void showError({required String title, required String message}){
+    DangerAlertBox(
+        context: Get.context,
+        title: title,
+        titleTextColor: Get.theme.colorScheme.primary,
+        messageText: message
+    );
+  }
+
   static CancelFunc showLoading(){
     return BotToast.showCustomLoading(
       toastBuilder: (CancelFunc func) => const _LoadingWidget(),
+    );
+  }
+
+  static void showBottomStatus(
+      String text,
+      String description,
+      {bool? loading, bool? success, VoidCallback? onClick, Duration duration = const Duration(seconds: 3)}
+    ){
+    Widget leading;
+    if (loading ?? false){
+     leading = Transform.scale(
+       scale: 0.75,
+       child: const CircularProgressIndicator(strokeWidth: 5,),
+     );
+    }else{
+      if (success ?? true){
+        leading = const Icon(Icons.check_circle_outline_rounded, size: 30, color: Colors.green,);
+      }else{
+        leading = const Icon(Icons.error_outline_rounded, size: 30, color: Colors.red,);
+      }
+    }
+    BotToast.showCustomText(
+      toastBuilder: (cancel){
+        return Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+            margin: const EdgeInsets.symmetric(horizontal: 15),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: InkWell(
+              onTap: (){
+                cancel();
+                onClick?.call();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  leading,
+                  const SizedBox(width: 10,),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(text, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)),
+                      const SizedBox(height: 3,),
+                      Text(description, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      crossPage: true,
+      duration: duration,
+      align: const Alignment(0.0, 0.95),
+      onlyOne: true,
     );
   }
 

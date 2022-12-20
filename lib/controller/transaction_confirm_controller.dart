@@ -8,6 +8,7 @@ import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
+import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
@@ -16,6 +17,7 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:web3dart/web3dart.dart';
@@ -108,36 +110,46 @@ class TransactionConfirmController {
     //
     RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
     if (response?.status.toLowerCase() == "pending"){
-      BotToast.showText(
-        text: "Transaction still pending, refresh later...",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
-        duration: const Duration(seconds: 5),
-        contentColor: Get.theme.colorScheme.primary,
-        align: Alignment.topCenter,
+      Utils.showBottomStatus(
+        "Transaction still pending",
+        "Waiting for confirmation",
+        loading: true,
+        success: false,
       );
     }else if (response?.status.toLowerCase() == "failed") {
-      BotToast.showText(
-        text: "Transaction failed, contact us for help",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
-        duration: const Duration(seconds: 5),
-        contentColor: Colors.red,
-        align: Alignment.topCenter,
+      Utils.showBottomStatus(
+        "Transaction failed",
+        "Contact us for help",
+        loading: false,
+        success: false,
+        duration: const Duration(seconds: 6),
       );
     }else if (response?.status.toLowerCase() == "failed-to-submit"){
-      BotToast.showText(
-        text: "Transaction failed to submit, contact us for help",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
-        duration: const Duration(seconds: 5),
-        contentColor: Colors.red,
-        align: Alignment.topCenter,
+      Utils.showBottomStatus(
+        "Transaction failed to submit",
+        "Contact us for help",
+        loading: false,
+        success: false,
+        duration: const Duration(seconds: 6),
       );
     }else if (response?.status.toLowerCase() == "success"){
-      BotToast.showText(
-        text: "Transaction completed!",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white),
-        duration: const Duration(seconds: 5),
-        contentColor: Colors.green,
-        align: Alignment.topCenter,
+      Utils.showBottomStatus(
+        "Transaction completed!",
+        "Tap to view transaction details",
+        loading: false,
+        success: true,
+        duration: const Duration(seconds: 6),
+        onClick: () async {
+          await showBarModalBottomSheet(
+            context: Get.context!,
+            builder: (context) {
+              Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
+              return TransactionActivityDetailsCard(
+                transaction: transactionActivity,
+              );
+            },
+          );
+        }
       );
     }
     transactionActivity.hash = response?.hash;
