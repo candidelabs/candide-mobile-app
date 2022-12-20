@@ -27,18 +27,6 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
   final TextEditingController nicknameController = TextEditingController();
   final FocusNode nicknameFocus = FocusNode();
 
-  copyAddress() async {
-    Clipboard.setData(ClipboardData(text: widget.guardian.address));
-    BotToast.showText(
-      text: "Address copied to clipboard!",
-      textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
-      contentColor: Get.theme.colorScheme.primary,
-      align: Alignment.topCenter,
-    );
-    await Future.delayed(const Duration(seconds: 3));
-    if (!mounted) return;
-  }
-
   saveNickname(String newNickname) async {
     widget.guardian.nickname = newNickname;
     await AddressData.storeGuardians();
@@ -127,7 +115,9 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                 visualDensity: VisualDensity.compact,
                               ),
-                              onPressed: copyAddress,
+                              onPressed: (){
+                                Utils.copyText(widget.guardian.address, message: "Address copied to clipboard!");
+                              },
                               icon: Icon(PhosphorIcons.copyLight, color: Get.theme.colorScheme.primary , size: 20),
                             ),
                           ),
