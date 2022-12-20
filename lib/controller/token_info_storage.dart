@@ -36,7 +36,7 @@ class TokenInfoStorage {
         visible: false,
       ),
       TokenInfo(
-        name: "USD Token",
+        name: "Tether",
         symbol: "USDT",
         address: "0x509Ee0d083DdF8AC028f2a56731412edD63223B9",
         decimals: 6,
@@ -60,15 +60,16 @@ class TokenInfoStorage {
     _loadedChainId = chainId;
     tokens.clear();
     Set<String> addedTokens = {};
+    if (defaultTokens.containsKey(chainId)){
+      for (TokenInfo token in defaultTokens[chainId]!){
+        tokens.add(token);
+        addedTokens.add(token.address.toLowerCase());
+      }
+    }
     for (Map tokenInfoJson in data){
       TokenInfo tokenInfo = TokenInfo.fromJson(tokenInfoJson);
+      if (addedTokens.contains(tokenInfo.address.toLowerCase())) continue;
       tokens.add(tokenInfo);
-      addedTokens.add(tokenInfo.address.toLowerCase());
-    }
-    if (!defaultTokens.containsKey(chainId)) return;
-    for (TokenInfo token in defaultTokens[chainId]!.reversed){
-      if (addedTokens.contains(token.address.toLowerCase())) continue;
-      tokens.insert(0, token);
     }
   }
 
