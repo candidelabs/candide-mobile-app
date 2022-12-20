@@ -26,7 +26,7 @@ class _DepositSheetState extends State<DepositSheet> {
   }
 
   copyAddress() async {
-    Clipboard.setData(ClipboardData(text: widget.address));
+    Utils.copyText(widget.address);
     setState(() => _addressCopied = true);
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
