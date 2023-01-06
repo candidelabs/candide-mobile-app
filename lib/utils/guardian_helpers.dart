@@ -24,6 +24,7 @@ import 'package:hive/hive.dart';
 import 'package:magic_sdk/magic_sdk.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:wallet_dart/contracts/factories/EIP4337Manager.g.dart';
+import 'package:wallet_dart/contracts/social_module.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
@@ -34,25 +35,24 @@ class GuardianOperationsHelper {
 
   static Batch? grantBatch;
 
-  static Future<bool> grantGuardian(String address, String? nickname, {Map? magicLinkData}) async {
+  static Future<bool> isSocialRecoveryModuleEnabled(EthereumAddress walletAddress) async {
+    return await IWallet.interface.isModuleEnabled(ISocialModule.address);
+  }
+
+  static Future<bool> grantGuardian(EthereumAddress walletAddress, EthereumAddress guardian, String? nickname, {Map? magicLinkData}) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     Batch grantBatch = Batch();
-    bool setupSocialModule = true;
     int friendsCount = 0;
     int threshold = 1;
-    if (AddressData.walletStatus.socialModuleDeployed){
-      EthereumAddress recoveryManager = await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).manager();
-      if (recoveryManager.hex == AddressData.wallet.walletAddress.hex){
-        setupSocialModule = false;
-        friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).getFriends()).length;
-        threshold = (((friendsCount + 1) / 2 ) + 1).floor();
-      }
+    bool moduleEnabled = await isSocialRecoveryModuleEnabled(walletAddress);
+    if (moduleEnabled){
+      friendsCount = (await ISocialModule.interface().guardiansCount(walletAddress)).toInt();
+      threshold = (((friendsCount + 1) / 2 ) + 1).floor();
     }
     List<GnosisTransaction> transactions = GuardianController.buildGrantTransactions(
-        socialModuleDeployed: AddressData.walletStatus.socialModuleDeployed,
-        setup: setupSocialModule,
+        socialModuleEnabled: moduleEnabled,
         instance: AddressData.wallet,
-        guardianAddress: address,
+        guardians: [guardian],
         threshold: threshold,
     );
     grantBatch.transactions.addAll(transactions);
@@ -72,7 +72,7 @@ class GuardianOperationsHelper {
       action: "guardian-grant",
       title: "Added guardian",
       status: "pending",
-      data: {"guardian": address},
+      data: {"guardian": guardian.hexEip55},
     );
 
     bool? refresh = await showBarModalBottomSheet(
@@ -86,7 +86,7 @@ class GuardianOperationsHelper {
           ),
           tableEntriesData: {
             "Operation": "Granting guardian",
-            "Guardian address": address,
+            "Guardian address": guardian.hexEip55,
             "Network": SettingsData.network,
           },
           batch: grantBatch,
@@ -99,7 +99,7 @@ class GuardianOperationsHelper {
         AddressData.guardians.add(WalletGuardian(
           index: friendsCount,
           type: "magic-link",
-          address: address,
+          address: guardian.hexEip55,
           nickname: nickname,
           email: magicLinkData["email"],
           creationDate: DateTime.now(),
@@ -108,7 +108,7 @@ class GuardianOperationsHelper {
         AddressData.guardians.add(WalletGuardian(
           index: friendsCount,
           type: "family-and-friends",
-          address: address,
+          address: guardian.hexEip55,
           nickname: nickname,
           email: null,
           creationDate: DateTime.now(),
@@ -121,17 +121,24 @@ class GuardianOperationsHelper {
   }
 
 
-  static Future<bool> revokeGuardian(String address, int guardianIndex) async {
+  static Future<bool> revokeGuardian(EthereumAddress walletAddress, EthereumAddress guardian) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     Batch revokeBatch = Batch();
-    int friendsCount = (await CWallet.recoveryInterface(AddressData.wallet.socialRecovery).getFriends()).length;
+    List<EthereumAddress> _prevGuardians = await ISocialModule.interface().getGuardians(walletAddress);
+    int friendsCount = _prevGuardians.length;
+    EthereumAddress previousGuardian = Constants.addressOne;
+    int guardianIndex = _prevGuardians.indexOf(guardian);
+    if (guardianIndex > 0){
+      previousGuardian = _prevGuardians[guardianIndex-1];
+    }
     int threshold = (((friendsCount - 1) / 2 ) + 1).floor();
     if ((friendsCount-1) == 0){
       threshold = 0;
     }
     List<GnosisTransaction> transactions = GuardianController.buildRevokeTransactions(
       instance: AddressData.wallet,
-      guardianIndex: guardianIndex,
+      previousGuardian: previousGuardian,
+      guardian: guardian,
       threshold: threshold,
     );
     revokeBatch.transactions.addAll(transactions);
@@ -151,7 +158,7 @@ class GuardianOperationsHelper {
       action: "guardian-revoke",
       title: "Removed guardian",
       status: "pending",
-      data: {"guardian": address},
+      data: {"guardian": guardian.hexEip55},
     );
 
     bool? refresh = await showBarModalBottomSheet(
@@ -165,7 +172,7 @@ class GuardianOperationsHelper {
           ),
           tableEntriesData: {
             "Operation": "Removing guardian",
-            "Guardian address": address,
+            "Guardian address": guardian.hexEip55,
             "Network": SettingsData.network,
           },
           batch: revokeBatch,
@@ -193,7 +200,7 @@ class GuardianOperationsHelper {
       cancelLoad.call();
       cancelLoad = null;
       if (metadata.publicAddress == null) return false;
-      refresh = await grantGuardian(metadata.publicAddress!, nickname, magicLinkData: {"email":email});
+      refresh = await grantGuardian(AddressData.wallet.walletAddress, EthereumAddress.fromHex(metadata.publicAddress!), nickname, magicLinkData: {"email":email});
     } on Exception catch (e) {
       cancelLoad?.call();
       print(e);
@@ -207,18 +214,19 @@ class GuardianOperationsHelper {
 
 class GuardianRecoveryHelper{
 
-  static Future<EthereumAddress?> getSocialRecoveryModule(String walletAddress, [GetModulesPaginated? modulesPaginated]) async{
+  static Future<EthereumAddress?> getOldSocialRecoveryModule(String walletAddress, [GetModulesPaginated? modulesPaginated]) async{
     if (modulesPaginated == null){
       try{
-        modulesPaginated = await CWallet.customInterface(EthereumAddress.fromHex(walletAddress)).getModulesPaginated(Constants.addressOne, BigInt.from(25));
+        modulesPaginated = await IWallet.customInterface(EthereumAddress.fromHex(walletAddress)).getModulesPaginated(Constants.addressOne, BigInt.from(25));
       }catch (e){
         return null;
       }
     }
+    String abi = '''[{"inputs":[],"name":"getFriends","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"}]''';
     for (EthereumAddress module in modulesPaginated.array){
       try{
-        int guardiansCount = (await CWallet.recoveryInterface(module).getFriends()).length;
-        if (guardiansCount == 0) return null;
+        final contract = DeployedContract(ContractAbi.fromJson(abi, 'SocialRecoveryModule'), module);
+        await Constants.client.call(contract: contract, function: contract.function("getFriends"), params: []);
         return module;
       }catch (e){
         continue;
@@ -230,7 +238,7 @@ class GuardianRecoveryHelper{
   static Future<EthereumAddress?> getModuleManagerAddress(String walletAddress, [GetModulesPaginated? modulesPaginated]) async{
     if (modulesPaginated == null){
       try{
-        modulesPaginated = await CWallet.customInterface(EthereumAddress.fromHex(walletAddress)).getModulesPaginated(Constants.addressOne, BigInt.from(25));
+        modulesPaginated = await IWallet.customInterface(EthereumAddress.fromHex(walletAddress)).getModulesPaginated(Constants.addressOne, BigInt.from(25));
       }catch (e){
         return null;
       }
@@ -253,14 +261,14 @@ class GuardianRecoveryHelper{
     //
     GetModulesPaginated modulesPaginated;
     try{
-      modulesPaginated = await CWallet.customInterface(EthereumAddress.fromHex(address)).getModulesPaginated(Constants.addressOne, BigInt.from(25));
+      modulesPaginated = await IWallet.customInterface(EthereumAddress.fromHex(address)).getModulesPaginated(Constants.addressOne, BigInt.from(25));
     }catch (e){
       cancelLoad();
       Utils.showError(title: "Error", message: "This wallet is not a candide smart contract wallet!");
       return;
     }
     //
-    EthereumAddress? socialModuleAddress = await getSocialRecoveryModule(address, modulesPaginated);
+    EthereumAddress? socialModuleAddress = await getOldSocialRecoveryModule(address, modulesPaginated);
     EthereumAddress? moduleManagerAddress = await getModuleManagerAddress(address, modulesPaginated);
     if (socialModuleAddress == null || moduleManagerAddress == null){
       cancelLoad();
@@ -287,14 +295,14 @@ class GuardianRecoveryHelper{
       await Hive.box("settings").put("biometrics_enabled", false);
     }
     var salt = base64Encode(Utils.randomBytes(16, secure: true));
-    WalletInstance wallet = await WalletHelpers.createRecovery(address, moduleManagerAddress.hexEip55, socialModuleAddress.hexEip55, password, salt);
+    WalletInstance wallet = await WalletHelpers.createRecovery(address, moduleManagerAddress.hexEip55, password, salt);
     await Hive.box("wallet").put("recovered", jsonEncode(wallet.toJson()));
     cancelLoad();
     Get.back();
     //
     if (method == "social-recovery"){
-      EthereumAddress oldOwner = (await CWallet.customInterface(EthereumAddress.fromHex(address)).getOwners())[0];
-      var dataHash = CWallet.customInterface(EthereumAddress.fromHex(address)).self.function("swapOwner").encodeCall([Constants.addressOne, oldOwner, EthereumAddress.fromHex(wallet.initOwner)]);
+      EthereumAddress oldOwner = (await IWallet.customInterface(EthereumAddress.fromHex(address)).getOwners())[0];
+      var dataHash = IWallet.customInterface(EthereumAddress.fromHex(address)).self.function("swapOwner").encodeCall([Constants.addressOne, oldOwner, EthereumAddress.fromHex(wallet.initOwner)]);
       dataHash = keccak256(dataHash);
       startRecoveryRequest(wallet, bytesToHex(dataHash, include0x: true), oldOwner.hexEip55);
     }
@@ -303,7 +311,7 @@ class GuardianRecoveryHelper{
 
   static void startRecoveryRequest(WalletInstance wallet, String dataHash, String oldOwner) async {
     var cancelLoad = Utils.showLoading();
-    RecoveryRequest? request = await SecurityGateway.create(wallet.walletAddress.hexEip55, wallet.socialRecovery.hexEip55, dataHash, oldOwner, wallet.initOwner, SettingsData.network);
+    RecoveryRequest? request = await SecurityGateway.create(wallet.walletAddress.hexEip55, dataHash, wallet.initOwner, SettingsData.network);
     if (request == null){
       cancelLoad();
       if (SecurityGateway.latestErrorCode == 429){

@@ -13,12 +13,12 @@ import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:web3dart/credentials.dart';
 
 class GuardiansPage extends StatefulWidget {
   const GuardiansPage({Key? key}) : super(key: key);
@@ -34,7 +34,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
   void fetchGuardians() async {
     setState(() => _loading = true);
     await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hex,);
-    await AddressData.loadGuardians();
+    await AddressData.loadGuardians(AddressData.wallet.walletAddress);
     if (!mounted) return;
     setState(() => _loading = false);
   }
@@ -147,7 +147,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 guardian: guardian,
                 logo: logo,
                 onPressDelete: () async {
-                  bool refresh = await GuardianOperationsHelper.revokeGuardian(guardian.address, guardian.index);
+                  bool refresh = await GuardianOperationsHelper.revokeGuardian(AddressData.wallet.walletAddress, EthereumAddress.fromHex(guardian.address));
                   if (refresh){
                     fetchGuardians();
                   }
@@ -228,7 +228,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 child: GuardianAddressSheet(
                   onProceed: (String address, String? nickname) async {
                     Get.back();
-                    bool refresh = await GuardianOperationsHelper.grantGuardian(address, nickname);
+                    bool refresh = await GuardianOperationsHelper.grantGuardian(AddressData.wallet.walletAddress, EthereumAddress.fromHex(address), nickname);
                     if (refresh){
                       fetchGuardians();
                     }
@@ -447,7 +447,6 @@ class _GuardianCountAlert extends StatelessWidget { // todo move to components
                   ]
                 ),
               ),
-              //Text("You are limited to only 1 guardian through our client app in beta\nThis restriction will be removed in production"),
             ],
           ),
         ),

@@ -2,8 +2,6 @@ class RecoveryRequest {
   String? id;
   String? emoji;
   String walletAddress;
-  String socialRecoveryAddress;
-  String oldOwner;
   String newOwner;
   String network;
   String? status;
@@ -14,8 +12,6 @@ class RecoveryRequest {
       {this.id,
       this.emoji,
       required this.walletAddress,
-      required this.socialRecoveryAddress,
-      required this.oldOwner,
       required this.newOwner,
       required this.network,
       this.status,
@@ -26,8 +22,6 @@ class RecoveryRequest {
       : id = json['id'],
         emoji = json['emoji'],
         walletAddress = json['walletAddress'],
-        socialRecoveryAddress = json['socialRecoveryAddress'],
-        oldOwner = json['oldOwner'],
         newOwner = json['newOwner'],
         network = json['network'],
         status = json['status'],
@@ -38,8 +32,6 @@ class RecoveryRequest {
     'id': id,
     'emoji': emoji,
     'walletAddress': walletAddress,
-    'socialRecoveryAddress': socialRecoveryAddress,
-    'oldOwner': oldOwner,
     'newOwner': newOwner,
     'network': network,
     'status': status,

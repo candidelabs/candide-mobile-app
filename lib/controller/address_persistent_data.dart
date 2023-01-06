@@ -5,10 +5,11 @@ import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/services/token_info_fetcher.dart';
 import 'package:candide_mobile_app/services/transaction_watchdog.dart';
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:wallet_dart/contracts/wallet.dart';
+import 'package:wallet_dart/contracts/social_module.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -34,7 +35,6 @@ class AddressData {
       walletStatus = WalletStatus(
         proxyDeployed: false,
         managerDeployed: false,
-        socialModuleDeployed: false,
         nonce: 0,
       );
       walletBalance = WalletBalance(
@@ -122,12 +122,7 @@ class AddressData {
     }
   }
 
-  static loadGuardians() async {
-    if (wallet == null) return;
-    if (!walletStatus.socialModuleDeployed){
-      guardians.clear();
-      return;
-    }
+  static loadGuardians(EthereumAddress walletAddress) async {
     var json = Hive.box("state").get("guardians_metadata");
     Map<String, List<dynamic>> metadata = {};
     //
@@ -146,8 +141,8 @@ class AddressData {
     }
     //
     guardians.clear();
-    var walletInterface = CWallet.recoveryInterface(wallet.socialRecovery);
-    List<EthereumAddress> _guardians = (await walletInterface.getFriends());
+    var interface = ISocialModule.interface(client: Constants.client);
+    List<EthereumAddress> _guardians = (await interface.getGuardians(walletAddress));
     int guardiansCount = _guardians.length;
     if (guardiansCount > 0){
       int index = 0;
@@ -200,12 +195,6 @@ class AddressData {
     await Hive.box("state").put("address_data", json);
   }
 
-  static loadLocally({bool walletOnly = false}){
-    loadWallet();
-    if (walletOnly) return;
-    loadGuardians();
-  }
-
   static BigInt getCurrencyBalance(String currencyAddress){
     CurrencyBalance? balance = currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == currencyAddress.toLowerCase());
     if (balance == null) return BigInt.zero;
@@ -217,20 +206,17 @@ class AddressData {
 class WalletStatus {
   bool proxyDeployed;
   bool managerDeployed;
-  bool socialModuleDeployed;
   int nonce;
 
   WalletStatus({
     required this.proxyDeployed,
     required this.managerDeployed,
-    required this.socialModuleDeployed,
     required this.nonce
   });
 
   WalletStatus.fromJson(Map json)
       : proxyDeployed = json['proxyDeployed'],
         managerDeployed = json['managerDeployed'],
-        socialModuleDeployed = json['socialModuleDeployed'],
         nonce = json['nonce'];
 }
 

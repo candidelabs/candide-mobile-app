@@ -27,17 +27,14 @@ class Explorer {
       //
       bool proxyDeployed = true;
       bool managerDeployed = true;
-      bool socialDeployed = true;
       await Future.wait([
         Constants.client.getCode(AddressData.wallet.walletAddress).then((value) => proxyDeployed = value.isNotEmpty),
         Constants.client.getCode(AddressData.wallet.moduleManager).then((value) => managerDeployed = value.isNotEmpty),
-        Constants.client.getCode(AddressData.wallet.socialRecovery).then((value) => socialDeployed = value.isNotEmpty),
       ]);
       AddressData.walletStatus = WalletStatus(
         proxyDeployed: proxyDeployed,
         managerDeployed: managerDeployed,
-        socialModuleDeployed: socialDeployed,
-        nonce: proxyDeployed ? ((await CWallet.customInterface(AddressData.wallet.walletAddress).nonce()).toInt()) : 0,
+        nonce: proxyDeployed ? ((await IWallet.customInterface(AddressData.wallet.walletAddress).nonce()).toInt()) : 0,
       );
     } on DioError catch(e){
       print("Error occured ${e.type.toString()}");

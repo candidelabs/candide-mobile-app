@@ -36,7 +36,7 @@ class _RecoveryProgressDialogState extends State<RecoveryProgressDialog> {
 
   @override
   void initState() {
-    walletInterface = CWallet.customInterface(EthereumAddress.fromHex(widget.walletAddress));
+    walletInterface = IWallet.customInterface(EthereumAddress.fromHex(widget.walletAddress));
     periodicCheck(0);
     super.initState();
   }

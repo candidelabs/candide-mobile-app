@@ -7,14 +7,12 @@ import 'package:dio/dio.dart';
 class SecurityGateway {
   static int latestErrorCode = 200; // todo store error codes here
 
-  static Future<RecoveryRequest?> create(String walletAddress, String socialRecoveryAddress, String dataHash, String oldOwner, String newOwner, String network) async {
+  static Future<RecoveryRequest?> create(String walletAddress, String dataHash, String newOwner, String network) async {
     try{
       var response = await Dio().post("${Env.securityUri}/v1/guardian/create",
         data: jsonEncode({
           "walletAddress": walletAddress,
-          "socialRecoveryAddress": socialRecoveryAddress,
           "dataHash": dataHash,
-          "oldOwner": oldOwner,
           "newOwner": newOwner,
           "network": network
         }),
@@ -24,8 +22,6 @@ class SecurityGateway {
         id: response.data["id"].toString(),
         emoji: response.data["emoji"],
         walletAddress: response.data["walletAddress"],
-        socialRecoveryAddress: response.data["socialRecoveryAddress"],
-        oldOwner: response.data["oldOwner"],
         newOwner: response.data["newOwner"],
         network: response.data["network"],
         signaturesAcquired: 0,
@@ -49,8 +45,6 @@ class SecurityGateway {
         id: response.data["id"].toString(),
         emoji: response.data["emoji"],
         walletAddress: response.data["walletAddress"],
-        socialRecoveryAddress: response.data["socialRecoveryAddress"],
-        oldOwner: response.data["oldOwner"],
         newOwner: response.data["newOwner"],
         network: response.data["network"],
         signaturesAcquired: response.data["signaturesAcquired"],
