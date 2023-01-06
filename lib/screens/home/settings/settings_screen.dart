@@ -408,7 +408,6 @@ class _DebugWidget extends StatelessWidget {
     String debugText = "";
     debugText += "Manager deployed: ${AddressData.walletStatus.managerDeployed}\n";
     debugText += "Proxy deployed: ${AddressData.walletStatus.proxyDeployed}\n";
-    debugText += "Social recovery module deployed: ${AddressData.walletStatus.socialModuleDeployed}\n";
     debugText += "Nonce: ${AddressData.walletStatus.nonce}\n";
     _debugFieldController.text = debugText;
   }

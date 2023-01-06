@@ -15,6 +15,7 @@ import 'package:lottie/lottie.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:wallet_dart/contracts/social_module.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/web3dart.dart';
@@ -42,13 +43,13 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> const HomeScreen()));
   }
 
-  Future<void> fetchMinimumSignatures() async {
-    minimumSignatures = (await CWallet.recoveryInterface(EthereumAddress.fromHex(request.socialRecoveryAddress)).threshold()).toInt();
+  Future<void> fetchMinimumSignatures(EthereumAddress walletAddress) async {
+    minimumSignatures = (await ISocialModule.interface().threshold(walletAddress)).toInt();
     setState(() {});
   }
 
-  Future<void> getFriends() async {
-    guardians = await CWallet.recoveryInterface(EthereumAddress.fromHex(request.socialRecoveryAddress)).getFriends();
+  Future<void> getGuardians(EthereumAddress walletAddress) async {
+    guardians = await ISocialModule.interface().getGuardians(walletAddress);
 
     setState(() {});
   }
@@ -62,7 +63,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
       return;
     }
     request = _updatedRequest;
-    await fetchMinimumSignatures();
+    await fetchMinimumSignatures(EthereumAddress.fromHex(request.walletAddress));
     bool _isOwner = await isOwner();
     setState(() => refreshing = false);
     if (_isOwner){
@@ -77,7 +78,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   }
 
   Future<bool> isOwner() async {
-    String currentOwner = (await CWallet.customInterface(EthereumAddress.fromHex(request.walletAddress)).getOwners())[0].hex.toLowerCase();
+    String currentOwner = (await IWallet.customInterface(EthereumAddress.fromHex(request.walletAddress)).getOwners())[0].hex.toLowerCase();
     if (currentOwner == request.newOwner.toLowerCase()){
       return true;
     }
@@ -141,7 +142,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   void initState() {
     request = widget.request;
     refreshData();
-    getFriends();
+    getGuardians(EthereumAddress.fromHex(request.walletAddress));
     super.initState();
   }
 
