@@ -35,13 +35,12 @@ class OverviewScreen extends StatefulWidget {
 class _OverviewScreenState extends State<OverviewScreen> {
   final RefreshController _refreshController = RefreshController(initialRefresh: true);
   late final StreamSubscription transactionStatusSubscription;
-  final ownerPublicAddress = AddressData.wallet.walletAddress.hexEip55;
+  final ownerPublicAddress = AddressData.selectedWallet.walletAddress.hexEip55;
   bool balancesVisible = true;
 
   fetchOverview() async {
     await Explorer.fetchAddressOverview(
-      network: SettingsData.network,
-      address: AddressData.wallet.walletAddress.hex,
+      wallet: AddressData.selectedWallet,
       quoteCurrency: "USDT",//SettingsData.quoteCurrency,
       currencyList: ["ETH", "UNI", "CTT"], // todo check here
     );
@@ -102,7 +101,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   icon: Icon(PhosphorIcons.copyLight, color: Get.theme.colorScheme.primary , size: 20),
                 ),
                 const Spacer(),
-                NetworkBar(network: Networks.get(SettingsData.network)!),
+                NetworkBar(network: Networks.getByName(SettingsData.network)!),
                 const SizedBox(width: 10,),
               ],
             ),

@@ -140,7 +140,7 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
             const SizedBox(width: 15,),
             ElevatedButton(
               onPressed: (){
-                widget.connector.approveSession(accounts: [AddressData.wallet.walletAddress.hexEip55], chainId: Networks.get(SettingsData.network)!.chainId.toInt());
+                widget.connector.approveSession(accounts: [AddressData.selectedWallet.walletAddress.hexEip55], chainId: Networks.getByName(SettingsData.network)!.chainId.toInt());
                 Get.back();
                 Utils.showBottomStatus(
                   "Connected to ${widget.connector.session.peerMeta!.name}",

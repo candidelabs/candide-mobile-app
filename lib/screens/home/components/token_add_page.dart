@@ -25,7 +25,7 @@ class _TokenImportPageState extends State<TokenImportPage> {
   void fetchToken() async {
     if (address == null) return;
     setState(() => fetching = true);
-    token = await TokenInfoFetcher.fetchTokenInfo(address!, Networks.get(SettingsData.network)!.chainId.toInt());
+    token = await TokenInfoFetcher.fetchTokenInfo(address!, Networks.getByName(SettingsData.network)!.chainId.toInt());
     setState(() => fetching = false);
     if (token == null) return;
   }

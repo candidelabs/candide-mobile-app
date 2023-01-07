@@ -14,24 +14,18 @@ import 'package:web3dart/web3dart.dart';
 
 class Bundler {
 
-  static Future<List<UserOperation>> signUserOperations(Credentials signer, String network, List<UserOperation> userOperations) async{
-    List<UserOperation> signedOperations = [];
-    List<Uint8List> requestIds = (await getRequestIds(userOperations))!;
-    int index = 0;
-    for (UserOperation operation in userOperations){
-      UserOperation signedOperation = UserOperation.fromJson(operation.toJson());
-      await signedOperation.sign(
-        signer,
-        Networks.get(network)!.chainId,
-        overrideRequestId: requestIds[index],
-      );
-      signedOperations.add(signedOperation);
-      index++;
-    }
-    return signedOperations;
+  static Future<UserOperation> signUserOperations(Credentials signer, String network, UserOperation operation) async{
+    List<Uint8List> requestIds = (await getRequestIds([operation]))!;
+    UserOperation signedOperation = UserOperation.fromJson(operation.toJson());
+    await signedOperation.sign(
+      signer,
+      Networks.getByName(network)!.chainId,
+      overrideRequestId: requestIds[0],
+    );
+    return signedOperation;
   }
 
-  static Future<RelayResponse?> relayUserOperations(List<UserOperation> userOperations, String network) async{
+  static Future<RelayResponse?> relayUserOperation(UserOperation operation, String network) async{
     try{
       var response = await Dio().post(
           "${Env.bundlerUri}/jsonrpc/bundler",
@@ -40,7 +34,7 @@ class Bundler {
             "id": 1,
             "method": "eth_sendUserOperation",
             "params": [
-              userOperations.map((e) => e.toJson()).toList()
+              [operation.toJson()]
             ]
           })
       );

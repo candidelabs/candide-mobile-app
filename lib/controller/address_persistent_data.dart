@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
@@ -14,16 +12,23 @@ import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/web3dart.dart';
 
 class AddressData {
-  // Load from Box called "wallet" at "main"
-  static late WalletInstance wallet;
-  // Load from Box called "activity" at "transactions(chainId)"
+  // Load from Box called "state" at "selected_wallet"
+  static late WalletInstance selectedWallet;
+
+  // Load from Box called "wallets" at "wallets"
+  static late List<WalletInstance> wallets;
+
+  // Load from Box called "activity" at "transactions(walletAddress-chainId)"
   static late int _loadedChainId;
   static List<TransactionActivity> transactionsActivity = [];
-  // Load from Box called "state" at "guardians_metadata"
+
+  // Load from Box called "state" at "guardians_metadata(walletAddress-chainId)"
   static List<WalletGuardian> guardians = [];
+
   // Load from Box called "state" at "recovery_request_id"
   static String? recoveryRequestId;
-  // Load from Box called "state" at "address_data"
+
+  // Load from Box called "state" at "address_data(walletAddress-chainId)"
   static late WalletStatus walletStatus;
   static late WalletBalance walletBalance;
   static late List<ContactAddress> contacts = [];
@@ -34,33 +39,19 @@ class AddressData {
     if (json == null){
       walletStatus = WalletStatus(
         proxyDeployed: false,
-        managerDeployed: false,
         nonce: 0,
       );
       walletBalance = WalletBalance(
-        quoteCurrency: "UNI",
+        quoteCurrency: "USDT",
         currentBalance: BigInt.zero,
       );
       currencies = [];
       contacts = [];
       return;
     }
-    /*if (json["walletStatus"] != null){
-      walletStatus = WalletStatus.fromJson(json["walletStatus"]);
-    }*/
     //
     if (json["walletBalance"] != null){
       walletBalance = WalletBalance.fromJson(json["walletBalance"]);
-    }
-
-    //
-    if (json["contacts"] != null){
-      List<ContactAddress> _contacts = [];
-      for (var contact in json["contacts"]){
-        _contacts.add(ContactAddress.fromJson(contact));
-      }
-      contacts.clear();
-      contacts = _contacts;
     }
     //
     if (json["currencies"] != null){
@@ -68,7 +59,7 @@ class AddressData {
       for (var currency in json["currencies"]){
         CurrencyBalance currencyBalance = CurrencyBalance.fromJson(currency);
         if (TokenInfoStorage.getTokenByAddress(currencyBalance.currencyAddress.toLowerCase()) == null){
-          TokenInfo? token = await TokenInfoFetcher.fetchTokenInfo(currencyBalance.currencyAddress, Networks.get(SettingsData.network)!.chainId.toInt());
+          TokenInfo? token = await TokenInfoFetcher.fetchTokenInfo(currencyBalance.currencyAddress, Networks.getByName(SettingsData.network)!.chainId.toInt());
           if (token != null){
             await TokenInfoStorage.addToken(token);
             _currencies.add(currencyBalance);
@@ -182,17 +173,40 @@ class AddressData {
     await Hive.box("state").put("recovery_request_id", id);
   }
 
-  static loadWallet(){
-    var wallet = Hive.box("wallet").get("main");
-    if (wallet != null){
-      AddressData.wallet = WalletInstance.fromJson(jsonDecode(wallet));
+  static void loadWallets(){
+    wallets.clear();
+    List walletsAsJson = Hive.box("wallets").get("wallets") ?? []; // List<Json>
+    for (Map<String, dynamic> walletJson in walletsAsJson){
+      var wallet = WalletInstance.fromJson(walletJson);
+      wallets.add(wallet);
+    }
+    selectWallet();
+  }
+
+  static Future<void> insertWallet(WalletInstance wallet) async {
+    wallets.add(wallet);
+    await Hive.box("wallets").put("wallets", wallets.map((e) => e.toJson()).toList());
+  }
+
+  static void selectWallet({EthereumAddress? address, int? chainId}){
+    if (address == null || chainId == null){
+      String? selectedData = Hive.box("state").get("selected_wallet", defaultValue: null);
+      if (selectedData == null) return;
+      address = EthereumAddress.fromHex(selectedData.split(";")[0]);
+      chainId = int.parse(selectedData.split(";")[1]);
+    }
+    for (WalletInstance wallet in wallets){
+      if (wallet.walletAddress == address && chainId == chainId){
+        selectedWallet = wallet;
+        return;
+      }
     }
   }
 
-  static updateExplorerJson(Map json) async {
+  static Future<void> updateExplorerJson(WalletInstance wallet, Map json) async {
     loadExplorerJson(json);
     //
-    await Hive.box("state").put("address_data", json);
+    await Hive.box("state").put("address_data(${wallet.walletAddress.hex}-${wallet.chainId})", json);
   }
 
   static BigInt getCurrencyBalance(String currencyAddress){
@@ -205,18 +219,15 @@ class AddressData {
 
 class WalletStatus {
   bool proxyDeployed;
-  bool managerDeployed;
   int nonce;
 
   WalletStatus({
     required this.proxyDeployed,
-    required this.managerDeployed,
     required this.nonce
   });
 
   WalletStatus.fromJson(Map json)
       : proxyDeployed = json['proxyDeployed'],
-        managerDeployed = json['managerDeployed'],
         nonce = json['nonce'];
 }
 

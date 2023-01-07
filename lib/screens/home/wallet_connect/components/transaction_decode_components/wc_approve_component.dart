@@ -73,7 +73,7 @@ class WCApproveComponent extends StatelessWidget {
                   Text("Address: ", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13)),
                   InkWell(
                     onTap: () async {
-                      String url = "${Networks.get(SettingsData.network)!.explorerUrl}/address/${(transactionDetails.parameterValues[0] as EthereumAddress).hex}";
+                      String url = "${Networks.getByName(SettingsData.network)!.explorerUrl}/address/${(transactionDetails.parameterValues[0] as EthereumAddress).hex}";
                       if(await canLaunchUrl(Uri.parse(url))) {
                         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                       } else {

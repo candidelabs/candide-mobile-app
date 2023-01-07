@@ -14,7 +14,6 @@ import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:get/get.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
-import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
@@ -29,7 +28,7 @@ class Batch {
   List<FeeToken> _feeTokens = [];
   List<GnosisTransaction> transactions = [];
 
-  bool get includesPaymaster => _feeToken?.token.symbol != Networks.get(SettingsData.network)!.nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
+  bool get includesPaymaster => _feeToken?.token.symbol != Networks.getByName(SettingsData.network)!.nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
   FeeToken? get feeCurrency => _feeToken;
   List<FeeToken> get feeCurrencies => _feeTokens;
 
@@ -65,9 +64,9 @@ class Batch {
 
   Future<void> _adjustFeeCurrencyCosts() async{
     configureNonces(AddressData.walletStatus.nonce);
-    List<UserOperation> userOps = [await toSingleUserOperation(AddressData.wallet, AddressData.walletStatus.nonce, proxyDeployed: AddressData.walletStatus.proxyDeployed, skipPaymasterData: true)];
+    List<UserOperation> userOps = [await toUserOperation(AddressData.selectedWallet, AddressData.walletStatus.nonce, proxyDeployed: AddressData.walletStatus.proxyDeployed, skipPaymasterData: true)];
     for (FeeToken feeCurrency in _feeTokens){
-      bool isEther = feeCurrency.token.symbol == Networks.get(SettingsData.network)!.nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
+      bool isEther = feeCurrency.token.symbol == Networks.getByName(SettingsData.network)!.nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
       feeCurrency.fee = FeeCurrencyUtils.calculateFee(userOps, feeCurrency.conversion, isEther);
     }
   }
@@ -152,15 +151,12 @@ class Batch {
     return transaction;
   }
 
-  Future<UserOperation> toSingleUserOperation(WalletInstance instance, int nonce, {bool proxyDeployed=true, bool managerDeployed=true, bool skipPaymasterData=false}) async {
+  Future<UserOperation> toUserOperation(WalletInstance instance, int nonce, {bool proxyDeployed=true, bool skipPaymasterData=false}) async {
     //
     String initCode = "0x";
-    String managerSalt = "0x";
     if (!proxyDeployed){
-      initCode = bytesToHex(WalletHelpers.getInitCode(EthereumAddress.fromHex(instance.initOwner), instance.moduleManager), include0x: true);
-    }
-    if (!managerDeployed){
-      managerSalt = bytesToHex(keccak256(Uint8List.fromList("${instance.salt}_moduleManager".codeUnits)), include0x: true);
+      // todo integration
+      //initCode = bytesToHex(WalletHelpers.getInitCode(EthereumAddress.fromHex(instance.initOwner), instance.moduleManager), include0x: true);
     }
     //
     GnosisTransaction multiSendTransaction = _getMultiSendTransaction();
@@ -169,10 +165,9 @@ class Batch {
       initCode: initCode,
       nonce: nonce,
       callData: multiSendTransaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver),
-      moduleManagerSalt: managerSalt,
     );
     //
-    List<GasEstimate>? gasEstimates = await BatchUtils.getGasEstimates([userOp], Networks.get(SettingsData.network)!.chainId.toInt());
+    List<GasEstimate>? gasEstimates = await BatchUtils.getGasEstimates([userOp], Networks.getByName(SettingsData.network)!.chainId.toInt());
     userOp.callGas = gasEstimates[0].callGas;
     userOp.preVerificationGas = gasEstimates[0].preVerificationGas;
     userOp.verificationGas = gasEstimates[0].verificationGas;
@@ -191,64 +186,6 @@ class Batch {
     }
     //
     return userOp;
-  }
-
-  Future<List<UserOperation>> toUserOperations(WalletInstance instance, {bool proxyDeployed=true, bool managerDeployed=true, bool skipPaymasterData=false}) async {
-    List<UserOperation> userOps = [];
-    //
-    String initCode = "0x";
-    String managerSalt = "0x";
-    if (!proxyDeployed){
-      initCode = bytesToHex(WalletHelpers.getInitCode(EthereumAddress.fromHex(instance.initOwner), instance.moduleManager), include0x: true);
-    }
-    if (!managerDeployed){
-      managerSalt = bytesToHex(keccak256(Uint8List.fromList("${instance.salt}_moduleManager".codeUnits)), include0x: true);
-    }
-    //
-    int nonce = transactions[0].nonce.toInt() - transactions.length;
-    if (includesPaymaster){
-      nonce--;
-    }
-    //
-    for (GnosisTransaction transaction in transactions){
-      UserOperation userOp = UserOperation.get(
-        sender: instance.walletAddress,
-        initCode: initCode,
-        callData: transaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver),
-        nonce: nonce,
-        moduleManagerSalt: managerSalt,
-      );
-      //
-      userOps.add(userOp);
-      nonce++;
-      if (initCode != "0x"){
-        nonce = 0;
-      }
-      initCode = "0x";
-      managerSalt = "0x";
-    }
-    //List<GasEstimate>? gasEstimates = await Bundler.getOperationsGasFees(userOps);
-    List<GasEstimate>? gasEstimates = await BatchUtils.getGasEstimates(userOps, Networks.get(SettingsData.network)!.chainId.toInt());
-    int index = 0;
-    for (UserOperation op in userOps) {
-      op.callGas = gasEstimates[index].callGas;
-      op.preVerificationGas = gasEstimates[index].preVerificationGas;
-      op.verificationGas = gasEstimates[index].verificationGas;
-      op.maxFeePerGas = gasEstimates[index].maxFeePerGas;
-      op.maxPriorityFeePerGas = gasEstimates[index].maxPriorityFeePerGas;
-      if (transactions[index].id == "social-deploy" || op.initCode != "0x"){
-        op.callGas = 2150000;
-        if (op.initCode != "0x"){
-          op.preVerificationGas = 4000000;
-        }
-      }
-      index++;
-    }
-    if (includesPaymaster && !skipPaymasterData){
-      await _addPaymasterToUserOps(userOps);
-    }
-    //
-    return userOps;
   }
 
 }

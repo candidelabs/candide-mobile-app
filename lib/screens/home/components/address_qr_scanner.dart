@@ -121,7 +121,7 @@ class QRAlertFundsLoss extends StatelessWidget {
             children: [
               TextSpan(
                   text: SettingsData.network,
-                  style: TextStyle(color: Networks.get(SettingsData.network)!.color)
+                  style: TextStyle(color: Networks.getByName(SettingsData.network)!.color)
               ),
               const TextSpan(
                 text: " network, otherwise funds may be ",
@@ -151,7 +151,7 @@ class QRAlertGuardianAddressFail extends StatelessWidget {
             children: [
               TextSpan(
                   text: SettingsData.network,
-                  style: TextStyle(color: Networks.get(SettingsData.network)!.color)
+                  style: TextStyle(color: Networks.getByName(SettingsData.network)!.color)
               ),
               const TextSpan(
                 text: " network",
@@ -177,7 +177,7 @@ class QRAlertRecoveryFail extends StatelessWidget {
             children: [
               TextSpan(
                   text: SettingsData.network,
-                  style: TextStyle(color: Networks.get(SettingsData.network)!.color)
+                  style: TextStyle(color: Networks.getByName(SettingsData.network)!.color)
               ),
               const TextSpan(
                 text: " network, otherwise operation will ",

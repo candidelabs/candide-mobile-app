@@ -1,7 +1,8 @@
 import 'dart:async';
 
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:wallet_dart/contracts/factories/EIP4337Manager.g.dart';
+import 'package:wallet_dart/contracts/factories/CandideWallet.g.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -15,7 +16,7 @@ class RecoveryProgressDialog extends StatefulWidget {
 }
 
 class _RecoveryProgressDialogState extends State<RecoveryProgressDialog> {
-  late EIP4337Manager walletInterface;
+  late CandideWallet walletInterface;
 
   void periodicCheck(int checks) async {
     if (checks >= 25){
@@ -36,7 +37,7 @@ class _RecoveryProgressDialogState extends State<RecoveryProgressDialog> {
 
   @override
   void initState() {
-    walletInterface = IWallet.customInterface(EthereumAddress.fromHex(widget.walletAddress));
+    walletInterface = IWallet.interface(address: EthereumAddress.fromHex(widget.walletAddress), client: Constants.client);
     periodicCheck(0);
     super.initState();
   }

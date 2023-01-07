@@ -1,40 +1,40 @@
 import 'dart:convert';
 
 import 'package:candide_mobile_app/config/env.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:dio/dio.dart';
 import 'package:wallet_dart/contracts/wallet.dart';
+import 'package:wallet_dart/wallet/wallet_instance.dart';
 
 class Explorer {
 
   static fetchAddressOverview({
-      String? network,
+      required WalletInstance wallet,
       String? quoteCurrency,
-      required String address,
       List<String>? currencyList}) async {
     try{
       if (currencyList != null && currencyList.isNotEmpty){
-        var response = await Dio().post("${Env.explorerUri}/v1/address/$address", data: jsonEncode({
-          "network": network ?? "Goerli",
+        var response = await Dio().post("${Env.explorerUri}/v1/address/${wallet.walletAddress.hexEip55}", data: jsonEncode({
+          "network": Networks.getByChainId(wallet.chainId)!.name,
           "quoteCurrency": quoteCurrency ?? "USDT",
           "currencies": currencyList,
         }));
-        await AddressData.updateExplorerJson(response.data);
+        await AddressData.updateExplorerJson(wallet, response.data);
       }
       //
       bool proxyDeployed = true;
-      bool managerDeployed = true;
+      int nonce = 0;
       await Future.wait([
-        Constants.client.getCode(AddressData.wallet.walletAddress).then((value) => proxyDeployed = value.isNotEmpty),
-        Constants.client.getCode(AddressData.wallet.moduleManager).then((value) => managerDeployed = value.isNotEmpty),
+        Constants.client.getCode(wallet.walletAddress).then((value) => proxyDeployed = value.isNotEmpty),
+        IWallet.interface(address: wallet.walletAddress, client: Constants.client).nonce().then((value) => nonce = value.toInt()),
       ]);
       AddressData.walletStatus = WalletStatus(
         proxyDeployed: proxyDeployed,
-        managerDeployed: managerDeployed,
-        nonce: proxyDeployed ? ((await IWallet.customInterface(AddressData.wallet.walletAddress).nonce()).toInt()) : 0,
+        nonce: nonce,
       );
     } on DioError catch(e){
       print("Error occured ${e.type.toString()}");

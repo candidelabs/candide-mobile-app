@@ -13,7 +13,7 @@ class SendController {
     required String to,
     required BigInt value,
   }){
-    bool erc20Transfer = sendToken.symbol != Networks.get(SettingsData.network)!.nativeCurrency && sendToken.address != Constants.addressZeroHex;
+    bool erc20Transfer = sendToken.symbol != Networks.getByName(SettingsData.network)!.nativeCurrency && sendToken.address != Constants.addressZeroHex;
     //
     GnosisTransaction transaction = GnosisTransaction(
       id: "transfer",

@@ -18,7 +18,8 @@ class Networks {
     );
   }
 
-  static Network? get(String name) => instances.firstWhereOrNull((element) => element.name == name);
+  static Network? getByName(String name) => instances.firstWhereOrNull((element) => element.name == name);
+  static Network? getByChainId(int chainId) => instances.firstWhereOrNull((element) => element.chainId.toInt() == chainId);
 }
 
 class Network{

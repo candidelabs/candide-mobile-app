@@ -54,7 +54,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     // Fix a bug where handleFocus is called endlessly after swapCurrencies
     listenToFocus = false;
     //
-    quote = await Explorer.fetchSwapQuote(SettingsData.network, baseCurrency, quoteCurrency, actualAmount, AddressData.wallet.walletAddress.hex);
+    quote = await Explorer.fetchSwapQuote(SettingsData.network, baseCurrency, quoteCurrency, actualAmount, AddressData.selectedWallet.walletAddress.hex);
     _retrievingSwapData = false;
     _lastFetchedActualAmount = actualAmount;
     Future.delayed(const Duration(milliseconds: 350), (){

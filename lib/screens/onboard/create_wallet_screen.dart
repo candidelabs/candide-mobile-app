@@ -46,9 +46,9 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
     }
     var cancelLoad = Utils.showLoading();
     var salt = base64Encode(Utils.randomBytes(16, secure: true));
-    WalletInstance wallet = await WalletHelpers.createRandom(password, salt);
-    AddressData.wallet = wallet;
-    await Hive.box("wallet").put("main", jsonEncode(wallet.toJson()));
+    WalletInstance wallet = await WalletHelpers.createRandom(password, salt, chainId: 5); // todo dynamic chain id
+    await AddressData.insertWallet(wallet);
+    AddressData.selectWallet(address: wallet.walletAddress, chainId: wallet.chainId);
     cancelLoad();
     navigateToHome();
   }

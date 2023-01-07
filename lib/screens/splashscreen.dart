@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
@@ -13,7 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:wallet_dart/wallet/wallet_instance.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -50,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   initialize() async {
     await Future.wait([
-      Hive.openBox("wallet"),
+      Hive.openBox("wallets"),
       Hive.openBox("settings"),
       Hive.openBox("state"),
       Hive.openBox("activity"),
@@ -60,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Networks.initialize();
     SettingsData.loadFromJson(null);
     AddressData.loadRecoveryRequest();
-    AddressData.loadTransactionsActivity(Networks.get(SettingsData.network)!.chainId.toInt());
+    AddressData.loadTransactionsActivity(Networks.getByName(SettingsData.network)!.chainId.toInt());
     if (AddressData.recoveryRequestId != null){ // todo re-enable
       RecoveryRequest? request = await SecurityGateway.fetchById(AddressData.recoveryRequestId!);
       if (request != null){
@@ -68,12 +65,11 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
     }
-    var wallet = Hive.box("wallet").get("main");
+    AddressData.loadWallets();
     //
-    if (wallet == null){
+    if (AddressData.wallets.isEmpty){
       Get.off(const LandingScreen(), transition: Transition.rightToLeftWithFade);
     }else{
-      AddressData.wallet = WalletInstance.fromJson(jsonDecode(wallet));
       askForBiometrics();
     }
   }
