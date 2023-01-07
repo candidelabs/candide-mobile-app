@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
 import 'package:candide_mobile_app/services/security.dart';
@@ -44,12 +44,12 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   }
 
   Future<void> fetchMinimumSignatures(EthereumAddress walletAddress) async {
-    minimumSignatures = (await ISocialModule.interface().threshold(walletAddress)).toInt();
+    minimumSignatures = (await ISocialModule.interface(client: Constants.client).threshold(walletAddress)).toInt();
     setState(() {});
   }
 
   Future<void> getGuardians(EthereumAddress walletAddress) async {
-    guardians = await ISocialModule.interface().getGuardians(walletAddress);
+    guardians = await ISocialModule.interface(client: Constants.client).getGuardians(walletAddress);
 
     setState(() {});
   }
@@ -69,16 +69,17 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     if (_isOwner){
       Future.delayed(const Duration(milliseconds: 500), () async {
         await Hive.box("state").delete("recovery_request_id");
-        var walletData = Hive.box("wallet").get("recovered");
-        await Hive.box("wallet").put("main", walletData);
-        AddressData.wallet = WalletInstance.fromJson(jsonDecode(walletData));
+        var walletData = Hive.box("wallets").get("recovered");
+        WalletInstance wallet = WalletInstance.fromJson(walletData);
+        await AddressData.insertWallet(wallet);
+        AddressData.selectWallet(address: wallet.walletAddress, chainId: wallet.chainId);
         navigateToHome();
       }); // delay to give the user some time to see the signatures he acquired
     }
   }
 
   Future<bool> isOwner() async {
-    String currentOwner = (await IWallet.customInterface(EthereumAddress.fromHex(request.walletAddress)).getOwners())[0].hex.toLowerCase();
+    String currentOwner = (await IWallet.interface(address: EthereumAddress.fromHex(request.walletAddress), client: Constants.client).getOwners())[0].hex.toLowerCase();
     if (currentOwner == request.newOwner.toLowerCase()){
       return true;
     }

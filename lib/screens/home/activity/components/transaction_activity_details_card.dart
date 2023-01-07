@@ -137,7 +137,7 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
                               title: entry.key,
                               titleStyle: null,
                               value: entry.value,
-                              valueStyle: entry.key == "Network" || entry.key == "Status" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: entry.key == "Status" ? getStatusColor(widget.transaction.status) : Networks.get(SettingsData.network)!.color) : null,
+                              valueStyle: entry.key == "Network" || entry.key == "Status" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: entry.key == "Status" ? getStatusColor(widget.transaction.status) : Networks.getByName(SettingsData.network)!.color) : null,
                             )
                         ],
                       ),

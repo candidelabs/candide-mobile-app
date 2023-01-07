@@ -158,14 +158,14 @@ class WalletConnectController {
   void _handleConnect(Object? session) async {
     if (session is SessionStatus){
       await connector.sessionStorage?.store(connector.session);
-      persistAllSessions(Networks.get(SettingsData.network)!.chainId.toInt());
+      persistAllSessions(Networks.getByName(SettingsData.network)!.chainId.toInt());
     }
   }
 
   void _handleDisconnect(Object? session){
     connector.close();
     instances.remove(this);
-    persistAllSessions(Networks.get(SettingsData.network)!.chainId.toInt());
+    persistAllSessions(Networks.getByName(SettingsData.network)!.chainId.toInt());
     eventBus.fire(OnWalletConnectDisconnect());
   }
 
@@ -214,7 +214,7 @@ class WalletConnectController {
     BigInt gasValue = BigInt.parse(gasLimit, radix: 16);
     EthereumAddress toAddress = EthereumAddress.fromHex(payload.params![0]["to"]);
     var toCode = await Constants.client.getCode(toAddress);
-    bool isTransfer = toCode.isEmpty || toAddress.hexEip55 == AddressData.wallet.walletAddress.hexEip55;
+    bool isTransfer = toCode.isEmpty || toAddress.hexEip55 == AddressData.selectedWallet.walletAddress.hexEip55;
     //
     GnosisTransaction transaction = GnosisTransaction(
       id: "wc-$sessionId-${const ShortUuid().generate()}",

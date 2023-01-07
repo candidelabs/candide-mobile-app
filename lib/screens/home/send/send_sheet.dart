@@ -102,7 +102,7 @@ class _SendSheetState extends State<SendSheet> {
         value: value,
       ),
       tableEntriesData: {
-        "From": AddressData.wallet.walletAddress.hexEip55,
+        "From": AddressData.selectedWallet.walletAddress.hexEip55,
         "To": toAddress,
         "Network": SettingsData.network
       },

@@ -83,7 +83,7 @@ class TransactionWatchdog {
         if (status == "pending") return;
         entry.value.status = status;
         removedActivities.add(entry.value);
-        await AddressData.updateTransactionActivityStorage(entry.value, Networks.get(SettingsData.network)!.chainId.toInt());
+        await AddressData.updateTransactionActivityStorage(entry.value, Networks.getByName(SettingsData.network)!.chainId.toInt());
       }));
     }
     await Future.wait(futures);

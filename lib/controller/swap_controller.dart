@@ -16,7 +16,7 @@ class SwapController {
     required OptimalQuote optimalQuote,
   }){
     List<GnosisTransaction> transactions = [];
-    bool shouldApproveRouter = baseCurrency.symbol != Networks.get(SettingsData.network)!.nativeCurrency && baseCurrency.address != Constants.addressZeroHex;
+    bool shouldApproveRouter = baseCurrency.symbol != Networks.getByName(SettingsData.network)!.nativeCurrency && baseCurrency.address != Constants.addressZeroHex;
     //
     GnosisTransaction? approveRouterTransaction = shouldApproveRouter ? GnosisTransaction(
       id: "approve-router",

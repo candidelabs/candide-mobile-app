@@ -64,9 +64,9 @@ class TransactionConfirmController {
   static confirmTransactions(String masterPassword, Batch batch, TransactionActivity transactionActivity) async {
     var cancelLoad = Utils.showLoading();
     Credentials? signer = await WalletHelpers.decryptSigner(
-      AddressData.wallet,
+      AddressData.selectedWallet,
       masterPassword,
-      AddressData.wallet.salt,
+      AddressData.selectedWallet.salt,
     );
     if (signer == null){
       cancelLoad();
@@ -85,20 +85,19 @@ class TransactionConfirmController {
     }
     //
     Uint8List privateKey = (signer as EthPrivateKey).privateKey;
-    await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hexEip55);
+    await Explorer.fetchAddressOverview(wallet: AddressData.selectedWallet);
     batch.configureNonces(AddressData.walletStatus.nonce);
-    batch.signTransactions(privateKey, AddressData.wallet);
-    List<UserOperation> unsignedUserOperations = [await batch.toSingleUserOperation(
-      AddressData.wallet,
+    batch.signTransactions(privateKey, AddressData.selectedWallet);
+    UserOperation unsignedUserOperation = await batch.toUserOperation(
+      AddressData.selectedWallet,
       AddressData.walletStatus.nonce,
       proxyDeployed: AddressData.walletStatus.proxyDeployed,
-      managerDeployed: AddressData.walletStatus.managerDeployed,
-    )];
+    );
     //
-    var signedUserOperations = await Bundler.signUserOperations(
+    var signedUserOperation = await Bundler.signUserOperations(
       signer,
       SettingsData.network,
-      unsignedUserOperations,
+      unsignedUserOperation,
     );
     //
     BotToast.showText(
@@ -108,7 +107,7 @@ class TransactionConfirmController {
       align: Alignment.topCenter,
     );
     //
-    RelayResponse? response = await Bundler.relayUserOperations(signedUserOperations, SettingsData.network);
+    RelayResponse? response = await Bundler.relayUserOperation(signedUserOperation, SettingsData.network);
     if (response?.status.toLowerCase() == "pending"){
       Utils.showBottomStatus(
         "Transaction still pending",
@@ -160,7 +159,7 @@ class TransactionConfirmController {
       fee: batch.getFee(),
     );
     transactionActivity.date = DateTime.now();
-    AddressData.storeNewTransactionActivity(transactionActivity, Networks.get(SettingsData.network)!.chainId.toInt());
+    AddressData.storeNewTransactionActivity(transactionActivity, Networks.getByName(SettingsData.network)!.chainId.toInt());
     cancelLoad();
     Get.back(result: true);
   }

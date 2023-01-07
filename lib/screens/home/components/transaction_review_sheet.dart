@@ -139,7 +139,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                             title: entry.key,
                             titleStyle: null,
                             value: entry.value,
-                            valueStyle: entry.key == "Network" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.get(SettingsData.network)!.color) : null,
+                            valueStyle: entry.key == "Network" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.getByName(SettingsData.network)!.color) : null,
                           )
                       ],
                     ),

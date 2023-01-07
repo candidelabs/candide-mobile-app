@@ -33,8 +33,8 @@ class _GuardiansPageState extends State<GuardiansPage> {
 
   void fetchGuardians() async {
     setState(() => _loading = true);
-    await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hex,);
-    await AddressData.loadGuardians(AddressData.wallet.walletAddress);
+    await Explorer.fetchAddressOverview(wallet: AddressData.selectedWallet,);
+    await AddressData.loadGuardians(AddressData.selectedWallet.walletAddress);
     if (!mounted) return;
     setState(() => _loading = false);
   }
@@ -147,7 +147,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 guardian: guardian,
                 logo: logo,
                 onPressDelete: () async {
-                  bool refresh = await GuardianOperationsHelper.revokeGuardian(AddressData.wallet.walletAddress, EthereumAddress.fromHex(guardian.address));
+                  bool refresh = await GuardianOperationsHelper.revokeGuardian(AddressData.selectedWallet.walletAddress, EthereumAddress.fromHex(guardian.address));
                   if (refresh){
                     fetchGuardians();
                   }
@@ -228,7 +228,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 child: GuardianAddressSheet(
                   onProceed: (String address, String? nickname) async {
                     Get.back();
-                    bool refresh = await GuardianOperationsHelper.grantGuardian(AddressData.wallet.walletAddress, EthereumAddress.fromHex(address), nickname);
+                    bool refresh = await GuardianOperationsHelper.grantGuardian(AddressData.selectedWallet.walletAddress, EthereumAddress.fromHex(address), nickname);
                     if (refresh){
                       fetchGuardians();
                     }

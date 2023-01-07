@@ -31,10 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    WalletConnectController.restoreAllSessions(Networks.get(SettingsData.network)!.chainId.toInt());
+    WalletConnectController.restoreAllSessions(Networks.getByName(SettingsData.network)!.chainId.toInt());
     WalletConnectController.startConnectivityAssuranceTimer();
     //
-    TokenInfoStorage.loadAllTokens(Networks.get(SettingsData.network)!.chainId.toInt());
+    TokenInfoStorage.loadAllTokens(Networks.getByName(SettingsData.network)!.chainId.toInt());
     super.initState();
   }
 

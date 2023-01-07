@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/address_persistent_data.dart';
@@ -70,9 +68,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (password == null) return null;
     var cancelLoad = Utils.showLoading();
     Credentials? signer = await WalletHelpers.decryptSigner(
-      AddressData.wallet,
+      AddressData.selectedWallet,
       password,
-      AddressData.wallet.salt,
+      AddressData.selectedWallet.salt,
     );
     cancelLoad();
     if (signer == null){
@@ -93,7 +91,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         onConfirm: (String newPassword) async {
           Navigator.pop(context);
           var cancelLoad = Utils.showLoading();
-          WalletInstance? newInstance = await WalletHelpers.reEncryptSigner(AddressData.wallet, newPassword, AddressData.wallet.salt, password: password, credentials: (validationData!.b as EthPrivateKey));
+          WalletInstance? newInstance = await WalletHelpers.reEncryptSigner(AddressData.selectedWallet, newPassword, AddressData.selectedWallet.salt, password: password, credentials: (validationData!.b as EthPrivateKey));
           cancelLoad();
           if (newInstance == null) return;
           var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
@@ -105,8 +103,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               return null;
             }
           }
-          AddressData.wallet = newInstance;
-          await Hive.box("wallet").put("main", jsonEncode(newInstance.toJson()));
+          // todo multichain support
+          //AddressData.wallets = newInstance;
+          //await Hive.box("wallet").put("main", jsonEncode(newInstance.toJson()));
         }
       ),
     );
@@ -133,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   tweetToClaimTestTokens() async {
-    var tweetUrl = "https://twitter.com/intent/tweet?text=I%27m+claiming+testnet+tokens+for+%40candidewallet%2C+a+smart+contract+wallet+based+on+ERC4337!%0A%0AMy+Address%3A+${AddressData.wallet.walletAddress.hexEip55}";
+    var tweetUrl = "https://twitter.com/intent/tweet?text=I%27m+claiming+testnet+tokens+for+%40candidewallet%2C+a+smart+contract+wallet+based+on+ERC4337!%0A%0AMy+Address%3A+${AddressData.selectedWallet.walletAddress.hexEip55}";
     if(await canLaunchUrl(Uri.parse(tweetUrl))) {
       await launchUrl(Uri.parse(tweetUrl), mode: LaunchMode.externalApplication);
     } else {
@@ -403,10 +402,9 @@ class _DebugWidget extends StatelessWidget {
   void refreshDebugFieldText(bool forceDataReload) async {
     if (forceDataReload){
       _debugFieldController.text = "";
-      await Explorer.fetchAddressOverview(address: AddressData.wallet.walletAddress.hex,);
+      await Explorer.fetchAddressOverview(wallet: AddressData.selectedWallet,);
     }
     String debugText = "";
-    debugText += "Manager deployed: ${AddressData.walletStatus.managerDeployed}\n";
     debugText += "Proxy deployed: ${AddressData.walletStatus.proxyDeployed}\n";
     debugText += "Nonce: ${AddressData.walletStatus.nonce}\n";
     _debugFieldController.text = debugText;

@@ -36,7 +36,7 @@ class _TokenManagementSheetState extends State<TokenManagementSheet> {
                         _TokenCard(
                           onVisibilityChange: () async {
                             token.visible = !token.visible;
-                            await TokenInfoStorage.persistAllTokens(TokenInfoStorage.tokens, Networks.get(SettingsData.network)!.chainId.toInt());
+                            await TokenInfoStorage.persistAllTokens(TokenInfoStorage.tokens, Networks.getByName(SettingsData.network)!.chainId.toInt());
                             setState(() {});
                           },
                           token: token,
