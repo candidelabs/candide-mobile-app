@@ -71,8 +71,8 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
     }else if (widget.transaction.action == "swap"){
     }else if (widget.transaction.action.startsWith("guardian-")){
       entries.addAll({
-        "Operation": widget.transaction.action.contains("grant") ? "Granting guardian" : "Removing guardian",
-        "Guardian address": widget.transaction.data["guardian"]!,
+        "Operation": widget.transaction.action.contains("grant") ? "Add recovery contact" : "Remove recovery contact",
+        "Recovery Contact address": widget.transaction.data["guardian"]!,
       });
     }
     entries["Status"] = widget.transaction.status.replaceAll("-", " ").capitalizeFirst;

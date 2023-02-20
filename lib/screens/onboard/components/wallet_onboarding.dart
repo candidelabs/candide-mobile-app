@@ -1,10 +1,11 @@
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/screens/components/onboarding_feature_card.dart';
 import 'package:candide_mobile_app/screens/onboard/landing_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:onboarding/onboarding.dart';
-
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class WalletOnboarding extends StatefulWidget {
   const WalletOnboarding({Key? key}) : super(key: key);
@@ -21,22 +22,22 @@ class _WalletOnboardingState extends State<WalletOnboarding> {
     PageModel(
       widget: _OnBoardStep(
         leading: SvgPicture.asset('assets/images/logo_cropped.svg', width: 150, height: 150, color: Get.theme.colorScheme.primary,),
-        title: "Own It. Really do",
-        description: "Your Wallet is self-custodial. Only you have access to your funds",
+        title: "Welcome to CANDIDE",
+        description: "Unleash Ethereum's true potential with Account Abstraction and the scale of Optimism",
       )
     ),
     PageModel(
       widget: _OnBoardStep(
-        leading: SvgPicture.asset('assets/images/friends_cropped.svg', width: 150, height: 130,),
-        title: "Choose your CANDIDE guardians",
-        description: "Guardians are people and devices that you trust to recover your account in case you lose your phone.",
-        trailing: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 15),
-          child: const Text(
-            "* You will need the approval of more than half of them to recover your account",
-            style: TextStyle(fontSize: 15, color: Colors.grey),
-          )
-        ),
+        leading: Image.asset('assets/images/eth-diamond-rainbow-logo.png', height: 150,),
+        title: "A wallet you deserve",
+        description: "It's Open Source. It's build for the Ethereum Public Good",
+        trailing: Column(
+          children: const [
+            OnboardingFeatureCard(title: "Contact Based Recovery", icon: Icon(PhosphorIcons.checkCircleFill, size: 25, color: Colors.green)), 
+            OnboardingFeatureCard(title: "Pay Gas in supported Tokens", icon: Icon(PhosphorIcons.checkCircleFill, size: 25, color: Colors.green)),
+            OnboardingFeatureCard(title: "Future Censorship Resistant", icon: Icon(PhosphorIcons.checkCircleFill, size: 25, color: Colors.green)),
+            ]
+          ),
       )
     ),
     PageModel(widget: const SizedBox.shrink()),

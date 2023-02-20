@@ -38,7 +38,7 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
             onENSChange: (Map? ens) {
               setState(() => ensResponse = ens);
             },
-            hint: "Guardian public address (0x)",
+            hint: "Recovery Contact public address (0x)",
             filled: false,
             scanENS: false,
             qrAlertWidget: const QRAlertGuardianAddressFail(),
@@ -49,7 +49,7 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
             child: TextFormField(
               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
               decoration: const InputDecoration(
-                label: Text("Guardian nickname"),
+                label: Text("Nickname (Optional)"),
                 border: ContinousInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(35)),
                 ),
@@ -62,7 +62,7 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
             margin: const EdgeInsets.symmetric(horizontal: 25),
             child: RichText(
               text: const TextSpan(
-                  text: "* Your Guardian address is stored publicly on the blockchain. A good practice is to ask your guardian to give you a new address so they remain anonymous.",
+                  text: "* Your recovery contact address is stored publicly on the blockchain. A good practice is to ask them to give you a new address so they remain anonymous.",
                   style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ),
