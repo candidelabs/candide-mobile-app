@@ -1,5 +1,6 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -19,7 +20,7 @@ class _WCScanSheetState extends State<WCScanSheet> {
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
-    controller.resumeCamera();
+    //controller.resumeCamera();
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code == null) return;
       String uri = scanData.code!;
@@ -42,45 +43,77 @@ class _WCScanSheetState extends State<WCScanSheet> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: constraints.maxWidth, minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Column(
+        double exactCenter = (constraints.constrainWidth() / 2 - 25 / 2);
+        return Column(
+          children: [
+            Expanded(
+              child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Expanded(
-                    child: Stack(
-                      alignment: Alignment.center,
+                  QRView(
+                    key: _qrKey,
+                    overlay: QrScannerOverlayShape(
+                      borderColor: Get.theme.colorScheme.primary,
+                      overlayColor: Colors.black.withOpacity(0.8),
+                      borderRadius: 25,
+                      borderLength: 30,
+                      borderWidth: 10,
+                      cutOutSize: Get.width * 0.8
+                    ),
+                    onQRViewCreated: _onQRViewCreated,
+                  ),
+                  Positioned(
+                    top: 0,
+                    child: Container(
+                      width: Get.width,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      color: Colors.black45,
+                      child: Center(
+                        child: Text("Scan to connect", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
+                      )
+                    )
+                  ),
+                  Positioned(
+                    bottom: Get.height * 0.10,
+                    child: Column(
                       children: [
-                        QRView(
-                          key: _qrKey,
-                          overlay: QrScannerOverlayShape(
-                            borderColor: Get.theme.colorScheme.primary,
-                            borderRadius: 25,
-                            borderLength: 30,
-                            borderWidth: 10,
-                            cutOutSize: Get.width * 0.8
-                          ),
-                          onQRViewCreated: _onQRViewCreated,
-                        ),
-                        Positioned(
-                          top: 0,
+                        Card(
+                          color: Get.theme.colorScheme.primary.withOpacity(0.5),
                           child: Container(
-                            width: Get.width,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            color: Colors.black45,
-                            child: Center(
-                              child: Text("Scan to connect", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
-                            )
-                          )
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            child: Text("${WalletConnectController.instances.length} connections", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+                          ),
                         ),
+                        const SizedBox(height: 10,),
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Positioned(
+                              left: exactCenter - 120,
+                              child: Icon(Icons.chevron_left, color: Get.theme.colorScheme.primary.withOpacity(0.75))
+                            ),
+                            Positioned(
+                                left: exactCenter - 110,
+                                child: Icon(Icons.chevron_left, color: Get.theme.colorScheme.primary.withOpacity(0.5))
+                            ),
+                            Positioned(
+                                left: exactCenter - 100,
+                                child: Icon(Icons.chevron_left, color: Get.theme.colorScheme.primary.withOpacity(0.25))
+                            ),
+                            Positioned(
+                              left: exactCenter - 75,
+                              child: Text("Swipe left to view connections", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary.withOpacity(0.25)),),
+                            ),
+                            SizedBox(width: constraints.constrainWidth(), height: 25,),
+                          ],
+                        )
                       ],
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+          ],
         );
       }
     );

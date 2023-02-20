@@ -1,38 +1,35 @@
-import 'dart:convert';
-
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
+import 'package:candide_mobile_app/services/balance_service.dart';
 import 'package:dio/dio.dart';
-import 'package:wallet_dart/contracts/wallet.dart';
-import 'package:wallet_dart/wallet/wallet_instance.dart';
+import 'package:wallet_dart/contracts/account.dart';
+import 'package:wallet_dart/wallet/account.dart';
 
 class Explorer {
 
   static fetchAddressOverview({
-      required WalletInstance wallet,
-      String? quoteCurrency,
-      List<String>? currencyList}) async {
+    required Account account,
+    List<TokenInfo>? additionalCurrencies,
+    bool skipBalances = false,
+  }) async {
     try{
-      if (currencyList != null && currencyList.isNotEmpty){
-        var response = await Dio().post("${Env.explorerUri}/v1/address/${wallet.walletAddress.hexEip55}", data: jsonEncode({
-          "network": Networks.getByChainId(wallet.chainId)!.name,
-          "quoteCurrency": quoteCurrency ?? "USDT",
-          "currencies": currencyList,
-        }));
-        await AddressData.updateExplorerJson(wallet, response.data);
+      if (!skipBalances){
+        var balances = await BalanceService.fetchBalances(account: account, additionalCurrencies: additionalCurrencies ?? []);
+        await PersistentData.updateExplorerJson(account, balances);
       }
       //
       bool proxyDeployed = true;
       int nonce = 0;
       await Future.wait([
-        Constants.client.getCode(wallet.walletAddress).then((value) => proxyDeployed = value.isNotEmpty),
-        IWallet.interface(address: wallet.walletAddress, client: Constants.client).nonce().then((value) => nonce = value.toInt()),
+        Networks.selected().client.getCode(account.address).then((value) => proxyDeployed = value.isNotEmpty),
+        IAccount.interface(address: account.address, client: Networks.selected().client).nonce().then((value) => nonce = value.toInt()).catchError((e, st){
+          return 0;
+        }),
       ]);
-      AddressData.walletStatus = WalletStatus(
+      PersistentData.accountStatus = AccountStatus(
         proxyDeployed: proxyDeployed,
         nonce: nonce,
       );

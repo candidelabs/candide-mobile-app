@@ -1,6 +1,5 @@
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
@@ -16,7 +15,7 @@ class SwapController {
     required OptimalQuote optimalQuote,
   }){
     List<GnosisTransaction> transactions = [];
-    bool shouldApproveRouter = baseCurrency.symbol != Networks.getByName(SettingsData.network)!.nativeCurrency && baseCurrency.address != Constants.addressZeroHex;
+    bool shouldApproveRouter = baseCurrency.symbol != Networks.selected().nativeCurrency && baseCurrency.address != Constants.addressZeroHex;
     //
     GnosisTransaction? approveRouterTransaction = shouldApproveRouter ? GnosisTransaction(
       id: "approve-router",
@@ -26,7 +25,7 @@ class SwapController {
         EthereumAddress.fromHex(optimalQuote.transaction["to"].toString()),
         baseCurrencyValue
       )),
-      type: GnosisTransactionType.execTransactionFromModule,
+      type: GnosisTransactionType.execTransactionFromEntrypoint,
     ) : null;
     //
     GnosisTransaction swapTransaction = GnosisTransaction(
@@ -34,7 +33,7 @@ class SwapController {
       to: EthereumAddress.fromHex(optimalQuote.transaction["to"].toString()),
       value: BigInt.parse(optimalQuote.transaction["value"]),
       data: hexToBytes(optimalQuote.transaction["data"]),
-      type: GnosisTransactionType.execTransactionFromModule,
+      type: GnosisTransactionType.execTransactionFromEntrypoint,
     );
     //
     if (approveRouterTransaction != null){

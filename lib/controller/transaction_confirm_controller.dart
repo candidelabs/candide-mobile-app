@@ -1,102 +1,79 @@
 import 'dart:typed_data';
 
-import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
-import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
+import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
+import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:wallet_dart/wallet/account_helpers.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
-import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:web3dart/web3dart.dart';
 
 class TransactionConfirmController {
-  static Future<String?> _getPasswordThroughBiometrics() async {
-    try{
-      final store = await BiometricStorage().getStorage('auth_data');
-      String? password = await store.read();
-      return password;
-    } on AuthException catch(_) {
-      BotToast.showText(
-        text: "User cancelled authentication",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
-      );
-      return null;
-    }
-  }
 
   static onPressConfirm(Batch batch, TransactionActivity transactionActivity) async {
-    var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
-    if (biometricsEnabled){
-      String? password = await _getPasswordThroughBiometrics();
-      if (password == null){
-        BotToast.showText(
-          text: "User cancelled authentication",
-          textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
-          contentColor: Colors.red,
-          align: Alignment.topCenter,
-        );
+    EthPrivateKey? privateKey = SignersController.instance.getPrivateKeysFromAccount(PersistentData.selectedAccount).first;
+    if (privateKey != null){
+      bool? result = await confirmTransactions(privateKey, null, batch, transactionActivity);
+      if (result != null){
         return;
-      }else{
-        confirmTransactions(password, batch, transactionActivity);
       }
-    }else{
-      Get.dialog(PromptPasswordDialog(
-        onConfirm: (String password){
-          confirmTransactions(password, batch, transactionActivity);
-        },
-      ));
     }
+    Get.to(PinEntryScreen(
+      showLogo: true,
+      promptText: "Enter PIN code",
+      confirmMode: false,
+      onPinEnter: (String password, _) async {
+        bool? result = await confirmTransactions(null, password, batch, transactionActivity);
+        if (result == null){
+          eventBus.fire(OnPinErrorChange(error: "Incorrect PIN"));
+          return;
+        }
+        Get.back(result: true);
+      },
+      onBack: (){
+        Get.back();
+      },
+    ));
   }
 
-  static confirmTransactions(String masterPassword, Batch batch, TransactionActivity transactionActivity) async {
+  static Future<bool?> confirmTransactions(EthPrivateKey? credentials, String? pin, Batch batch, TransactionActivity transactionActivity) async {
     var cancelLoad = Utils.showLoading();
-    Credentials? signer = await WalletHelpers.decryptSigner(
-      AddressData.selectedWallet,
-      masterPassword,
-      AddressData.selectedWallet.salt,
-    );
-    if (signer == null){
-      cancelLoad();
-      BotToast.showText(
-        text: "Incorrect password",
-        textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
-        contentColor: Colors.red,
-        align: Alignment.topCenter,
-      );
-      Get.dialog(PromptPasswordDialog(
-        onConfirm: (String password){
-          confirmTransactions(password, batch, transactionActivity);
-        },
-      ));
-      return;
+    if (credentials == null){
+      credentials = (await AccountHelpers.decryptSigner(
+        SignersController.instance.getSignersFromAccount(PersistentData.selectedAccount).first!,
+        pin!,
+      )) as EthPrivateKey?;
+      if (credentials == null){
+        cancelLoad();
+        return null;
+      }
     }
     //
-    Uint8List privateKey = (signer as EthPrivateKey).privateKey;
-    await Explorer.fetchAddressOverview(wallet: AddressData.selectedWallet);
-    batch.configureNonces(AddressData.walletStatus.nonce);
-    batch.signTransactions(privateKey, AddressData.selectedWallet);
+    Uint8List privateKey = credentials.privateKey;
+    await Explorer.fetchAddressOverview(account: PersistentData.selectedAccount, skipBalances: true);
+    batch.configureNonces(PersistentData.accountStatus.nonce);
+    batch.signTransactions(privateKey, PersistentData.selectedAccount);
     UserOperation unsignedUserOperation = await batch.toUserOperation(
-      AddressData.selectedWallet,
-      AddressData.walletStatus.nonce,
-      proxyDeployed: AddressData.walletStatus.proxyDeployed,
+      PersistentData.selectedAccount,
+      PersistentData.accountStatus.nonce,
+      proxyDeployed: PersistentData.accountStatus.proxyDeployed,
     );
     //
     var signedUserOperation = await Bundler.signUserOperations(
-      signer,
-      SettingsData.network,
+      credentials,
+      PersistentData.selectedAccount.chainId,
       unsignedUserOperation,
     );
     //
@@ -107,7 +84,7 @@ class TransactionConfirmController {
       align: Alignment.topCenter,
     );
     //
-    RelayResponse? response = await Bundler.relayUserOperation(signedUserOperation, SettingsData.network);
+    RelayResponse? response = await Bundler.relayUserOperation(signedUserOperation, PersistentData.selectedAccount.chainId);
     if (response?.status.toLowerCase() == "pending"){
       Utils.showBottomStatus(
         "Transaction still pending",
@@ -133,34 +110,39 @@ class TransactionConfirmController {
       );
     }else if (response?.status.toLowerCase() == "success"){
       Utils.showBottomStatus(
-        "Transaction completed!",
-        "Tap to view transaction details",
-        loading: false,
-        success: true,
-        duration: const Duration(seconds: 6),
-        onClick: () async {
-          await showBarModalBottomSheet(
-            context: Get.context!,
-            builder: (context) {
-              Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
-              return TransactionActivityDetailsCard(
-                transaction: transactionActivity,
-              );
-            },
-          );
-        }
+          "Transaction completed!",
+          "Tap to view transaction details",
+          loading: false,
+          success: true,
+          duration: const Duration(seconds: 6),
+          onClick: () async {
+            await showBarModalBottomSheet(
+              context: Get.context!,
+              backgroundColor: Get.theme.canvasColor,
+              builder: (context) {
+                Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
+                return TransactionActivityDetailsCard(
+                  transaction: transactionActivity,
+                );
+              },
+            );
+          }
       );
     }
     transactionActivity.hash = response?.hash;
-    transactionActivity.status = response?.status ?? "fail";
+    transactionActivity.status = response?.status ?? "failed-to-submit";
     transactionActivity.fee = TransactionFeeActivityData(
       paymasterAddress: batch.includesPaymaster ? Constants.addressZeroHex : Batch.paymasterAddress.hexEip55,
       currencyAddress: batch.getFeeToken(),
       fee: batch.getFee(),
     );
     transactionActivity.date = DateTime.now();
-    AddressData.storeNewTransactionActivity(transactionActivity, Networks.getByName(SettingsData.network)!.chainId.toInt());
+    PersistentData.storeNewTransactionActivity(PersistentData.selectedAccount, transactionActivity);
     cancelLoad();
     Get.back(result: true);
+    if (transactionActivity.status == "fail" || transactionActivity.status == "failed-to-submit"){
+      return false;
+    }
+    return true;
   }
 }

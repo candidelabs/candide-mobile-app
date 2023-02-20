@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/services/transaction_watchdog.dart';
@@ -71,7 +71,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   @override
   void initState() {
-    transactions = AddressData.transactionsActivity;
+    transactions = PersistentData.transactionsActivity;
     for (TransactionActivity activity in transactions){
       if (activity.status == "pending"){
         TransactionWatchdog.addTransactionActivity(activity);
@@ -183,6 +183,7 @@ class _TransactionCardState extends State<_TransactionCard> {
       case "swap": return PhosphorIcons.swapFill;
       case "guardian-grant": return PhosphorIcons.shieldBold;
       case "guardian-revoke": return PhosphorIcons.shieldBold;
+      case "account-deployed": return PhosphorIcons.wallet;
       default: return PhosphorIcons.handPointingFill;
     }
   }
@@ -193,6 +194,7 @@ class _TransactionCardState extends State<_TransactionCard> {
       onTap: () async {
         await showBarModalBottomSheet(
           context: context,
+          backgroundColor: Get.theme.canvasColor,
           builder: (context) {
             Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
             return TransactionActivityDetailsCard(

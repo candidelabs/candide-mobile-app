@@ -1,7 +1,6 @@
 import 'package:blockies/blockies.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/services/transaction_decoder.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
@@ -73,12 +72,8 @@ class WCApproveComponent extends StatelessWidget {
                   Text("Address: ", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13)),
                   InkWell(
                     onTap: () async {
-                      String url = "${Networks.getByName(SettingsData.network)!.explorerUrl}/address/${(transactionDetails.parameterValues[0] as EthereumAddress).hex}";
-                      if(await canLaunchUrl(Uri.parse(url))) {
-                        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                      } else {
-                        throw "Could not launch $url";
-                      }
+                      String url = "${Networks.selected().explorerUrl}/address/${(transactionDetails.parameterValues[0] as EthereumAddress).hex}";
+                      Utils.launchUri(url, mode: LaunchMode.externalApplication);
                     },
                     borderRadius: BorderRadius.circular(25),
                     child: Container(

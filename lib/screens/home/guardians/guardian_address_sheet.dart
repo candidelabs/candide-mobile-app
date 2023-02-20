@@ -38,8 +38,9 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
             onENSChange: (Map? ens) {
               setState(() => ensResponse = ens);
             },
-            hint: "Guardian public address (0x), or ENS",
+            hint: "Guardian public address (0x)",
             filled: false,
+            scanENS: false,
             qrAlertWidget: const QRAlertGuardianAddressFail(),
           ),
           const SizedBox(height: 10,),

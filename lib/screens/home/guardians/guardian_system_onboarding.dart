@@ -1,4 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -47,7 +48,7 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
           trailing: Container(
             margin: const EdgeInsets.symmetric(horizontal: 25),
             child: const Text(
-              "* You can add anyone you trust with an Ethereum wallet, a hardware wallet, or even an Institution",
+              "* You can add anyone you trust with a CANDIDE account, an Ethereum wallet, a hardware wallet, or even an Institution",
               style: TextStyle(fontSize: 15, color: Colors.grey),
             )
           ),
@@ -63,15 +64,7 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
             child: Directionality(
               textDirection: TextDirection.rtl,
               child: TextButton.icon(
-                onPressed: () async {
-                  String url = "https://magic.link/auth";
-                  var urllaunchable = await canLaunchUrl(Uri.parse(url));
-                  if (urllaunchable) {
-                    await launchUrl(Uri.parse(url));
-                  } else {
-                    throw "Could not launch URL";
-                  }
-                },
+                onPressed: () => Utils.launchUri("https://magic.link/auth", mode: LaunchMode.externalApplication),
                 style: ButtonStyle(
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   visualDensity: VisualDensity.compact,

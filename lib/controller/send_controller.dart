@@ -1,5 +1,4 @@
 import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
@@ -13,7 +12,7 @@ class SendController {
     required String to,
     required BigInt value,
   }){
-    bool erc20Transfer = sendToken.symbol != Networks.getByName(SettingsData.network)!.nativeCurrency && sendToken.address != Constants.addressZeroHex;
+    bool erc20Transfer = sendToken.symbol != Networks.selected().nativeCurrency && sendToken.address != Constants.addressZeroHex;
     //
     GnosisTransaction transaction = GnosisTransaction(
       id: "transfer",
@@ -21,7 +20,7 @@ class SendController {
       value: !erc20Transfer ? value : BigInt.zero,
       data: !erc20Transfer ?
         Constants.nullCodeBytes : hexToBytes(EncodeFunctionData.erc20Transfer(EthereumAddress.fromHex(to), value)),
-      type: GnosisTransactionType.execTransactionFromModule,
+      type: GnosisTransactionType.execTransactionFromEntrypoint,
     );
     return transaction;
   }

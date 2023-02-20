@@ -2,8 +2,8 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
@@ -12,15 +12,16 @@ import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:dio/dio.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:get/get.dart';
+import 'package:wallet_dart/wallet/account.dart';
+import 'package:wallet_dart/wallet/account_helpers.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
-import 'package:wallet_dart/wallet/wallet_instance.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 
 class Batch {
-  static final EthereumAddress paymasterAddress = EthereumAddress.fromHex("0x83DAc8e36D8FDeCF69CD78f9f86f25664EEE72f4");
+  static final EthereumAddress paymasterAddress = EthereumAddress.fromHex("0xA275Da33fE068CD62510B8e3Af7818EdE891cdff");
   static final EthereumAddress _multiSendCallAddress = EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D");
   BigInt baseGas = BigInt.zero;
   FeeToken? _feeToken;
@@ -28,7 +29,7 @@ class Batch {
   List<FeeToken> _feeTokens = [];
   List<GnosisTransaction> transactions = [];
 
-  bool get includesPaymaster => _feeToken?.token.symbol != Networks.getByName(SettingsData.network)!.nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
+  bool get includesPaymaster => _feeToken?.token.symbol != Networks.selected().nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
   FeeToken? get feeCurrency => _feeToken;
   List<FeeToken> get feeCurrencies => _feeTokens;
 
@@ -38,7 +39,7 @@ class Batch {
 
   Future<void> changeFeeCurrency(FeeToken? feeCurrency) async {
     _feeToken = feeCurrency;
-    if (transactions[0].id == "paymaster-allowance"){
+    if (transactions.isNotEmpty && transactions[0].id == "paymaster-allowance"){
       transactions.removeAt(0);
     }
     if (feeCurrency == null) return;
@@ -51,7 +52,7 @@ class Batch {
           paymasterAddress,
           feeCurrency.fee,
         )),
-        type: GnosisTransactionType.execTransactionFromModule,
+        type: GnosisTransactionType.execTransactionFromEntrypoint,
       );
       transactions.insert(0, approveTransaction);
     }
@@ -63,11 +64,11 @@ class Batch {
   }
 
   Future<void> _adjustFeeCurrencyCosts() async{
-    configureNonces(AddressData.walletStatus.nonce);
-    List<UserOperation> userOps = [await toUserOperation(AddressData.selectedWallet, AddressData.walletStatus.nonce, proxyDeployed: AddressData.walletStatus.proxyDeployed, skipPaymasterData: true)];
+    configureNonces(PersistentData.accountStatus.nonce);
+    UserOperation userOperation = await toUserOperation(PersistentData.selectedAccount, PersistentData.accountStatus.nonce, proxyDeployed: PersistentData.accountStatus.proxyDeployed, skipPaymasterData: true);
     for (FeeToken feeCurrency in _feeTokens){
-      bool isEther = feeCurrency.token.symbol == Networks.getByName(SettingsData.network)!.nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
-      feeCurrency.fee = FeeCurrencyUtils.calculateFee(userOps, feeCurrency.conversion, isEther);
+      bool isEther = feeCurrency.token.symbol == Networks.selected().nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
+      feeCurrency.fee = FeeCurrencyUtils.calculateFee(userOperation, feeCurrency.conversion, isEther);
     }
   }
 
@@ -94,12 +95,12 @@ class Batch {
     }
   }
 
-  void signTransactions(Uint8List privateKey, WalletInstance instance){
+  void signTransactions(Uint8List privateKey, Account account){
     for (GnosisTransaction transaction in transactions){
       if (transaction.type != GnosisTransactionType.execTransaction) continue;
       transaction.signWithPrivateKey(
         privateKey,
-        instance.walletAddress,
+        account.address,
         baseGas: baseGas,
         gasPrice: feeCurrency?.fee ?? BigInt.zero,
         gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex),
@@ -108,26 +109,21 @@ class Batch {
     }
   }
 
-  Future<void> _addPaymasterToUserOps(List<UserOperation> userOps) async {
-    for (UserOperation op in userOps){
-      op.paymaster = paymasterAddress;
-    }
-    List<String>? paymasterData = await Bundler.getPaymasterSignature(userOps, feeCurrency!.token.address);
+  Future<void> _addPaymasterToUserOp(UserOperation userOp, int chainId) async {
+    String? paymasterData = await Bundler.getPaymasterData(userOp, feeCurrency!.token.address, chainId);
     if (paymasterData == null){ // todo network: handle fetching errors
-      for (UserOperation op in userOps){
-        op.paymaster = EthereumAddress(Uint8List(EthereumAddress.addressByteLength));
-        op.paymasterData = "0x";
-      }
+      userOp.paymasterAndData = "0x";
     }else{
-      int index = 0;
-      for (UserOperation op in userOps){
-        op.paymasterData = paymasterData[index];
-        index++;
-      }
+      List<int> paymasterAndData = paymasterAddress.addressBytes + hexToBytes(paymasterData);
+      userOp.paymasterAndData = bytesToHex(paymasterAndData, include0x: true);
     }
   }
 
-  GnosisTransaction _getMultiSendTransaction(){
+  GnosisTransaction? _getMultiSendTransaction(){
+    if (transactions.isEmpty) return null;
+    if (transactions.length == 1){
+      return transactions.first;
+    }
     BigInt suggestedGasLimit = BigInt.zero;
     LengthTrackingByteSink sink = LengthTrackingByteSink();
     for (GnosisTransaction transaction in transactions){
@@ -145,44 +141,50 @@ class Batch {
       value: BigInt.zero,
       data: multiSendCallData,
       operation: BigInt.one,
-      type: GnosisTransactionType.execTransactionFromModule,
+      type: GnosisTransactionType.execTransactionFromEntrypoint,
       suggestedGasLimit: suggestedGasLimit,
     );
     return transaction;
   }
 
-  Future<UserOperation> toUserOperation(WalletInstance instance, int nonce, {bool proxyDeployed=true, bool skipPaymasterData=false}) async {
+  Future<UserOperation> toUserOperation(Account account, int nonce, {bool proxyDeployed=true, bool skipPaymasterData=false}) async {
     //
     String initCode = "0x";
     if (!proxyDeployed){
-      // todo integration
-      //initCode = bytesToHex(WalletHelpers.getInitCode(EthereumAddress.fromHex(instance.initOwner), instance.moduleManager), include0x: true);
+      initCode = bytesToHex(account.factory!.addressBytes + AccountHelpers.getInitCode(
+        account.singleton!,
+        account.entrypoint!,
+        account.fallback!,
+        SignersController.instance.getSignersAddressesFromAccount(account),
+        BigInt.parse(account.salt.replaceAll("0x", ""), radix: 16),
+      ), include0x: true);
     }
     //
-    GnosisTransaction multiSendTransaction = _getMultiSendTransaction();
+    GnosisTransaction? multiSendTransaction = _getMultiSendTransaction();
+    String callData = "0x";
+    if (multiSendTransaction != null){
+      callData = multiSendTransaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver);
+    }
     UserOperation userOp = UserOperation.get(
-      sender: instance.walletAddress,
+      sender: account.address,
       initCode: initCode,
       nonce: nonce,
-      callData: multiSendTransaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver),
+      callData: callData,
     );
     //
-    List<GasEstimate>? gasEstimates = await BatchUtils.getGasEstimates([userOp], Networks.getByName(SettingsData.network)!.chainId.toInt());
-    userOp.callGas = gasEstimates[0].callGas;
+    List<GasEstimate>? gasEstimates = await BatchUtils.getGasEstimates([userOp], Networks.selected().chainId.toInt());
+    userOp.callGasLimit = gasEstimates[0].callGasLimit;
     userOp.preVerificationGas = gasEstimates[0].preVerificationGas;
-    userOp.verificationGas = gasEstimates[0].verificationGas;
+    userOp.verificationGasLimit = gasEstimates[0].verificationGasLimit;
     userOp.maxFeePerGas = gasEstimates[0].maxFeePerGas;
     userOp.maxPriorityFeePerGas = gasEstimates[0].maxPriorityFeePerGas;
     if (userOp.initCode != "0x"){
-      userOp.preVerificationGas = 400000;
-      userOp.verificationGas = 600000;
+      userOp.preVerificationGas = 50000;
+      userOp.verificationGasLimit = 350000;
     }
-    if (transactions.any((element) => element.id == "social-deploy")){
-      userOp.callGas += 2500000;
-    }
-    userOp.callGas += multiSendTransaction.suggestedGasLimit.toInt();
+    userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit.toInt() ?? 0;
     if (includesPaymaster && !skipPaymasterData){
-      await _addPaymasterToUserOps([userOp]);
+      await _addPaymasterToUserOp(userOp, account.chainId);
     }
     //
     return userOp;
@@ -193,6 +195,9 @@ class Batch {
 class BatchUtils {
 
   static Future<List<int>?> getNetworkGasFees(int chainId) async {
+    if (chainId == 420){ // todo: dynamic values for optimism goerli
+      return [1100000, 1000000];
+    }
     try{
       var response = await Dio().get("https://gas-api.metaswap.codefi.network/networks/$chainId/suggestedGasFees");
       //
@@ -215,7 +220,7 @@ class BatchUtils {
     List<int> networkFees = await getNetworkGasFees(chainId) ?? [0, 0];
     for (UserOperation op in userOps){
       int preVerificationGas = op.pack().length * 5 + 18000;
-      GasEstimate gasEstimate = GasEstimate(callGas: 300000, verificationGas: 250000, preVerificationGas: preVerificationGas, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
+      GasEstimate gasEstimate = GasEstimate(callGasLimit: 300000, verificationGasLimit: 250000, preVerificationGas: preVerificationGas, maxFeePerGas: networkFees[0], maxPriorityFeePerGas: networkFees[1]);
       results.add(gasEstimate);
     }
     return results;

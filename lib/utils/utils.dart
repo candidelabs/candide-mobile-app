@@ -11,6 +11,7 @@ import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
 import 'package:get/get.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:logger/logger.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Utils {
   static final Logger logger = Logger();
@@ -106,6 +107,15 @@ class Utils {
       contentColor: Get.theme.colorScheme.primary,
       align: Alignment.topCenter,
     );
+  }
+
+  static Future<void> launchUri(String url, {LaunchMode mode = LaunchMode.externalApplication}) async {
+    var launchable = await canLaunchUrl(Uri.parse(url));
+    if(launchable) {
+      await launchUrl(Uri.parse(url), mode: mode);
+    } else {
+      throw("URL can't be launched.");
+    }
   }
 
   static void showError({required String title, required String message}){

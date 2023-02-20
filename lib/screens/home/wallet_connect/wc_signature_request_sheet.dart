@@ -2,14 +2,18 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/signers_controller.dart';
+import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
+import 'package:candide_mobile_app/utils/events.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:wallet_dart/utils/abi_utils.dart';
+import 'package:wallet_dart/wallet/account_helpers.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/message.dart';
-import 'package:wallet_dart/wallet/wallet_helpers.dart';
 import 'package:walletconnect_dart/walletconnect_dart.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
@@ -30,6 +34,37 @@ class _SignatureRequestSheetState extends State<SignatureRequestSheet> {
   String getPrettyJSONString(jsonObject){
     var encoder = const JsonEncoder.withIndent("     ");
     return encoder.convert(jsonObject);
+  }
+
+  Future<Credentials?> authenticateUser() async {
+    Credentials? privateKey;
+    privateKey = SignersController.instance.getPrivateKeysFromAccount(PersistentData.selectedAccount).first;
+    if (privateKey != null){
+      return privateKey;
+    }
+    await Get.to(PinEntryScreen(
+      showLogo: true,
+      promptText: "Enter PIN code",
+      confirmMode: false,
+      onPinEnter: (String pin, _) async {
+        var cancelLoad = Utils.showLoading();
+        Credentials? signer = await AccountHelpers.decryptSigner(
+          SignersController.instance.getSignersFromAccount(PersistentData.selectedAccount).first!,
+          pin,
+        );
+        cancelLoad();
+        if (signer == null){
+          eventBus.fire(OnPinErrorChange(error: "Incorrect PIN"));
+          return null;
+        }
+        privateKey = signer;
+        Get.back();
+      },
+      onBack: (){
+        Get.back();
+      },
+    ));
+    return privateKey;
   }
 
   @override
@@ -94,8 +129,7 @@ class _SignatureRequestSheetState extends State<SignatureRequestSheet> {
                       const SizedBox(width: 15,),
                       ElevatedButton(
                         onPressed: () async {
-                          // todo remove
-                          Credentials? credentials = await WalletHelpers.decryptSigner(AddressData.selectedWallet, "002500Gg!", AddressData.selectedWallet.salt);
+                          Credentials? credentials = await authenticateUser();
                           if (credentials == null) return;
                           //
                           String signature = "0x";
@@ -148,7 +182,7 @@ class _WCSignatureHelpers {
 
   static Uint8List getMessageHashForSafe(Uint8List payload){
     Uint8List SAFE_MSG_TYPEHASH = hexToBytes("0x60b3cbf8b4a223d68d641b3b6ddf9a298e7f33710cf3d3a9d1146b5a6150fbca");
-    var domainSeparator = EncodeFunctionData.domainSeparator(AddressData.selectedWallet.walletAddress);
+    var domainSeparator = EncodeFunctionData.domainSeparator(PersistentData.selectedAccount.address);
     var encodedMessage = encodeAbi(["bytes32", "bytes32"], [SAFE_MSG_TYPEHASH, keccak256(payload)]);
     var messageHash = keccak256(Message.solidityPack(
         ["bytes1", "bytes1", "bytes32", "bytes32",],

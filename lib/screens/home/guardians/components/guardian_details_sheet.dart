@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -13,7 +13,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart' as intl;
 
 class GuardianDetailsSheet extends StatefulWidget {
-  final WalletGuardian guardian;
+  final AccountGuardian guardian;
   final VoidCallback onPressDelete;
   final Widget logo;
   const GuardianDetailsSheet({Key? key, required this.guardian, required this.logo, required this.onPressDelete}) : super(key: key);
@@ -29,7 +29,7 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
 
   saveNickname(String newNickname) async {
     widget.guardian.nickname = newNickname;
-    await AddressData.storeGuardians();
+    await PersistentData.storeGuardians(PersistentData.selectedAccount);
     BotToast.showText(
       text: "New nickname saved!",
       textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),

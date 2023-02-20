@@ -1,6 +1,5 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/address_field.dart';
 import 'package:candide_mobile_app/screens/home/components/address_qr_scanner.dart';
@@ -25,7 +24,7 @@ class _TokenImportPageState extends State<TokenImportPage> {
   void fetchToken() async {
     if (address == null) return;
     setState(() => fetching = true);
-    token = await TokenInfoFetcher.fetchTokenInfo(address!, Networks.getByName(SettingsData.network)!.chainId.toInt());
+    token = await TokenInfoFetcher.fetchTokenInfo(address!);
     setState(() => fetching = false);
     if (token == null) return;
   }
@@ -134,7 +133,7 @@ class _TokenImportPageState extends State<TokenImportPage> {
               const SizedBox(width: 15,),
               ElevatedButton(
                 onPressed: token != null ? () async {
-                  await TokenInfoStorage.addToken(token!);
+                  await TokenInfoStorage.addToken(token!, PersistentData.selectedAccount.chainId);
                   Get.back();
                 } : null,
                 style: ButtonStyle(

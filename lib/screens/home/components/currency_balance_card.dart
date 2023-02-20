@@ -1,5 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
@@ -14,7 +14,7 @@ class CurrencyBalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == token.address.toLowerCase());
+    CurrencyBalance? currencyBalance = PersistentData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == token.address.toLowerCase());
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
       child: Card(
@@ -62,10 +62,10 @@ class CurrencyBalanceCard extends StatelessWidget {
               const SizedBox(width: 15,),
               RichText(
                 text: TextSpan(
-                  text: balanceVisible ? CurrencyUtils.formatCurrency(currencyBalance?.currentBalanceInQuote ?? BigInt.zero, TokenInfoStorage.getTokenBySymbol(currencyBalance?.quoteCurrency ?? "USDT")!, includeSymbol: (currencyBalance?.quoteCurrency ?? "USDT") == "USDT") : "••••••",
+                  text: balanceVisible ? "\$${(currencyBalance?.currentBalanceInQuote ?? 0).toPrecision(3)}" : "••••••",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                   children: [
-                    (currencyBalance?.quoteCurrency ?? "USDT") != "USDT" ? TextSpan(
+                    (currencyBalance?.quoteCurrency ?? "USD") != "USD" ? TextSpan(
                       text: token.symbol,
                       style: const TextStyle(fontSize: 11, color: Colors.grey),
                     ) : const WidgetSpan(child: SizedBox.shrink())

@@ -1,17 +1,16 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:wallet_dart/wallet/account.dart';
 
 class DepositSheet extends StatefulWidget {
-  final String address;
-  const DepositSheet({Key? key, required this.address}) : super(key: key);
+  final Account account;
+  const DepositSheet({Key? key, required this.account}) : super(key: key);
 
   @override
   State<DepositSheet> createState() => _DepositSheetState();
@@ -19,14 +18,16 @@ class DepositSheet extends StatefulWidget {
 
 class _DepositSheetState extends State<DepositSheet> {
   bool _addressCopied = false;
+  late Network network;
 
   @override
   void initState() {
+    network = Networks.getByChainId(widget.account.chainId)!;
     super.initState();
   }
 
   copyAddress() async {
-    Utils.copyText(widget.address);
+    Utils.copyText(widget.account.address.hexEip55);
     setState(() => _addressCopied = true);
     await Future.delayed(const Duration(seconds: 3));
     if (!mounted) return;
@@ -39,93 +40,76 @@ class _DepositSheetState extends State<DepositSheet> {
       decoration: BoxDecoration(
         color: Get.theme.colorScheme.primary,
       ),
-      child: Stack(
+      child: Column(
         children: [
-          Positioned(
-            width: Get.width,
-            bottom: 0,
-            child: Opacity(
-              opacity: 0.25,
-              child: Image.asset("assets/images/optimism_fund_background.png",),
-            )
+          const SizedBox(height: 35,),
+          const Text("Fund your", style: TextStyle(fontSize: 20, color: Colors.black),),
+          const SizedBox(height: 5,),
+          Text(Networks.selected().name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 30, color: Networks.selected().color, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),),
+          const SizedBox(height: 5,),
+          const Text("Account", style: TextStyle(fontSize: 20, color: Colors.black),),
+          const SizedBox(height: 15,),
+          QrImage(
+            data: widget.account.address.hexEip55,
+            size: 250,
+            errorCorrectionLevel: QrErrorCorrectLevel.Q,
+            embeddedImage: const AssetImage("assets/images/logo.jpeg"),
           ),
-          Column(
+          const SizedBox(height: 15,),
+          Text(Utils.truncate(widget.account.address.hexEip55, trailingDigits: 6), style: const TextStyle(fontSize: 20, color: Colors.black),),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 35,),
-              const Text("Fund your", style: TextStyle(fontSize: 20, color: Colors.black),),
-              const SizedBox(height: 5,),
-              Text("GÖRLI", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 30, color: Colors.red, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic),),
-              //SvgPicture.asset("assets/images/optimism_title.svg"),
-              const SizedBox(height: 5,),
-              const Text("Account", style: TextStyle(fontSize: 20, color: Colors.black),),
-              const SizedBox(height: 15,),
-              QrImage(
-                data: widget.address,
-                size: 250,
-                errorCorrectionLevel: QrErrorCorrectLevel.Q,
-                embeddedImage: const AssetImage("assets/images/logo.jpeg"),
-              ),
-              const SizedBox(height: 15,),
-              Text(Utils.truncate(widget.address, trailingDigits: 6), style: const TextStyle(fontSize: 20, color: Colors.black),),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 65,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // _onShare method:
-                        final box = context.findRenderObject() as RenderBox?;
-                        Share.share(
-                          widget.address,
-                          sharePositionOrigin:
-                              box!.localToGlobal(Offset.zero) & box.size,
-                        );
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                        elevation: MaterialStateProperty.all(0),
-                        shape: MaterialStateProperty.all(BeveledRectangleBorder(
-                            borderRadius: const BorderRadius.only(
-                              bottomLeft: Radius.circular(10),
-                            ),
-                            side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 0.7)
-                        )),
-                      ),
-                      child: const Icon(PhosphorIcons.shareLight, color: Colors.black, size: 20,),
-                    ),
+              SizedBox(
+                width: 65,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // _onShare method:
+                    final box = context.findRenderObject() as RenderBox?;
+                    Share.share(
+                      widget.account.address.hexEip55,
+                      sharePositionOrigin:
+                          box!.localToGlobal(Offset.zero) & box.size,
+                    );
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                    elevation: MaterialStateProperty.all(0),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 1.5)
+                    )),
                   ),
-                  const SizedBox(width: 5,),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 350),
-                    width: _addressCopied ? 115 : 65,
-                    child: ElevatedButton(
-                      onPressed: !_addressCopied ? copyAddress : null,
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                        elevation: MaterialStateProperty.all(0),
-                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                            borderRadius: const BorderRadius.all(Radius.circular(0)),
-                            side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 1.5)
-                        )),
-                      ),
-                      child: !_addressCopied ? const Icon(PhosphorIcons.copyLight, color: Colors.black, size: 20,)
-                      : Row(
-                        children: const [
-                          Icon(Icons.check, color: Colors.green,),
-                          SizedBox(width: 2,),
-                          Text("Copied!", style: TextStyle(color: Colors.green),),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                  child: const Icon(PhosphorIcons.shareLight, color: Colors.black, size: 20,),
+                ),
               ),
-              const SizedBox(height: 10,),
-              const DepositAlertFundsLoss(),
-              const SizedBox(height: 35,),
+              const SizedBox(width: 5,),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 350),
+                width: _addressCopied ? 115 : 65,
+                child: ElevatedButton(
+                  onPressed: !_addressCopied ? copyAddress : null,
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.transparent),
+                    elevation: MaterialStateProperty.all(0),
+                    shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                      side: BorderSide(color: Get.theme.colorScheme.onPrimary, width: 1.5)
+                    )),
+                  ),
+                  child: !_addressCopied ? const Icon(PhosphorIcons.copyLight, color: Colors.black, size: 20,)
+                  : Row(
+                    children: const [
+                      Icon(Icons.check, color: Colors.green,),
+                      SizedBox(width: 2,),
+                      Text("Copied!", style: TextStyle(color: Colors.green),),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
+          const SizedBox(height: 10,),
+          DepositAlertFundsLoss(network: network,),
+          const SizedBox(height: 35,),
         ],
       ),
     );
@@ -133,27 +117,59 @@ class _DepositSheetState extends State<DepositSheet> {
 }
 
 class DepositAlertFundsLoss extends StatelessWidget {
-  const DepositAlertFundsLoss({Key? key}) : super(key: key);
+  final Network network;
+  const DepositAlertFundsLoss({Key? key, required this.network}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return 
-    Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: RichText(
-        textAlign: TextAlign.center,
-        text: TextSpan(
-            text: "Make sure that you are depositing on ",
-            style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),
-            children: [
-              TextSpan(
-                  text: SettingsData.network,
-                  style: TextStyle(color: Networks.getByName(SettingsData.network)!.color)
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      decoration: BoxDecoration(
+        color: network.color.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: SizedBox(
+        width: Get.width * 0.9,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const  SizedBox(width: 10,),
+            Icon(PhosphorIcons.info, color: network.color,),
+            const SizedBox(width: 5,),
+            Flexible(
+              child: RichText(
+                textAlign: TextAlign.start,
+                text: TextSpan(
+                  text: "This address only supports ",
+                  style: TextStyle(fontSize: 13, fontFamily: AppThemes.fonts.gilroy, color: network.color),
+                  children: [
+                    TextSpan(
+                        text: network.name,
+                        style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)
+                    ),
+                    const TextSpan(
+                      text: " chain.\n",
+                    ),
+                    const TextSpan(
+                      text: "Make sure you're depositing on ",
+                    ),
+                    TextSpan(
+                        text: network.name,
+                        style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)
+                    ),
+                    const TextSpan(
+                      text: ", otherwise funds ",
+                    ),
+                    TextSpan(
+                        text: "will be lost.",
+                        style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)
+                    ),
+                  ]
+                ),
               ),
-              const TextSpan(
-                text: " network, otherwise funds will be lost.",
-              ),
-            ]
+            ),
+            const SizedBox(width: 10,),
+          ],
         ),
       ),
     );

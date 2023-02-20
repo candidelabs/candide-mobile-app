@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:blockies/blockies.dart';
+import 'package:candide_mobile_app/config/env.dart';
+import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/home/components/address_qr_scanner.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
@@ -11,6 +14,8 @@ import 'package:get/get.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:web3dart/credentials.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:http/http.dart';
 
 class AddressField extends StatefulWidget {
   final String hint;
@@ -62,15 +67,25 @@ class _AddressFieldState extends State<AddressField> {
       if (_ensResponse!["lastEns"] == address) return;
     }
     if (!ensRegex.hasMatch(address)) return;
+    Network network = Networks.getByChainId(PersistentData.selectedAccount.chainId)!;
+    if (network.ensRegistryWithFallback == null) return;
     //
     var searchingENS = address.toLowerCase();
-    EthereumAddress _ensAddress = await Constants.ens.withName(searchingENS).getAddress();
+    var ens = Ens(client: Web3Client(Env.mainnetRpcEndpoint, Client())); // todo only resolves addresses on mainnet (note currently all ENS scans are disabled through widget.scanENS)
+    EthereumAddress? _ensAddress;
+    try {
+      _ensAddress = await ens.withName(searchingENS).getAddress();
+    } catch (e) {
+      //todo handle offchain resolvers because ens_dart and ens_lookup packages both don't support it
+      _ensAddress = null;
+    }
     if (address.toLowerCase() != searchingENS){
       restartENSListener();
       return;
     }
+    _ensAddress ??= Constants.addressZero;
     //
-    if (_ensAddress.hex == Constants.addressZeroHex){
+    if (_ensAddress == Constants.addressZero){
       setState(() {
         ensError = "ENS domain not found";
         _correctAddress = false;
@@ -81,7 +96,7 @@ class _AddressFieldState extends State<AddressField> {
       setState(() {
         ensError = "";
         _ensResponse = {};
-        _ensResponse!["address"] = _ensAddress.hex;
+        _ensResponse!["address"] = _ensAddress?.hexEip55;
         _ensResponse!["lastEns"] = address;
         widget.onENSChange(_ensResponse!);
         _correctAddress = true;
@@ -110,6 +125,7 @@ class _AddressFieldState extends State<AddressField> {
                   onPressed: (){
                     showBarModalBottomSheet(
                       context: context,
+                      backgroundColor: Get.theme.canvasColor,
                       builder: (context) {
                         return AddressQRScanner(
                           onScanAddress: (_address){

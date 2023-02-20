@@ -10,13 +10,9 @@ class FeeToken {
 }
 
 class FeeCurrencyUtils {
-  static BigInt calculateFee(List<UserOperation> userOps, BigInt conversion, bool isEther) {
-    BigInt fee = BigInt.zero;
-    for (UserOperation op in userOps){
-      BigInt operationMaxEthCostUsingPaymaster = BigInt.from(op.maxFeePerGas) * (BigInt.from(op.callGas) + (BigInt.from(op.verificationGas) * BigInt.from(isEther ? 1 : 3)) + BigInt.from(op.preVerificationGas));
-      BigInt tokenToEthPrice = operationMaxEthCostUsingPaymaster * (conversion ~/ BigInt.from(10).pow(18));
-      fee = fee + tokenToEthPrice;
-    }
-    return fee;
+  static BigInt calculateFee(UserOperation op, BigInt conversion, bool isEther) {
+    BigInt operationMaxEthCostUsingPaymaster = BigInt.from(op.maxFeePerGas) * (BigInt.from(op.callGasLimit) + (BigInt.from(op.verificationGasLimit) * BigInt.from(isEther ? 1 : 3)) + BigInt.from(op.preVerificationGas));
+    BigInt tokenToEthPrice = operationMaxEthCostUsingPaymaster * (conversion ~/ BigInt.from(10).pow(18));
+    return tokenToEthPrice;
   }
 }

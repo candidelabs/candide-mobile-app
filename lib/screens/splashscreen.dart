@@ -1,16 +1,18 @@
-import 'package:biometric_storage/biometric_storage.dart';
 import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/services/security.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
-import 'package:candide_mobile_app/models/recovery_request.dart';
+import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
-import 'package:candide_mobile_app/screens/onboard/landing_screen.dart';
-import 'package:candide_mobile_app/screens/onboard/recovery/recovery_request_page.dart';
+import 'package:candide_mobile_app/screens/onboard/components/wallet_onboarding.dart';
+import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
+import 'package:candide_mobile_app/utils/events.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:wallet_dart/wallet/account_helpers.dart';
+import 'package:web3dart/web3dart.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -22,32 +24,39 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
 
   navigateToHome(){
-    AddressData.loadExplorerJson(null);
+    PersistentData.loadExplorerJson(PersistentData.selectedAccount, null);
     SettingsData.loadFromJson(null);
     Get.off(const HomeScreen());
   }
 
-  askForBiometrics() async {
-    try{
-      var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
-      if (biometricsEnabled == null || !biometricsEnabled){
+  authenticate() async {
+    Get.to(PinEntryScreen(
+      showLogo: true,
+      promptText: "Enter PIN code",
+      confirmMode: false,
+      onPinEnter: (String pin, _) async {
+        var cancelLoad = Utils.showLoading();
+        Credentials? credentials = await AccountHelpers.decryptSigner(
+          SignersController.instance.getSignerFromId("main")!,
+          pin,
+        );
+        if (credentials == null){
+          cancelLoad();
+          eventBus.fire(OnPinErrorChange(error: "Incorrect PIN"));
+          return null;
+        }
+        SignersController.instance.storePrivateKey("main", credentials as EthPrivateKey);
+        cancelLoad();
+        Get.back(result: true);
         navigateToHome();
-      }
-      final store = await BiometricStorage().getStorage('auth_data');
-      String? password = await store.read();
-      if (password != null){
-        navigateToHome();
-      }
-    } on AuthException catch(_) {
-      askForBiometrics();
-      return;
-    }
-
+      },
+    ));
   }
 
   initialize() async {
     await Future.wait([
-      Hive.openBox("wallets"),
+      Hive.openBox("signers"),
+      Hive.openBox("wallet"),
       Hive.openBox("settings"),
       Hive.openBox("state"),
       Hive.openBox("activity"),
@@ -55,22 +64,15 @@ class _SplashScreenState extends State<SplashScreen> {
       Hive.openBox("tokens_storage"),
     ]);
     Networks.initialize();
+    PersistentData.loadSigners();
+    PersistentData.loadAccounts();
     SettingsData.loadFromJson(null);
-    AddressData.loadRecoveryRequest();
-    AddressData.loadTransactionsActivity(Networks.getByName(SettingsData.network)!.chainId.toInt());
-    if (AddressData.recoveryRequestId != null){ // todo re-enable
-      RecoveryRequest? request = await SecurityGateway.fetchById(AddressData.recoveryRequestId!);
-      if (request != null){
-        Get.off(RecoveryRequestPage(request: request));
-        return;
-      }
-    }
-    AddressData.loadWallets();
     //
-    if (AddressData.wallets.isEmpty){
-      Get.off(const LandingScreen(), transition: Transition.rightToLeftWithFade);
+    if (PersistentData.accounts.isEmpty){
+      Get.off(const WalletOnboarding());
     }else{
-      askForBiometrics();
+      eventBus.fire(OnAccountChange());
+      authenticate();
     }
   }
 

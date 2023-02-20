@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -120,8 +119,8 @@ class QRAlertFundsLoss extends StatelessWidget {
             style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
             children: [
               TextSpan(
-                  text: SettingsData.network,
-                  style: TextStyle(color: Networks.getByName(SettingsData.network)!.color)
+                  text: Networks.selected().name,
+                  style: TextStyle(color: Networks.selected().color)
               ),
               const TextSpan(
                 text: " network, otherwise funds may be ",
@@ -150,8 +149,8 @@ class QRAlertGuardianAddressFail extends StatelessWidget {
             style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
             children: [
               TextSpan(
-                  text: SettingsData.network,
-                  style: TextStyle(color: Networks.getByName(SettingsData.network)!.color)
+                  text: Networks.selected().name,
+                  style: TextStyle(color: Networks.selected().color)
               ),
               const TextSpan(
                 text: " network",
@@ -176,8 +175,8 @@ class QRAlertRecoveryFail extends StatelessWidget {
             style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
             children: [
               TextSpan(
-                  text: SettingsData.network,
-                  style: TextStyle(color: Networks.getByName(SettingsData.network)!.color)
+                  text: Networks.selected().name,
+                  style: TextStyle(color: Networks.selected().color)
               ),
               const TextSpan(
                 text: " network, otherwise operation will ",

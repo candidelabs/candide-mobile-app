@@ -1,7 +1,6 @@
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/controller/transaction_confirm_controller.dart';
 import 'package:candide_mobile_app/models/batch.dart';
@@ -47,9 +46,9 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
   //
   FeeToken? selectDefaultFeeCurrency(List<FeeToken> feeCurrencies){
     FeeToken? result;
-    BigInt maxQuoteBalance = BigInt.from(-1);
+    double maxQuoteBalance = -1;
     for (FeeToken feeCurrency in feeCurrencies){
-      CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == feeCurrency.token.address.toLowerCase());
+      CurrencyBalance? currencyBalance = PersistentData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == feeCurrency.token.address.toLowerCase());
       if (currencyBalance == null) continue;
       if (feeCurrency.fee > currencyBalance.balance) continue;
       if (feeCurrency.token.address.toLowerCase() == widget.currency?.address.toLowerCase()){
@@ -68,20 +67,20 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     BigInt fee = widget.batch.getFee();
     if (widget.currency != null){
       if (widget.currency?.address.toLowerCase() == widget.batch.feeCurrency!.token.address.toLowerCase()){
-        if ((widget.value ?? BigInt.zero) + fee > AddressData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
+        if ((widget.value ?? BigInt.zero) + fee > PersistentData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
           errorMessage = _errors["fee"]!;
         }
       }else{
-        if ((widget.value ?? BigInt.zero) > AddressData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
+        if ((widget.value ?? BigInt.zero) > PersistentData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
           errorMessage = _errors["balance"]!;
         }else{
-          if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
+          if (PersistentData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
             errorMessage = _errors["fee"]!;
           }
         }
       }
     }else{
-      if (AddressData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
+      if (PersistentData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
         errorMessage = _errors["fee"]!;
       }
     }
@@ -138,8 +137,8 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                           SummaryTableEntry(
                             title: entry.key,
                             titleStyle: null,
-                            value: entry.value,
-                            valueStyle: entry.key == "Network" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.getByName(SettingsData.network)!.color) : null,
+                            value: entry.key == "Network" ? Networks.getByChainId(int.parse(entry.value))!.name : entry.value,
+                            valueStyle: entry.key == "Network" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Networks.selected().color) : null,
                           )
                       ],
                     ),
@@ -170,23 +169,10 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                     ),
                   ) : const SizedBox.shrink(),
                   SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
-                  !widget.showRejectButton ? ElevatedButton(
-                    onPressed: errorMessage.isEmpty ? (){
-                      TransactionConfirmController.onPressConfirm(widget.batch, widget.transactionActivity);
-                    } : null,
-                    style: ButtonStyle(
-                      minimumSize: MaterialStateProperty.all(Size(Get.width * 0.9, 40)),
-                      shape: MaterialStateProperty.all(const BeveledRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(7),
-                        ),
-                      )),
-                    ),
-                    child: Text("Confirm", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),),
-                  ) : Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton(
+                      widget.showRejectButton ? ElevatedButton(
                         onPressed: () async {
                           Get.back();
                         },
@@ -200,8 +186,8 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                             ))
                         ),
                         child: Text("Reject", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary),),
-                      ),
-                      const SizedBox(width: 15,),
+                      ) : const SizedBox.shrink(),
+                      SizedBox(width: widget.showRejectButton ? 15 : 0,),
                       ElevatedButton(
                         onPressed: errorMessage.isEmpty ? (){
                           TransactionConfirmController.onPressConfirm(widget.batch, widget.transactionActivity);
@@ -211,7 +197,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                             elevation: MaterialStateProperty.all(0),
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
-                                side: BorderSide(color: Get.theme.colorScheme.primary)
+                                side: BorderSide(color: errorMessage.isEmpty ? Get.theme.colorScheme.primary : Colors.grey.withOpacity(0.25))
                             ))
                         ),
                         child: Text("Confirm", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),

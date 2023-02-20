@@ -1,7 +1,6 @@
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class NetworkBar extends StatelessWidget {
   final Network network;
@@ -12,7 +11,7 @@ class NetworkBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 3),
       decoration: BoxDecoration(
-        color: Get.theme.colorScheme.primary,
+        color: network.color.withOpacity(0.35),
         borderRadius: const BorderRadius.all(Radius.circular(25)),
       ),
       child: Row(
@@ -34,7 +33,7 @@ class NetworkBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 5,),
-          Text(network.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black),),
+          Text(network.name, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white),),
           const SizedBox(width: 10,),
         ],
       ),

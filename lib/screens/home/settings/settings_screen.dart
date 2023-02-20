@@ -1,16 +1,13 @@
 import 'package:biometric_storage/biometric_storage.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
-import 'package:candide_mobile_app/screens/components/confirm_dialog.dart';
-import 'package:candide_mobile_app/screens/home/components/change_password_dialog.dart';
-import 'package:candide_mobile_app/screens/home/components/prompt_password.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/screens/home/settings/custom_license_page.dart';
-import 'package:candide_mobile_app/screens/home/wallet_connect/wc_connections_page.dart';
-import 'package:candide_mobile_app/screens/onboard/landing_screen.dart';
-import 'package:candide_mobile_app/services/explorer.dart';
+import 'package:candide_mobile_app/screens/home/settings/test_token_account_selection.dart';
+import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
+import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
@@ -18,8 +15,9 @@ import 'package:hive/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wallet_dart/wallet/wallet_helpers.dart';
-import 'package:wallet_dart/wallet/wallet_instance.dart';
+import 'package:wallet_dart/wallet/account.dart';
+import 'package:wallet_dart/wallet/account_helpers.dart';
+import 'package:wallet_dart/wallet/encrypted_signer.dart';
 import 'package:web3dart/web3dart.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -30,322 +28,286 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  BiometricStorageFile? biometricStorage;
+  late BiometricStorageFile biometricStorage;
+  bool _showBiometricsToggle = false;
   late String tweetUrl;
 
-  Future<String?> getPasswordThroughBiometrics() async {
-    try{
-      biometricStorage = await BiometricStorage().getStorage('auth_data');
-      String? password = await biometricStorage!.read();
-      return password;
-    } on AuthException catch(_) {
-      return null;
-    }
-  }
-
-  Future<String?> getUserPassword() async {
-    var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
-    if (biometricsEnabled){
-      String? password = await getPasswordThroughBiometrics();
-      if (password == null){
-        return null;
-      }else{
-        return password;
-      }
-    }else{
-      String? password;
-      await Get.dialog(PromptPasswordDialog(
-        onConfirm: (String _password){
-          password = _password;
-        },
-      ));
-      return password;
-    }
-  }
-
-  Future<Tuple<String, Credentials>?> validateUser() async {
-    String? password = await getUserPassword();
-    if (password == null) return null;
-    var cancelLoad = Utils.showLoading();
-    Credentials? signer = await WalletHelpers.decryptSigner(
-      AddressData.selectedWallet,
-      password,
-      AddressData.selectedWallet.salt,
-    );
-    cancelLoad();
-    if (signer == null){
-      Utils.showError(title: "Error", message: "Incorrect password");
-      return null;
-    }
-    return Tuple(a: password, b: signer);
+  Future<Tuple<String, Credentials>?> authenticateUser() async {
+    Tuple<String, Credentials>? result;
+    await Get.to(PinEntryScreen(
+      showLogo: true,
+      promptText: "Enter PIN code",
+      confirmMode: false,
+      onPinEnter: (String pin, _) async {
+        var cancelLoad = Utils.showLoading();
+        Credentials? signer = await AccountHelpers.decryptSigner(
+          SignersController.instance.getSignersFromAccount(PersistentData.selectedAccount).first!,
+          pin,
+        );
+        cancelLoad();
+        if (signer == null){
+          eventBus.fire(OnPinErrorChange(error: "Incorrect PIN"));
+          return null;
+        }
+        result = Tuple(a: pin, b: signer);
+        Get.back();
+      },
+      onBack: (){
+        Get.back();
+      },
+    ));
+    return result;
   }
 
   void changePassword() async {
-    Tuple? validationData = await validateUser();
+    Tuple? validationData = await authenticateUser();
     String? password = validationData?.a;
+    if (!mounted) return;
     if (password == null) return;
-    showDialog(
-      context: context,
-      useRootNavigator: false,
-      builder: (_) => ChangePasswordDialog(
-        onConfirm: (String newPassword) async {
-          Navigator.pop(context);
-          var cancelLoad = Utils.showLoading();
-          WalletInstance? newInstance = await WalletHelpers.reEncryptSigner(AddressData.selectedWallet, newPassword, AddressData.selectedWallet.salt, password: password, credentials: (validationData!.b as EthPrivateKey));
-          cancelLoad();
-          if (newInstance == null) return;
-          var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
-          if (biometricsEnabled){
-            try{
-              await biometricStorage!.write(newPassword);
-            } on AuthException catch(_) {
-              Utils.showError(title: "Error", message: "User cancelled auth, password not changed!");
-              return null;
-            }
-          }
-          // todo multichain support
-          //AddressData.wallets = newInstance;
-          //await Hive.box("wallet").put("main", jsonEncode(newInstance.toJson()));
-        }
-      ),
-    );
+    String? newPin;
+    bool useBiometrics = false;
+    await Get.to(PinEntryScreen(
+      showLogo: false,
+      promptText: "Choose a PIN to unlock your wallet",
+      confirmText: "Confirm your chosen PIN",
+      confirmMode: true,
+      showBiometricsToggle: true,
+      onPinEnter: (String _newPin, bool _useBiometrics) async {
+        newPin = _newPin;
+        useBiometrics = _useBiometrics;
+        Get.back();
+      },
+      onBack: (){
+        Get.back();
+      },
+    ));
+    if (newPin == null) return;
+    var cancelLoad = Utils.showLoading();
+    EncryptedSigner encryptedSigner = SignersController.instance.getSignersFromAccount(PersistentData.selectedAccount).first!;
+    EncryptedSigner copy = EncryptedSigner.fromJson(encryptedSigner.toJson());
+    bool success = await AccountHelpers.reEncryptSigner(copy, newPin!);
+    cancelLoad();
+    if (!success) return;
+    if (useBiometrics){
+      try{
+        await biometricStorage.write(newPin!);
+      } on AuthException catch(_) {
+        Utils.showError(title: "Error", message: "User cancelled auth, password not changed!");
+        return null;
+      }
+    }
+    encryptedSigner.encryptedPrivateKey = copy.encryptedPrivateKey;
+    PersistentData.saveSigners();
   }
 
   void toggleFingerprint() async {
-    String? password = (await validateUser())?.a;
-    if (password == null) return;
     var biometricsEnabled = Hive.box("settings").get("biometrics_enabled");
+    if (!biometricsEnabled){
+      final response = await BiometricStorage().canAuthenticate();
+      if (response != CanAuthenticateResponse.success){
+        Utils.showError(title: "Error", message: "No biometrics detected.");
+        return;
+      }
+    }
+    String? password = (await authenticateUser())?.a;
+    if (password == null) return;
     if (biometricsEnabled){
-      await biometricStorage!.delete();
+      await biometricStorage.delete();
       await Hive.box("settings").put("biometrics_enabled", false);
     }else{
-      biometricStorage = await BiometricStorage().getStorage('auth_data');
-      await biometricStorage!.write(password);
+      await biometricStorage.write(password);
       await Hive.box("settings").put("biometrics_enabled", true);
     }
     setState(() {});
   }
 
-  @override
-  void initState() {
-    super.initState();
+  tweetToClaimTestTokens(Account account) async {
+    Network network = Networks.getByChainId(account.chainId)!;
+    var tweetUrl = "https://twitter.com/intent/tweet?text=I%27m%20claiming%20testnet%20tokens%20for%20%40candidewallet%2C%20a%20smart%20contract%20wallet%20based%20on%20ERC4337!%20%0a%0aMy%20Address%3A%20${account.address.hexEip55}%20%0aNetwork%3A%20${network.normalizedName}";
+    Utils.launchUri(tweetUrl, mode: LaunchMode.externalApplication);
   }
 
-  tweetToClaimTestTokens() async {
-    var tweetUrl = "https://twitter.com/intent/tweet?text=I%27m+claiming+testnet+tokens+for+%40candidewallet%2C+a+smart+contract+wallet+based+on+ERC4337!%0A%0AMy+Address%3A+${AddressData.selectedWallet.walletAddress.hexEip55}";
-    if(await canLaunchUrl(Uri.parse(tweetUrl))) {
-      await launchUrl(Uri.parse(tweetUrl), mode: LaunchMode.externalApplication);
-    } else {
-      throw "Could not launch $tweetUrl";
-    }
+  @override
+  void initState() {
+    BiometricStorage().canAuthenticate().then((response) async {
+      if (response == CanAuthenticateResponse.success){
+        biometricStorage = await BiometricStorage().getStorage('auth_data');
+        setState(() => _showBiometricsToggle = true);
+      }
+    });
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-                margin: const EdgeInsets.only(left: 15, top: 25),
-                child: Text("Settings", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
+      appBar: AppBar(
+        title: Text("Settings", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leadingWidth: 40,
+        leading: Container(
+          margin: const EdgeInsets.only(left: 10),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.grey[800],
+          ),
+          child: IconButton(
+            onPressed: () => Get.back(),
+            padding: const EdgeInsets.all(0),
+            splashRadius: 15,
+            style: const ButtonStyle(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
             ),
-            const SizedBox(height: 15,),
-            _MenuItem(
-              onPress: (){
-                changePassword();
-              },
-              leading: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.red[900]!,
-                      Colors.redAccent[700]!,
-                    ],
-                  ),
-                ),
-                child: const CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  child: Icon(PhosphorIcons.passwordLight, color: Colors.white,),
+            icon: const Icon(PhosphorIcons.caretLeftBold, size: 17,),
+          ),
+        ),
+      ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 15,),
+          _MenuItem(
+            onPress: (){
+              changePassword();
+            },
+            leading: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.red[900]!,
+                    Colors.redAccent[700]!,
+                  ],
                 ),
               ),
-              label: Text("Change Password", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
-              trailing: const Icon(PhosphorIcons.arrowRightBold),
+              child: const CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(PhosphorIcons.passwordLight, color: Colors.white,),
+              ),
             ),
-            _MenuItem(
-              onPress: (){
+            label: Text("Change Password", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
+            trailing: const Icon(PhosphorIcons.arrowRightBold),
+          ),
+          _showBiometricsToggle ? _MenuItem(
+            onPress: (){
+              toggleFingerprint();
+            },
+            leading: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.blue,
+                    Colors.blueGrey,
+                  ],
+                ),
+              ),
+              child: const CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(PhosphorIcons.fingerprint, color: Colors.white,),
+              ),
+            ),
+            label: Text("Enable Fingerprint", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
+            description: const Text("Enable fingerprint to authorize transactions and access your wallet",),
+            trailing: Switch(
+              onChanged: (val){
                 toggleFingerprint();
               },
-              leading: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.blue,
-                      Colors.blueGrey,
-                    ],
-                  ),
-                ),
-                child: const CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  child: Icon(PhosphorIcons.fingerprint, color: Colors.white,),
+              value: Hive.box("settings").get("biometrics_enabled"),
+              activeColor: Colors.blue,
+            ),
+          ) : const SizedBox.shrink(),
+          _MenuItem(
+            leading: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.yellow,
+                    Colors.green,
+                  ],
                 ),
               ),
-              label: Text("Enable Fingerprint", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
-              description: const Text("Enable fingerprint to authorize transactions and access your wallet",),
-              trailing: Switch(
-                onChanged: (val){
-                  toggleFingerprint();
-                },
-                value: Hive.box("settings").get("biometrics_enabled"),
-                activeColor: Colors.blue,
+              child: const CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(PhosphorIcons.coins, color: Colors.white,),
               ),
             ),
-            _MenuItem(
-              leading: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.indigo,
-                      Colors.indigoAccent,
-                    ],
-                  ),
-                ),
-                child: const CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  child: Icon(PhosphorIcons.link, color: Colors.white,),
-                ),
-              ),
-              label: RichText(
-                text: TextSpan(
-                  text: "Connected dApps",
-                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
-                ),
-              ),
-              trailing: const Icon(PhosphorIcons.arrowRightBold),
-              onPress: () {
-                Get.to(const WCConnectionsPage());
-              },
-              description: const Text("Manage dApp connections",),
-            ),
-            _MenuItem(
-              leading: Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.yellow,
-                      Colors.green,
-                    ],
-                  ),
-                ),
-                child: const CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  child: Icon(PhosphorIcons.coins, color: Colors.white,),
-                ),
-              ),
-              label: RichText(
-                text: TextSpan(
-                  text: "Request Test Tokens",
-                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
-                ),
-              ),
-              trailing: const Icon(PhosphorIcons.twitterLogo),
-              onPress: () {
-                tweetToClaimTestTokens();
-              },
-              description: const Text("Use the social faucet to get test tokens",),
-            ),
-            _MenuItem(
-              onPress: () async {
-                PackageInfo packageInfo = await PackageInfo.fromPlatform();
-                String version = packageInfo.version;
-                Get.dialog(_AboutDialog(
-                  applicationName: "CANDIDE",
-                  applicationVersion: version,
-                ));
-              },
-              leading: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Get.theme.colorScheme.primary,
-                      Colors.teal,
-                    ],
-                  ),
-                ),
-                child: const CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  child: Icon(PhosphorIcons.infoLight, color: Colors.white,),
-                ),
-              ),
-              label: RichText(
-                text: TextSpan(
-                  text: "About ",
-                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
-                  children: [
-                    TextSpan(
-                      text: "CANDIDE",
-                        style: TextStyle(color: Get.theme.colorScheme.primary, fontSize: 15)
-                    )
-                  ]
-                ),
-              ),
-              trailing: const Icon(PhosphorIcons.arrowRightBold),
-            ),
-            const SizedBox(height: 5,),
-            const _CandideCommunityWidget(),
-            const Divider(indent: 10, endIndent: 10,),
-            Container(
-              width: double.maxFinite,
-              height: 45,
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              child: ElevatedButton(
-                onPressed: () async {
-                  bool delete = await confirm(
-                    context,
-                    title: const Text("Are you sure ?"),
-                    content: const Text("You are about to delete your wallet locally from this device. \n\nYou will need your Guardians and your public address / ENS to regain access to your account again"),
-                  );
-                  if (delete){
-                    await WalletConnectController.disconnectAllSessions();
-                    await Hive.box("wallet").delete("main");
-                    await Hive.box("state").clear();
-                    await Hive.box("activity").clear();
-                    await Hive.box("wallet_connect").clear();
-                    AddressData.transactionsActivity.clear();
-                    AddressData.guardians.clear();
-                    Get.off(const LandingScreen());
-                  }
-                },
-                style: ButtonStyle(
-                  elevation: MaterialStateProperty.all(0),
-                  backgroundColor: MaterialStateProperty.all(Colors.transparent),
-                  shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                    borderRadius: const BorderRadius.all(Radius.circular(12)),
-                    side: BorderSide(color: Colors.redAccent[700]!, width: 1)
-                  ))
-                ),
-                child: Text("Remove Wallet", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, color: Colors.redAccent[700]),),
+            label: RichText(
+              text: TextSpan(
+                text: "Request Test Tokens",
+                style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
               ),
             ),
-            kDebugMode ? _DebugWidget() : const SizedBox.shrink(),
-          ],
-        ),
+            trailing: const Icon(PhosphorIcons.twitterLogo),
+            onPress: () {
+              //tweetToClaimTestTokens();
+              showDialog(
+                context: context,
+                builder: (_) => TestTokenAccountSelection(
+                  onSelect: (Account account){
+                    tweetToClaimTestTokens(account);
+                  },
+                )
+              );
+            },
+            description: const Text("Use the social faucet to get test tokens",),
+          ),
+          _MenuItem(
+            onPress: () async {
+              PackageInfo packageInfo = await PackageInfo.fromPlatform();
+              String version = packageInfo.version;
+              Get.dialog(_AboutDialog(
+                applicationName: "CANDIDE",
+                applicationVersion: version,
+              ));
+            },
+            leading: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Get.theme.colorScheme.primary,
+                    Colors.teal,
+                  ],
+                ),
+              ),
+              child: const CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(PhosphorIcons.infoLight, color: Colors.white,),
+              ),
+            ),
+            label: RichText(
+              text: TextSpan(
+                text: "About ",
+                style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
+                children: [
+                  TextSpan(
+                    text: "CANDIDE",
+                      style: TextStyle(color: Get.theme.colorScheme.primary, fontSize: 15)
+                  )
+                ]
+              ),
+            ),
+            trailing: const Icon(PhosphorIcons.arrowRightBold),
+          ),
+          const Spacer(),
+          const Center(
+            child: _CandideCommunityWidget()
+          ),
+          const SizedBox(height: 10,),
+        ],
       ),
     );
   }
@@ -389,64 +351,6 @@ class _AboutDialog extends StatelessWidget {
           },
           child: Text("CLOSE", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
         ),
-      ],
-    );
-  }
-}
-
-
-class _DebugWidget extends StatelessWidget {
-  _DebugWidget({Key? key}) : super(key: key);
-  final TextEditingController _debugFieldController = TextEditingController();
-
-  void refreshDebugFieldText(bool forceDataReload) async {
-    if (forceDataReload){
-      _debugFieldController.text = "";
-      await Explorer.fetchAddressOverview(wallet: AddressData.selectedWallet,);
-    }
-    String debugText = "";
-    debugText += "Proxy deployed: ${AddressData.walletStatus.proxyDeployed}\n";
-    debugText += "Nonce: ${AddressData.walletStatus.nonce}\n";
-    _debugFieldController.text = debugText;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    refreshDebugFieldText(false);
-    return Column(
-      children: [
-        const SizedBox(height: 10,),
-        const Divider(indent: 10, endIndent: 10, thickness: 2,),
-        const SizedBox(height: 5,),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          child: Row(
-            children: [
-              const Text("Debug info:"),
-              const Spacer(),
-              IconButton(
-                onPressed: (){
-                  refreshDebugFieldText(true);
-                },
-                icon: const Icon(Icons.refresh),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 5,),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          child: TextField(
-            controller: _debugFieldController,
-            maxLines: 5,
-            minLines: 5,
-            enabled: false,
-            decoration: const InputDecoration(
-              disabledBorder: OutlineInputBorder(borderSide: BorderSide(width: 3, color: Colors.grey)),
-            ),
-          ),
-        ),
-        const SizedBox(height: 15,),
       ],
     );
   }
@@ -508,84 +412,61 @@ class _MenuItem extends StatelessWidget {
 class _CandideCommunityWidget extends StatelessWidget {
   const _CandideCommunityWidget({Key? key}) : super(key: key);
 
-  launchUri(Uri uri) async {
-    if(await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      throw "Could not launch ${uri.host}";
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 5),
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12)
-        ),
-        color: Get.theme.colorScheme.primary,
-        child: Container(
-          width: double.maxFinite,
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          margin: const EdgeInsets.symmetric(horizontal: 10),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Join CANDIDE Community", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary),),
-              const SizedBox(height: 5,),
-              Text("Come share your feedback and contribute in creating the most fun and accessible open source wallet 🐪", style: TextStyle(color: Get.theme.colorScheme.onPrimary.withOpacity(0.9)),),
-              const SizedBox(height: 5,),
-              Text("You can find us on:", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary.withOpacity(0.9)),),
-              const SizedBox(height: 5,),
-              Row(
-                children: [
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xff7289da),
-                      shape: BoxShape.circle,
-                    ),
-                    child: CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      child: IconButton(
-                        onPressed: () => launchUri(Uri.parse("https://discord.gg/QQ6R9Ac5ah")),
-                        icon: const Icon(Icons.discord, color: Colors.white,),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10,),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xff1DA1F2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      child: IconButton(
-                        onPressed: () => launchUri(Uri.parse("https://twitter.com/candidewallet")),
-                        icon: const Icon(FontAwesomeIcons.twitter, color: Colors.white, size: 22,),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10,),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: Color(0xff333333),
-                      shape: BoxShape.circle,
-                    ),
-                    child: CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      child: IconButton(
-                        onPressed: () => launchUri(Uri.parse("https://github.com/candidelabs")),
-                        icon: const Icon(FontAwesomeIcons.github, color: Colors.white, size: 22,),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12)
+      ),
+      color: Get.theme.cardColor,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xff7289da),
+                shape: BoxShape.circle,
+              ),
+              child: CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: IconButton(
+                  onPressed: () => Utils.launchUri("https://discord.gg/QQ6R9Ac5ah"),
+                  icon: const Icon(Icons.discord, color: Colors.white,),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10,),
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xff1DA1F2),
+                shape: BoxShape.circle,
+              ),
+              child: CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: IconButton(
+                  onPressed: () => Utils.launchUri("https://twitter.com/candidewallet"),
+                  icon: const Icon(FontAwesomeIcons.twitter, color: Colors.white, size: 22,),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10,),
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xff333333),
+                shape: BoxShape.circle,
+              ),
+              child: CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: IconButton(
+                  onPressed: () => Utils.launchUri("https://github.com/candidelabs"),
+                  icon: const Icon(FontAwesomeIcons.github, color: Colors.white, size: 22,),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

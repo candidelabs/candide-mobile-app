@@ -1,6 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
-import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/screens/home/components/fee_currency_selection_sheet.dart';
@@ -24,6 +23,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
   showFeeCurrencySelectionModal(){
     showBarModalBottomSheet(
       context: context,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: FeeCurrenciesSelectionSheet(
@@ -71,7 +71,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
               Column(
                 children: [
                   Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(widget.batch.feeCurrency!.fee, widget.batch.feeCurrency!.token) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
-                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(CurrencyUtils.convertToQuote(widget.batch.feeCurrency!.token.address.toLowerCase(), SettingsData.quoteCurrency, widget.batch.feeCurrency!.fee), TokenInfoStorage.getTokenBySymbol(SettingsData.quoteCurrency)!) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
+                  Text(widget.batch.feeCurrency != null ? "\$${CurrencyUtils.convertToQuote(widget.batch.feeCurrency!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, widget.batch.feeCurrency!.fee).toPrecision(3)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
                 ],
               ),
               const SizedBox(width: 5,),

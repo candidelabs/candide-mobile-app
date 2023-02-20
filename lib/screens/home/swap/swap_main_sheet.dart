@@ -1,9 +1,9 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
@@ -54,7 +54,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     // Fix a bug where handleFocus is called endlessly after swapCurrencies
     listenToFocus = false;
     //
-    quote = await Explorer.fetchSwapQuote(SettingsData.network, baseCurrency, quoteCurrency, actualAmount, AddressData.selectedWallet.walletAddress.hex);
+    quote = await Explorer.fetchSwapQuote(Networks.selected().name, baseCurrency, quoteCurrency, actualAmount, PersistentData.selectedAccount.address.hex);
     _retrievingSwapData = false;
     _lastFetchedActualAmount = actualAmount;
     Future.delayed(const Duration(milliseconds: 350), (){
@@ -117,7 +117,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
           errorMessage = _errors["zero"]!;
         });
       }
-    }else if (actualAmount > AddressData.getCurrencyBalance(baseCurrency.address.toLowerCase())){
+    }else if (actualAmount > PersistentData.getCurrencyBalance(baseCurrency.address.toLowerCase())){
       if (errorMessage != _errors["balance"]){
         setState(() {
           errorMessage = _errors["balance"]!;
@@ -157,7 +157,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                         TextButton(
                           onPressed: (){
                             _baseFocusNode.unfocus();
-                            actualAmount = AddressData.getCurrencyBalance(baseCurrency.address.toLowerCase());
+                            actualAmount = PersistentData.getCurrencyBalance(baseCurrency.address.toLowerCase());
                             amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, baseCurrency, includeSymbol: false));
                             _baseController.text = "$amount";
                             _validateAmountInput(amount.toString(), setActualAmount: false);
@@ -229,7 +229,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                           style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),
                           children: [
                             TextSpan(
-                              text: "${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(baseCurrency.address.toLowerCase()), baseCurrency, includeSymbol: false, formatSmallDecimals: true)} ${baseCurrency.symbol}",
+                              text: "${CurrencyUtils.formatCurrency(PersistentData.getCurrencyBalance(baseCurrency.address.toLowerCase()), baseCurrency, includeSymbol: false, formatSmallDecimals: true)} ${baseCurrency.symbol}",
                               style: const TextStyle(color: Colors.white),
                             )
                           ]
@@ -335,6 +335,7 @@ class _CurrencySelector extends StatelessWidget {
   showCurrencySelectionModal(){
     showBarModalBottomSheet(
       context: Get.context!,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: CurrenciesSelectionSheet(
