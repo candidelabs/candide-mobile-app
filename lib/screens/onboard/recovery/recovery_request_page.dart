@@ -152,7 +152,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                  text: "Ask your guardians to approve your recovery request on ",
+                  text: "Ask your recovery contacts to approve your recovery request on ",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),
                   children: [
                     TextSpan(
@@ -173,7 +173,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                  text: "Ensure you and your guardian see matching ",
+                  text: "Ensure you and your recovery contact see matching ",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),
                   children: const [
                     TextSpan(
@@ -286,7 +286,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 10),
             child: Text(
-              "Congrats your guardians have approved your recovery request 🎉\n",
+              "Congrats! Your recovery request has been approved 🎉\n",
               textAlign: TextAlign.center,
               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18)
             ),
@@ -377,7 +377,7 @@ class _GuardiansSignaturesCard extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 10),
                       child: InkWell(
                         onTap: (){
-                          Utils.copyText(guardian.hexEip55, message: "Guardian address copied to clipboard!");
+                          Utils.copyText(guardian.hexEip55, message: "Address copied to clipboard!");
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

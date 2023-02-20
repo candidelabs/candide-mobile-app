@@ -85,7 +85,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
               child: Row(
                 children: <Widget>[
                   Expanded(
-                    child: Text("Guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
+                    child: Text("Recovery Contacts", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),)
                   ),
                   IconButton(
                     icon: const Icon(
@@ -116,11 +116,6 @@ class _GuardiansPageState extends State<GuardiansPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-            margin: const EdgeInsets.only(left: 15, bottom: 5, top: 10),
-            child: Text("Your guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
-        ),
-        const SizedBox(height: 10,),
         for (AccountGuardian guardian in PersistentData.guardians)
           Builder(
             builder: (context) {
@@ -181,10 +176,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        showTitle ? Container(
-            margin: const EdgeInsets.only(left: 15, bottom: 5, top: 10),
-            child: Text("Start by adding your first guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
-        ) : const SizedBox(height: 15,),
+        const SizedBox(height: 15,),
         _GuardianAddCard(
           type: "Email recovery",
           description: "Through Magic Link",
@@ -443,12 +435,12 @@ class _GuardianCountAlert extends StatelessWidget { // todo move to components
               const SizedBox(height: 10,),
               RichText(
                 text: const TextSpan(
-                  text: "We recommend to have at least ",
+                  text: "Add at least",
                   style: TextStyle(height: 1.35),
                   children: [
-                    TextSpan(text: "3 guardians ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                    TextSpan(text: " THREE ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                       TextSpan(
-                          text: "to protect your account against loss"),
+                          text: "recovery contacts to protect your account against loss"),
                   ]
                 ),
               ),

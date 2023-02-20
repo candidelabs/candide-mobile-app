@@ -91,8 +91,8 @@ class GuardianOperationsHelper {
             operation: GuardianOperation.grant,
           ),
           tableEntriesData: {
-            "Operation": "Granting guardian",
-            "Guardian address": guardian.hexEip55,
+            "Operation": "Add Recovery Contact",
+            "Recovery Contact address": guardian.hexEip55,
             "Network": Networks.selected().chainId.toString(),
           },
           batch: grantBatch,
