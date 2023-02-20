@@ -2,7 +2,7 @@
 
 import 'dart:math';
 
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 
 class CurrencyUtils {
@@ -10,20 +10,21 @@ class CurrencyUtils {
   static final MULTIPLIER = pow(10, DECIMAL_PLACES);
 
 
-  static BigInt convertToQuote(String baseAddress, String quote, BigInt value){
-    if (quote != AddressData.walletBalance.quoteCurrency){
+  static double convertToQuote(String baseAddress, String quote, BigInt value){
+    if (quote != PersistentData.accountBalance.quoteCurrency){
       throw ArgumentError("Quote currency not supported"); // todo add simple routing
     }
-    if (baseAddress == quote){ // todo: this condition will never satisfy because we're comparing an address to a symbol
-      return value;
-    }
-    for (CurrencyBalance balance in AddressData.currencies){
+    for (CurrencyBalance balance in PersistentData.currencies){
       if (balance.currencyAddress == baseAddress){
-        if (balance.balance == BigInt.zero) return BigInt.zero;
-        return (value * balance.currentBalanceInQuote) ~/ balance.balance;
+        if (balance.balance == BigInt.zero) return 0;
+        int? decimals = TokenInfoStorage.getTokenByAddress(balance.currencyAddress)?.decimals;
+        if (decimals == null) return 0;
+        double valueE = double.parse(CurrencyUtils.formatUnits(value, decimals));
+        double balanceE = double.parse(CurrencyUtils.formatUnits(balance.balance, decimals));
+        return (valueE * balance.currentBalanceInQuote) / balanceE;
       }
     }
-    return BigInt.zero;
+    return 0;
   }
 
   static String formatCurrency(BigInt value, TokenInfo token, {bool includeSymbol=true, bool formatSmallDecimals=false}){

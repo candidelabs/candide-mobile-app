@@ -9,7 +9,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class WCConnectionsPage extends StatefulWidget {
-  const WCConnectionsPage({Key? key}) : super(key: key);
+  final VoidCallback onBack;
+  const WCConnectionsPage({Key? key, required this.onBack}) : super(key: key);
 
   @override
   State<WCConnectionsPage> createState() => _WCConnectionsPageState();
@@ -49,9 +50,7 @@ class _WCConnectionsPageState extends State<WCConnectionsPage> {
             color: Colors.grey[800],
           ),
           child: IconButton(
-            onPressed: (){
-              Navigator.pop(context);
-            },
+            onPressed: widget.onBack,
             padding: const EdgeInsets.all(0),
             splashRadius: 15,
             style: const ButtonStyle(

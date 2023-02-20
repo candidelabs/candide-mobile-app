@@ -1,10 +1,11 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/screens/components/custom_switch.dart';
 import 'package:candide_mobile_app/screens/home/components/token_add_page.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -36,11 +37,11 @@ class _TokenManagementSheetState extends State<TokenManagementSheet> {
                         _TokenCard(
                           onVisibilityChange: () async {
                             token.visible = !token.visible;
-                            await TokenInfoStorage.persistAllTokens(TokenInfoStorage.tokens, Networks.getByName(SettingsData.network)!.chainId.toInt());
+                            await TokenInfoStorage.persistAllTokens(TokenInfoStorage.tokens, PersistentData.selectedAccount.chainId);
                             setState(() {});
                           },
                           token: token,
-                        )
+                        ),
                     ],
                   ),
                 ),
@@ -74,9 +75,16 @@ class _TokenCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 15),
       child: Card(
-        child: SwitchListTile(
-          onChanged: (bool selected) => onVisibilityChange(),
-          activeColor: Colors.blue,
+        child: ListTile(
+          trailing: Transform.scale(
+            scale: 0.7,
+            child: CustomSwitch(
+              onChanged: (bool selected) => onVisibilityChange(),
+              activeColor: Colors.blue,
+              inactiveColor: Colors.grey[850],
+              value: token.visible,
+            ),
+          ),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -100,7 +108,6 @@ class _TokenCard extends StatelessWidget {
               ),
             ],
           ),
-          value: token.visible,
         ),
       ),
     );

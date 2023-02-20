@@ -1,5 +1,6 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -82,17 +83,7 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
                     text: "terms of service ",
                     style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        String url =
-                            "https://magic.link/legal/terms-of-service";
-                        var urllaunchable =
-                            await canLaunchUrl(Uri.parse(url));
-                        if (urllaunchable) {
-                          await launchUrl(Uri.parse(url));
-                        } else {
-                          throw "Could not launch URL";
-                        }
-                      },
+                      ..onTap = () => Utils.launchUri("https://magic.link/legal/terms-of-service", mode: LaunchMode.externalApplication),
                   ),
                   const TextSpan(
                     text: "and ",
@@ -101,17 +92,7 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
                     text: "privacy policy",
                     style: const TextStyle(color: Colors.blue),
                     recognizer: TapGestureRecognizer()
-                      ..onTap = () async {
-                        String url =
-                            "https://magic.link/legal/privacy-policy";
-                        var urllaunchable =
-                            await canLaunchUrl(Uri.parse(url));
-                        if (urllaunchable) {
-                          await launchUrl(Uri.parse(url));
-                        } else {
-                          throw "Could not launch URL";
-                        }
-                      },
+                      ..onTap = () => Utils.launchUri("https://magic.link/legal/privacy-policy", mode: LaunchMode.externalApplication),
                   ),
                 ]
               ),

@@ -1,14 +1,14 @@
 class GasEstimate {
-  int callGas;
+  int callGasLimit;
   int preVerificationGas;
-  int verificationGas;
+  int verificationGasLimit;
   int maxPriorityFeePerGas;
   int maxFeePerGas;
 
   GasEstimate(
-      {required this.callGas,
+      {required this.callGasLimit,
       required this.preVerificationGas,
-      required this.verificationGas,
+      required this.verificationGasLimit,
       required this.maxPriorityFeePerGas,
       required this.maxFeePerGas});
 }

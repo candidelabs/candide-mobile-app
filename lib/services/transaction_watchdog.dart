@@ -1,10 +1,8 @@
 import 'dart:async';
 
 import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:eth_sig_util/util/utils.dart';
@@ -19,7 +17,7 @@ class TransactionWatchdog {
 
   static Future<Map?> getBundleStatus(String bundleHash) async {
     try {
-      var receipt = await Constants.client.getTransactionReceipt(bundleHash);
+      var receipt = await Networks.selected().client.getTransactionReceipt(bundleHash);
       if (receipt == null){
         if (transactions.containsKey(bundleHash)){
           return {
@@ -57,7 +55,7 @@ class TransactionWatchdog {
 
   static Future<String> getTransactionStatus(String hash) async {
     try {
-      var receipt = await Constants.client.getTransactionReceipt(hash);
+      var receipt = await Networks.selected().client.getTransactionReceipt(hash);
       if (receipt == null) return "pending";
       return (receipt.status ?? false) ? "success" : "failed";
     } catch (e) {
@@ -83,7 +81,7 @@ class TransactionWatchdog {
         if (status == "pending") return;
         entry.value.status = status;
         removedActivities.add(entry.value);
-        await AddressData.updateTransactionActivityStorage(entry.value, Networks.getByName(SettingsData.network)!.chainId.toInt());
+        await PersistentData.updateTransactionActivityStorage(PersistentData.selectedAccount, entry.value);
       }));
     }
     await Future.wait(futures);
@@ -100,6 +98,7 @@ class TransactionWatchdog {
           onClick: () async {
             await showBarModalBottomSheet(
               context: Get.context!,
+              backgroundColor: Get.theme.canvasColor,
               builder: (context) {
                 Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
                 return TransactionActivityDetailsCard(

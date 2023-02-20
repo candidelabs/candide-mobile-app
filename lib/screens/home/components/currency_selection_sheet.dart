@@ -1,5 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
@@ -24,14 +24,14 @@ class CurrenciesSelectionSheet extends StatelessWidget {
         for (TokenInfo currency in currencies)
           Builder(
               builder: (context) {
-                CurrencyBalance? currencyBalance = AddressData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == currency.address.toLowerCase());
+                CurrencyBalance? currencyBalance = PersistentData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == currency.address.toLowerCase());
                 if (currencyBalance == null){
                   if (forceVisibility){
                     currencyBalance = CurrencyBalance(
                       currencyAddress: currency.address,
                       balance: BigInt.zero,
-                      currentBalanceInQuote: BigInt.zero,
-                      quoteCurrency: "USDT", // todo dynamic in future
+                      currentBalanceInQuote: 0,
+                      quoteCurrency: "USD", // todo handle when there is multiple quote currencies
                     );
                   }else{
                     return const SizedBox.shrink();

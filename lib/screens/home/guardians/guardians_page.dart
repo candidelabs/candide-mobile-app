@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_details_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet.dart';
@@ -33,8 +33,8 @@ class _GuardiansPageState extends State<GuardiansPage> {
 
   void fetchGuardians() async {
     setState(() => _loading = true);
-    await Explorer.fetchAddressOverview(wallet: AddressData.selectedWallet,);
-    await AddressData.loadGuardians(AddressData.selectedWallet.walletAddress);
+    await Explorer.fetchAddressOverview(account: PersistentData.selectedAccount, skipBalances: true);
+    await PersistentData.loadGuardians(PersistentData.selectedAccount);
     if (!mounted) return;
     setState(() => _loading = false);
   }
@@ -56,8 +56,8 @@ class _GuardiansPageState extends State<GuardiansPage> {
       if (!mounted) return;
       if (event.activity.action.contains("guardian-")){
         if (event.activity.action == "guardian-revoke"){
-          AddressData.guardians.removeWhere((element) => element.address.toLowerCase() == event.activity.data["guardian"]!.toLowerCase());
-          await AddressData.storeGuardians();
+          PersistentData.guardians.removeWhere((element) => element.address.toLowerCase() == event.activity.data["guardian"]!.toLowerCase());
+          await PersistentData.storeGuardians(PersistentData.selectedAccount);
         }
         fetchGuardians();
       }
@@ -103,8 +103,8 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 ]
               )
             ),
-            AddressData.guardians.length < 3 ? const _GuardianCountAlert() : const SizedBox.shrink(),
-            AddressData.guardians.isEmpty ? noGuardiansWidget(true) : withGuardiansWidget()
+            PersistentData.guardians.length < 3 ? const _GuardianCountAlert() : const SizedBox.shrink(),
+            PersistentData.guardians.isEmpty ? noGuardiansWidget(true) : withGuardiansWidget()
           ],
         ),
       ),
@@ -121,7 +121,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
             child: Text("Your guardians", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),)
         ),
         const SizedBox(height: 10,),
-        for (WalletGuardian guardian in AddressData.guardians)
+        for (AccountGuardian guardian in PersistentData.guardians)
           Builder(
             builder: (context) {
               Widget logo;
@@ -147,7 +147,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 guardian: guardian,
                 logo: logo,
                 onPressDelete: () async {
-                  bool refresh = await GuardianOperationsHelper.revokeGuardian(AddressData.selectedWallet.walletAddress, EthereumAddress.fromHex(guardian.address));
+                  bool refresh = await GuardianOperationsHelper.revokeGuardian(PersistentData.selectedAccount.address, EthereumAddress.fromHex(guardian.address));
                   if (refresh){
                     fetchGuardians();
                   }
@@ -161,6 +161,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
             onPressed: (){
               showBarModalBottomSheet(
                 context: context,
+                backgroundColor: Get.theme.canvasColor,
                 builder: (context) => SingleChildScrollView(
                   controller: ModalScrollController.of(context),
                   child: noGuardiansWidget(false),
@@ -195,6 +196,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
           onPress: (){
             showBarModalBottomSheet(
               context: context,
+              backgroundColor: Get.theme.canvasColor,
               builder: (context) => SingleChildScrollView(
                 controller: ModalScrollController.of(context),
                 child: MagicEmailSheet(
@@ -223,12 +225,13 @@ class _GuardiansPageState extends State<GuardiansPage> {
           onPress: (){
             showBarModalBottomSheet(
               context: context,
+              backgroundColor: Get.theme.canvasColor,
               builder: (context) => SingleChildScrollView(
                 controller: ModalScrollController.of(context),
                 child: GuardianAddressSheet(
                   onProceed: (String address, String? nickname) async {
                     Get.back();
-                    bool refresh = await GuardianOperationsHelper.grantGuardian(AddressData.selectedWallet.walletAddress, EthereumAddress.fromHex(address), nickname);
+                    bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname);
                     if (refresh){
                       fetchGuardians();
                     }
@@ -293,7 +296,7 @@ class _GuardianAddCard extends StatelessWidget { // todo move to components
 
 
 class _GuardianCard extends StatefulWidget { // todo move to components
-  final WalletGuardian guardian;
+  final AccountGuardian guardian;
   final Widget logo;
   final VoidCallback onPressDelete;
   const _GuardianCard({Key? key, required this.guardian, required this.logo, required this.onPressDelete}) : super(key: key);
@@ -319,6 +322,7 @@ class _GuardianCardState extends State<_GuardianCard> {
               onTap: widget.guardian.isBeingRemoved ? null : () async {
                 await showBarModalBottomSheet(
                   context: context,
+                  backgroundColor: Get.theme.canvasColor,
                   builder: (context) {
                     Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "guardian_details_modal");
                     return GuardianDetailsSheet(
@@ -370,13 +374,14 @@ class _GuardianCardState extends State<_GuardianCard> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () async {
-                        TransactionActivity? activity = AddressData.transactionsActivity.reversed.toList().firstWhereOrNull(
+                        TransactionActivity? activity = PersistentData.transactionsActivity.reversed.toList().firstWhereOrNull(
                           (element) => element.action == "guardian-revoke"
                               && element.data["guardian"]?.toLowerCase() == widget.guardian.address.toLowerCase()
                         );
                         if (activity == null) return;
                         await showBarModalBottomSheet(
                           context: Get.context!,
+                          backgroundColor: Get.theme.canvasColor,
                           builder: (context) {
                             Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
                             return TransactionActivityDetailsCard(
@@ -443,7 +448,7 @@ class _GuardianCountAlert extends StatelessWidget { // todo move to components
                   children: [
                     TextSpan(text: "3 guardians ", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
                       TextSpan(
-                          text: "to protect your wallet against loss"),
+                          text: "to protect your account against loss"),
                   ]
                 ),
               ),

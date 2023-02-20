@@ -1,7 +1,8 @@
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/screens/onboard/recovery/recovery_wallet_sheet.dart';
-import 'package:candide_mobile_app/screens/onboard/create_wallet_screen.dart';
+import 'package:candide_mobile_app/screens/onboard/components/onboard_disclaimer_screen.dart';
+import 'package:candide_mobile_app/screens/onboard/create_account/create_account_main_screen.dart';
+import 'package:candide_mobile_app/screens/onboard/recovery/recover_account_sheet.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:candide_mobile_app/utils/routing.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,22 @@ class LandingScreen extends StatefulWidget {
 }
 
 class _LandingScreenState extends State<LandingScreen> {
+  Offset _offsetValue = const Offset(0, 4);
+  double _opacityValue = 0;
+  double _scaleValue = 5.0;
+
+  @override
+  void initState() {
+    Future.delayed(const Duration(milliseconds: 200), (){
+      setState(() {
+        _opacityValue = 1;
+        _scaleValue = 1;
+        _offsetValue = const Offset(0, 0);
+      });
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,68 +41,42 @@ class _LandingScreenState extends State<LandingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: 250,
-              decoration: BoxDecoration(
-                color: Get.theme.colorScheme.primary,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(8),
-                  bottomRight: Radius.circular(8),
+            const SizedBox(height: 50,),
+            AnimatedSlide(
+              offset: _offsetValue,
+              curve: Curves.easeInOut,
+              duration: const Duration(milliseconds: 1000),
+              child: AnimatedOpacity(
+                opacity: _opacityValue,
+                duration: const Duration(milliseconds: 600),
+                child: AnimatedScale(
+                  scale: _scaleValue,
+                  curve: Curves.easeInExpo,
+                  duration: const Duration(milliseconds: 1000),
+                  child: SvgPicture.asset(
+                    "assets/images/logo_cropped.svg",
+                    width: 150,
+                    height: 150,
+                    color: Get.theme.colorScheme.primary,
+                  ),
                 ),
               ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Positioned(
-                    bottom: 25,
-                    child: SvgPicture.asset(
-                      "assets/images/logo.svg",
-                      width: 250,
-                      height: 250,
-                      color: Get.theme.colorScheme.onPrimary,
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 25,
-                    child: Text("CANDIDE", style: TextStyle(fontFamily: AppThemes.fonts.procrastinating, fontSize: 25, color: Get.theme.colorScheme.onPrimary),)
-                  )
-                ],
-              ),
             ),
-            const SizedBox(height: 25,),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              child: RichText(
-                textAlign: TextAlign.center,
-                text: const TextSpan(
-                  text: "If you already had a Candide Wallet before, you can ",
-                  style: TextStyle(fontSize: 15, color: Colors.grey),
-                  children: [
-                    TextSpan(
-                      text: "recover",
-                      style: TextStyle(color: Colors.teal)
-                    ),
-                    TextSpan(
-                      text: " your account, otherwise ",
-                    ),
-                    TextSpan(
-                      text: "create",
-                        style: TextStyle(color: Colors.teal)
-                    ),
-                    TextSpan(
-                      text: " a new one with minimal effort",
-                    ),
-                  ]
-                )
-              ),
-            ),
+            const SizedBox(height: 10,),
+            Text("CANDIDE", style: TextStyle(fontFamily: AppThemes.fonts.procrastinating, fontSize: 45, color: Get.theme.colorScheme.primary),),
             const Spacer(flex: 2,),
             Container(
               margin: EdgeInsets.symmetric(horizontal: Get.width * 0.125),
               child: ElevatedButton(
-                onPressed: (){
-                  Navigator.push(context, SharedAxisRoute(builder: (_) => const CreateWalletScreen(), transitionType: SharedAxisTransitionType.horizontal));
+                onPressed: () {
+                  Get.to(
+                    OnboardDisclaimerScreen(
+                      onContinue: (){
+                        Get.back();
+                        Navigator.push(context, SharedAxisRoute(builder: (_) => const CreateAccountMainScreen(), transitionType: SharedAxisTransitionType.horizontal));
+                      },
+                    ),
+                  );
                 },
                 style: ButtonStyle(
                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
@@ -106,11 +97,12 @@ class _LandingScreenState extends State<LandingScreen> {
                 onPressed: () async {
                   await showBarModalBottomSheet(
                     context: context,
+                    backgroundColor: Get.theme.canvasColor,
                     builder: (context) {
-                      Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "recovery_wallet_modal");
-                      return const RecoveryWalletSheet(
+                      Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "recovery_account_modal");
+                      return const RecoverAccountSheet(
                           method: "social-recovery",
-                          onNext: GuardianRecoveryHelper.setupRecoveryWallet
+                          onNext: GuardianRecoveryHelper.setupRecoveryAccount
                       );
                     },
                   );

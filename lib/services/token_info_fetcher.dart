@@ -1,12 +1,12 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:wallet_dart/contracts/factories/ERC20.g.dart';
 import 'package:web3dart/credentials.dart';
 
 class TokenInfoFetcher {
 
-  static Future<TokenInfo?> fetchTokenInfo(String address, int chainId) async {
-    ERC20 tokenContract = ERC20(address: EthereumAddress.fromHex(address), client: Constants.client);
+  static Future<TokenInfo?> fetchTokenInfo(String address) async {
+    ERC20 tokenContract = ERC20(address: EthereumAddress.fromHex(address), client: Networks.selected().client);
     String name;
     String symbol;
     int decimals;

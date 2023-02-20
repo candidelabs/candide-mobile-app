@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:eth_sig_util/util/utils.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
@@ -7,7 +8,7 @@ import 'package:web3dart/web3dart.dart';
 
 enum GnosisTransactionType{
   execTransaction,
-  execTransactionFromModule,
+  execTransactionFromEntrypoint,
 }
 
 class GnosisTransaction {
@@ -130,11 +131,14 @@ class GnosisTransaction {
   }
 
   String _toExecTransactionFromModuleCallData(){
-    return EncodeFunctionData.execTransactionFromModule(
+    return EncodeFunctionData.execTransactionFromEntrypoint(
       to,
       value,
       data,
       operation,
+      Constants.addressZero,
+      Constants.addressZero,
+      BigInt.zero,
     );
   }
 }

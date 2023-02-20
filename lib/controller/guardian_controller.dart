@@ -1,28 +1,28 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
-import 'package:wallet_dart/contracts/social_module.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
-import 'package:wallet_dart/wallet/wallet_instance.dart';
+import 'package:wallet_dart/wallet/account.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 class GuardianController {
 
   static GnosisTransaction buildSetupTransaction({
-    required EthereumAddress walletAddress,
+    required EthereumAddress accountAddress,
     required EthereumAddress socialModuleAddress,
   }) {
     GnosisTransaction enable = GnosisTransaction(
       id: "social-enable",
-      to: walletAddress,
+      to: accountAddress,
       value: BigInt.zero,
       data: hexToBytes(EncodeFunctionData.enableModule(socialModuleAddress)),
-      type: GnosisTransactionType.execTransactionFromModule,
+      type: GnosisTransactionType.execTransactionFromEntrypoint,
     );
     return enable;
   }
 
   static List<GnosisTransaction> buildGrantTransactions({
-    required WalletInstance instance,
+    required Account account,
     required bool socialModuleEnabled,
     //
     required List<EthereumAddress> guardians,
@@ -35,8 +35,8 @@ class GuardianController {
     //
     if (!socialModuleEnabled){
       GnosisTransaction enableModuleTransaction = buildSetupTransaction(
-        walletAddress: instance.walletAddress,
-        socialModuleAddress: ISocialModule.address,
+        accountAddress: account.address,
+        socialModuleAddress: Networks.getByChainId(account.chainId)!.socialRecoveryModule,
       );
       transactions.add(enableModuleTransaction);
     }
@@ -44,12 +44,12 @@ class GuardianController {
     for (EthereumAddress guardian in guardians){
       GnosisTransaction grantGuardianTransaction = GnosisTransaction(
         id: "social-grant",
-        to: ISocialModule.address,
+        to: Networks.getByChainId(account.chainId)!.socialRecoveryModule,
         value: BigInt.zero,
         data: hexToBytes(
-          EncodeFunctionData.grantGuardian(instance.walletAddress, guardian, BigInt.from(threshold))
+          EncodeFunctionData.grantGuardian(account.address, guardian, BigInt.from(threshold))
         ),
-        type: GnosisTransactionType.execTransactionFromModule,
+        type: GnosisTransactionType.execTransactionFromEntrypoint,
       );
       //
       transactions.add(grantGuardianTransaction);
@@ -59,7 +59,7 @@ class GuardianController {
   }
 
   static List<GnosisTransaction> buildRevokeTransactions({
-    required WalletInstance instance,
+    required Account account,
     //
     required EthereumAddress previousGuardian,
     required EthereumAddress guardian,
@@ -69,10 +69,10 @@ class GuardianController {
     //
     GnosisTransaction revokeGuardianTransaction = GnosisTransaction(
       id: "social-revoke",
-      to: ISocialModule.address,
+      to: Networks.getByChainId(account.chainId)!.socialRecoveryModule,
       value: BigInt.zero,
-      data: hexToBytes(EncodeFunctionData.revokeGuardian(instance.walletAddress, previousGuardian, guardian, BigInt.from(threshold))),
-      type: GnosisTransactionType.execTransactionFromModule,
+      data: hexToBytes(EncodeFunctionData.revokeGuardian(account.address, previousGuardian, guardian, BigInt.from(threshold))),
+      type: GnosisTransactionType.execTransactionFromEntrypoint,
     );
     //
     transactions.add(revokeGuardianTransaction);

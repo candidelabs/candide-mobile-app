@@ -1,5 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
@@ -51,10 +51,11 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
   showCurrencySelectionModal(){
     showBarModalBottomSheet(
       context: context,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: CurrenciesSelectionSheet(
-          currencies: TokenInfoStorage.tokens.where((element) => element.address == Constants.addressZeroHex || AddressData.getCurrencyBalance(element.address.toLowerCase()) > BigInt.zero).toList(),
+          currencies: TokenInfoStorage.tokens.where((element) => element.address == Constants.addressZeroHex || PersistentData.getCurrencyBalance(element.address.toLowerCase()) > BigInt.zero).toList(),
           initialSelection: selectedToken,
           onSelected: (token){
             setState(() {
@@ -85,7 +86,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
           errorMessage = _errors["zero"]!;
         });
       }
-    }else if (actualAmount > AddressData.getCurrencyBalance(selectedToken.address.toLowerCase())){
+    }else if (actualAmount > PersistentData.getCurrencyBalance(selectedToken.address.toLowerCase())){
       if (errorMessage != _errors["balance"]){
         setState(() {
           errorMessage = _errors["balance"]!;
@@ -154,7 +155,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                         TextButton(
                           onPressed: (){
                             _amountFocus.unfocus();
-                            actualAmount = AddressData.getCurrencyBalance(selectedToken.address.toLowerCase());
+                            actualAmount = PersistentData.getCurrencyBalance(selectedToken.address.toLowerCase());
                             amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, selectedToken, includeSymbol: false));
                             _amountController.text = "$amount $selectedToken";
                             _validateAmountInput(amount.toString(), setActualAmount: false);
@@ -188,7 +189,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                     const SizedBox(height: 35,),
                     RichText(
                       text: TextSpan(
-                        text: "Balance: ${CurrencyUtils.formatCurrency(AddressData.getCurrencyBalance(selectedToken.address.toLowerCase()), selectedToken, includeSymbol: false, formatSmallDecimals: true)} ",
+                        text: "Balance: ${CurrencyUtils.formatCurrency(PersistentData.getCurrencyBalance(selectedToken.address.toLowerCase()), selectedToken, includeSymbol: false, formatSmallDecimals: true)} ",
                         style: TextStyle(
                           fontFamily: AppThemes.fonts.gilroyBold,
                           fontSize: 16

@@ -1,7 +1,7 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 import 'package:animations/animations.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
@@ -78,7 +78,7 @@ class _SendSheetState extends State<SendSheet> {
     //
     sendBatch!.transactions.add(transaction);
     //
-    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
     if (feeCurrencies == null){
       // todo handle network errors
       return;
@@ -102,9 +102,9 @@ class _SendSheetState extends State<SendSheet> {
         value: value,
       ),
       tableEntriesData: {
-        "From": AddressData.selectedWallet.walletAddress.hexEip55,
+        "From": PersistentData.selectedAccount.address.hexEip55,
         "To": toAddress,
-        "Network": SettingsData.network
+        "Network": Networks.selected().chainId.toString(),
       },
       currency: currency,
       value: value,

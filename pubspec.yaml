@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.0.4+6
+version: 0.0.5+7
 
 environment:
   sdk: ">=2.17.6 <3.0.0"
@@ -28,13 +28,11 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   # Essential
-  web3dart: ^2.3.5
+  web3dart: ^2.5.1
   wallet_dart:
-    git:
-      url: https://github.com/candidelabs/wallet-dart.git
-      ref: main
+    path: ../wallet_dart
   ens_dart: ^1.0.0
-  magic_sdk: ^2.0.0
+  magic_sdk: ^2.0.2
   dio: ^4.0.6
   eth_sig_util: ^0.0.9
   walletconnect_dart: ^0.0.11
@@ -45,13 +43,13 @@ dependencies:
   event_bus: ^2.0.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  flutter_secure_storage: ^5.0.2
+  flutter_secure_storage: ^8.0.0
   # UI
   animations: ^2.0.3
-  fancy_password_field: ^1.0.4
+  pinput: ^2.2.23
   flutter_awesome_alert_box: ^2.1.1
   bot_toast: ^4.0.2
-  modal_bottom_sheet: ^2.1.0
+  modal_bottom_sheet: ^3.0.0-pre
   qr_flutter: ^4.0.0
   lottie: ^1.4.1
   salomon_bottom_bar: ^3.3.1
@@ -61,6 +59,7 @@ dependencies:
   onboarding: ^3.1.0
   cached_network_image: ^3.2.3
   expandable: ^5.0.1
+  info_popup: ^2.4.6
   # Typography
   phosphor_flutter: ^1.4.0
   font_awesome_flutter: ^10.1.0
@@ -72,7 +71,7 @@ dependencies:
   qr_code_scanner: ^1.0.0
   intl: ^0.17.0
   logger: ^1.1.0
-  package_info_plus: ^1.4.2
+  package_info_plus: ^3.0.2
   pausable_timer: ^1.0.0+6
   short_uuids: ^2.0.0
   flutter_cache_manager: ^3.3.0

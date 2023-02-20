@@ -1,12 +1,12 @@
+import 'dart:async';
+
 import 'package:animations/animations.dart';
-import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
-import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/screens/home/activity/activity_screen.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardians_page.dart';
 import 'package:candide_mobile_app/screens/home/overview_screen.dart';
-import 'package:candide_mobile_app/screens/home/settings/settings_screen.dart';
+import 'package:candide_mobile_app/utils/events.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -20,21 +20,48 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late StreamSubscription requestPageChangeListener;
+  late StreamSubscription accountChangeListener;
+  //
   var pagesList = [
     const OverviewScreen(),
     const ActivityScreen(),
     const GuardiansPage(),
-    const SettingsScreen(),
   ];
   bool reverse = false;
   int currentIndex = 0;
+  bool showNavigationBar = true;
+  //
 
   @override
   void initState() {
-    WalletConnectController.restoreAllSessions(Networks.getByName(SettingsData.network)!.chainId.toInt());
-    WalletConnectController.startConnectivityAssuranceTimer();
     //
-    TokenInfoStorage.loadAllTokens(Networks.getByName(SettingsData.network)!.chainId.toInt());
+    WalletConnectController.restoreAllSessions(PersistentData.selectedAccount);
+    PersistentData.loadTransactionsActivity(PersistentData.selectedAccount);
+    WalletConnectController.startConnectivityAssuranceTimer();
+    if (PersistentData.selectedAccount.recoveryId != null){
+      showNavigationBar = false;
+    }
+    //
+    accountChangeListener = eventBus.on<OnAccountChange>().listen((event) {
+      if (!mounted) return;
+      PersistentData.loadTransactionsActivity(PersistentData.selectedAccount);
+      if (PersistentData.selectedAccount.recoveryId != null){
+        showNavigationBar = false;
+      }else{
+        showNavigationBar = true;
+      }
+      setState(() {});
+    });
+    //
+    requestPageChangeListener = eventBus.on<OnHomeRequestChangePageIndex>().listen((event) {
+      if (!mounted) return;
+      setState(() {
+        reverse = event.index < currentIndex;
+        currentIndex = event.index;
+      });
+    });
+    //
     super.initState();
   }
 
@@ -60,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: pagesList[currentIndex],
         ),
       ),
-      bottomNavigationBar: Card(
+      bottomNavigationBar: showNavigationBar ? Card(
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
         ),
@@ -89,14 +116,9 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text("Security"),
               selectedColor: const Color(0xffdf695e),
             ),
-            SalomonBottomBarItem(
-              icon: const Icon(PhosphorIcons.gearLight, size: 25,),
-              title: const Text("Settings"),
-              selectedColor: const Color(0xffebb577),
-            ),
           ],
         ),
-      ),
+      ) : const SizedBox.shrink(),
     );
   }
 }

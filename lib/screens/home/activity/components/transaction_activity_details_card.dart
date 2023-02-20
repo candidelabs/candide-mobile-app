@@ -2,8 +2,7 @@ import 'dart:async';
 
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
@@ -12,6 +11,7 @@ import 'package:candide_mobile_app/screens/home/send/components/send_review_lead
 import 'package:candide_mobile_app/screens/home/swap/components/swap_review_leading.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/events.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -84,7 +84,7 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
     if (widget.transaction.status == "failed-to-submit"){
       entries["Transaction fee"] = CurrencyUtils.formatCurrency(BigInt.zero, TokenInfoStorage.getTokenByAddress(widget.transaction.fee.currencyAddress)!, includeSymbol: true, formatSmallDecimals: true);
     }
-    entries["Network"] = SettingsData.network;
+    entries["Network"] = Networks.selected().chainId.toString();
     return entries;
   }
 
@@ -136,8 +136,8 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
                             SummaryTableEntry(
                               title: entry.key,
                               titleStyle: null,
-                              value: entry.value,
-                              valueStyle: entry.key == "Network" || entry.key == "Status" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: entry.key == "Status" ? getStatusColor(widget.transaction.status) : Networks.getByName(SettingsData.network)!.color) : null,
+                              value: entry.key == "Network" ? Networks.getByChainId(int.parse(entry.value))!.name : entry.value,
+                              valueStyle: entry.key == "Network" || entry.key == "Status" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: entry.key == "Status" ? getStatusColor(widget.transaction.status) : Networks.getByChainId(PersistentData.selectedAccount.chainId)!.color) : null,
                             )
                         ],
                       ),
@@ -147,13 +147,7 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
                       textDirection: TextDirection.rtl,
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          var url = "https://goerli.etherscan.io/tx/${widget.transaction.hash}";
-                          var launchable = await canLaunchUrl(Uri.parse(url));
-                          if (launchable) {
-                            await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-                          } else {
-                            throw "Could not launch URL";
-                          }
+                          Utils.launchUri("https://goerli.etherscan.io/tx/${widget.transaction.hash}", mode: LaunchMode.externalApplication);
                         },
                         style: ButtonStyle(
                           minimumSize: MaterialStateProperty.all(Size(Get.width * 0.9, 40)),

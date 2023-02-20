@@ -1,8 +1,7 @@
 import 'dart:convert';
 
 import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/controller/address_persistent_data.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
@@ -14,9 +13,9 @@ import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_act
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_signature_reject_dialog.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/wc_session_request_sheet.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/wc_signature_request_sheet.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/services/transaction_watchdog.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -27,6 +26,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:pausable_timer/pausable_timer.dart';
 import 'package:short_uuids/short_uuids.dart';
+import 'package:wallet_dart/wallet/account.dart';
 import 'package:walletconnect_dart/walletconnect_dart.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
@@ -36,31 +36,30 @@ class WalletConnectController {
   late WalletConnect connector;
   int _reconnectAttempts = 0;
 
-  static int? _lastRestoredSessionsChainId;
+  static Account? _lastRestoredSessionsAccount;
   static late PausableTimer _connectivityTimer;
   static List<WalletConnectController> instances = [];
 
-  // Save to Box called "wallet_connect" at "sessions({wallet_connect_version})({chainId})"
-  static Future<void> persistAllSessions(int chainId) async {
+  // Save to Box called "wallet_connect" at "sessions({wallet_connect_version})({account_address}-{chainId})"
+  static Future<void> persistAllSessions(Account account) async {
     List<String> sessionsIds = [];
     for (final WalletConnectController controller in instances){
       sessionsIds.add(controller.sessionId);
     }
-    await Hive.box("wallet_connect").put("sessions(1)($chainId)", sessionsIds);
+    await Hive.box("wallet_connect").put("sessions(1)(${account.address.hex}-${account.chainId})", sessionsIds);
   }
 
-  static void restoreAllSessions(int chainId) async {
-    _lastRestoredSessionsChainId ??= chainId;
-    if (_lastRestoredSessionsChainId != chainId){
+  static void restoreAllSessions(Account account) async {
+    _lastRestoredSessionsAccount ??= account;
+    if (_lastRestoredSessionsAccount!.chainId != account.chainId || _lastRestoredSessionsAccount!.address != account.address){
       for (final WalletConnectController controller in instances){
         await controller.connector.close(forceClose: true);
       }
       instances.clear();
     }
-    _lastRestoredSessionsChainId = chainId;
-    List sessions = Hive.box("wallet_connect").get("sessions(1)($chainId)") ?? []; // List<String>
+    _lastRestoredSessionsAccount = account;
+    List sessions = Hive.box("wallet_connect").get("sessions(1)(${account.address.hex}-${account.chainId})") ?? []; // List<String>
     for (String sessionId in sessions){
-      print("Restoring session $sessionId");
       await restoreSession(sessionId);
       await Future.delayed(const Duration(milliseconds: 250));
     }
@@ -158,14 +157,14 @@ class WalletConnectController {
   void _handleConnect(Object? session) async {
     if (session is SessionStatus){
       await connector.sessionStorage?.store(connector.session);
-      persistAllSessions(Networks.getByName(SettingsData.network)!.chainId.toInt());
+      persistAllSessions(PersistentData.selectedAccount);
     }
   }
 
   void _handleDisconnect(Object? session){
     connector.close();
     instances.remove(this);
-    persistAllSessions(Networks.getByName(SettingsData.network)!.chainId.toInt());
+    persistAllSessions(PersistentData.selectedAccount);
     eventBus.fire(OnWalletConnectDisconnect());
   }
 
@@ -176,6 +175,7 @@ class WalletConnectController {
     connector.session.clientMeta = payload.peerMeta;
     showBarModalBottomSheet(
       context: Get.context!,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: WCSessionRequestSheet(
@@ -193,7 +193,6 @@ class WalletConnectController {
 
   void _ethSendTransaction(JsonRpcRequest? payload) async {
     if (payload == null) return;
-    print(jsonEncode(payload.toJson()));
     var cancelLoad = Utils.showLoading();
     Batch wcBatch = Batch();
     String hexValue = "0x00";
@@ -213,20 +212,20 @@ class WalletConnectController {
     BigInt value = BigInt.parse(hexValue, radix: 16);
     BigInt gasValue = BigInt.parse(gasLimit, radix: 16);
     EthereumAddress toAddress = EthereumAddress.fromHex(payload.params![0]["to"]);
-    var toCode = await Constants.client.getCode(toAddress);
-    bool isTransfer = toCode.isEmpty || toAddress.hexEip55 == AddressData.selectedWallet.walletAddress.hexEip55;
+    var toCode = await Networks.selected().client.getCode(toAddress);
+    bool isTransfer = toCode.isEmpty || toAddress.hex == PersistentData.selectedAccount.address.hex;
     //
     GnosisTransaction transaction = GnosisTransaction(
       id: "wc-$sessionId-${const ShortUuid().generate()}",
       to: toAddress,
       value: value,
       data: hexToBytes(data),
-      type: GnosisTransactionType.execTransactionFromModule,
+      type: GnosisTransactionType.execTransactionFromEntrypoint,
       suggestedGasLimit: gasValue,
     );
     wcBatch.transactions.add(transaction);
     //
-    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
     if (feeCurrencies == null){
       // todo handle network errors
       return;
@@ -249,10 +248,11 @@ class WalletConnectController {
     if (value > BigInt.zero){
       tableEntriesData["Value"] = CurrencyUtils.formatCurrency(value, TokenInfoStorage.getTokenBySymbol("ETH")!, includeSymbol: true, formatSmallDecimals: true);
     }
-    tableEntriesData["Network"] = SettingsData.network;
+    tableEntriesData["Network"] = Networks.selected().chainId.toString();
     //
     var executed = await showBarModalBottomSheet(
       context: Get.context!,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "wc_transaction_review_modal");
         return TransactionReviewSheet(
@@ -314,13 +314,13 @@ class WalletConnectController {
         to: toAddress,
         value: value,
         data: hexToBytes(data),
-        type: GnosisTransactionType.execTransactionFromModule,
+        type: GnosisTransactionType.execTransactionFromEntrypoint,
         suggestedGasLimit: gasValue,
       );
       wcBatch.transactions.add(transaction);
     }
     //
-    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees();
+    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
     if (feeCurrencies == null){
       // todo handle network errors
       return;
@@ -341,10 +341,11 @@ class WalletConnectController {
     if (totalValue > BigInt.zero){
       tableEntriesData["Value"] = CurrencyUtils.formatCurrency(totalValue, TokenInfoStorage.getTokenBySymbol("ETH")!, includeSymbol: true, formatSmallDecimals: true);
     }
-    tableEntriesData["Network"] = SettingsData.network;
+    tableEntriesData["Network"] = Networks.selected().chainId.toString();
     //
     var executed = await showBarModalBottomSheet(
       context: Get.context!,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "wc_transaction_review_modal");
         return TransactionReviewSheet(
@@ -378,14 +379,13 @@ class WalletConnectController {
       connector.rejectRequest(id: payload.id);
       return;
     }
-    print(jsonEncode(result));
     connector.approveRequest(id: payload.id, result: jsonEncode(result));
   }
 
   void walletShowBundleStatus(JsonRpcRequest? payload) async {
     if (payload == null) return;
     if (payload.params == null) return;
-    TransactionActivity? activity = AddressData.transactionsActivity.firstWhereOrNull((element) => element.hash == payload.params![0]);
+    TransactionActivity? activity = PersistentData.transactionsActivity.firstWhereOrNull((element) => element.hash == payload.params![0]);
     if (activity == null){
       connector.rejectRequest(id: payload.id);
       return;
@@ -393,6 +393,7 @@ class WalletConnectController {
     connector.approveRequest(id: payload.id, result: "");
     await showBarModalBottomSheet(
       context: Get.context!,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
         return TransactionActivityDetailsCard(
@@ -428,15 +429,18 @@ class WalletConnectController {
   }
 
   void _showSignatureRequest(int requestId, String type, String payload) async {
-    await showDialog(
+    if (!PersistentData.accountStatus.proxyDeployed){
+      await showDialog(
+        context: Get.context!,
+        builder: (_) => WCSignatureRejectDialog(connector: connector,),
+        useRootNavigator: false,
+      );
+      connector.rejectRequest(id: requestId);
+      return;
+    }
+    showBarModalBottomSheet(
       context: Get.context!,
-      builder: (_) => WCSignatureRejectDialog(connector: connector,),
-      useRootNavigator: false,
-    );
-    connector.rejectRequest(id: requestId);
-    // todo: re-enable when signing is ready
-    /*showBarModalBottomSheet(
-      context: Get.context!,
+      backgroundColor: Get.theme.canvasColor,
       builder: (context) {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "wc_signature_modal");
         return SignatureRequestSheet(
@@ -446,7 +450,7 @@ class WalletConnectController {
           payload: payload,
         );
       },
-    );*/
+    );
   }
 
 

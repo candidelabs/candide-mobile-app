@@ -24,7 +24,7 @@ class TokenInfoStorage {
       TokenInfo(
         name: "Candide Test Token",
         symbol: "CTT",
-        address: "0xFaaFfdCBF13f879EA5D5594C4aEBcE0F5dE733ca",
+        address: "0x7DdEFA2f027691116D0a7aa6418246622d70B12A",
         logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/fee-coin2.svg",
         decimals: 18,
       ),
@@ -41,6 +41,61 @@ class TokenInfoStorage {
         address: "0x509Ee0d083DdF8AC028f2a56731412edD63223B9",
         decimals: 6,
         logoUri: "https://cryptologos.cc/logos/tether-usdt-logo.svg?v=023",
+        visible: false,
+      ),
+    ],
+    420: [
+      TokenInfo(
+        name: "Ethereum",
+        symbol: "ETH",
+        address: "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/ethereum.svg",
+      ),
+      TokenInfo(
+        name: "Candide Test Token",
+        symbol: "CTT",
+        address: "0x7DdEFA2f027691116D0a7aa6418246622d70B12A",
+        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/fee-coin2.svg",
+        decimals: 18,
+      ),
+      TokenInfo(
+        name: "Wrapped Ethereum",
+        symbol: "WETH",
+        address: "0x4200000000000000000000000000000000000006",
+        decimals: 18,
+        visible: false,
+      ),
+      TokenInfo(
+        name: "Optimism",
+        symbol: "OP",
+        address: "0x4200000000000000000000000000000000000042",
+        decimals: 18,
+        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/optimism.svg",
+        visible: false,
+      ),
+    ],
+    10: [
+      TokenInfo(
+        name: "Ethereum",
+        symbol: "ETH",
+        address: "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/ethereum.svg",
+      ),
+      TokenInfo(
+        name: "Wrapped Ethereum",
+        symbol: "WETH",
+        address: "0x4200000000000000000000000000000000000006",
+        decimals: 18,
+        visible: false,
+      ),
+      TokenInfo(
+        name: "Optimism",
+        symbol: "OP",
+        address: "0x4200000000000000000000000000000000000042",
+        decimals: 18,
+        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/optimism.svg",
         visible: false,
       ),
     ]
@@ -73,8 +128,8 @@ class TokenInfoStorage {
     }
   }
 
-  static Future<void> addToken(TokenInfo token, {int? chainId}) async {
-    if (chainId == null || _loadedChainId == chainId){
+  static Future<void> addToken(TokenInfo token, int chainId) async {
+    if (_loadedChainId == chainId){
       if (tokens.firstWhereOrNull((element) => element.address.toLowerCase() == token.address.toLowerCase()) != null) return;
       tokens.add(token);
       await persistAllTokens(tokens, _loadedChainId);
