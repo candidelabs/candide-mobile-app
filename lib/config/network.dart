@@ -47,7 +47,7 @@ class Networks {
         Network(
           name: "Optimism Goerli",
           testnetData: _TestnetData(testnetForChainId: 10),
-          color: const Color(0xfff01a37),
+          color: const Color.fromARGB(255, 255, 137, 225),
           logo: SvgPicture.asset("assets/images/optimism.svg"),
           nativeCurrency: 'ETH',
           chainId: BigInt.from(420),

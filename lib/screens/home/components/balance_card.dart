@@ -53,7 +53,7 @@ class BalanceCard extends StatelessWidget {
                 _ActionButton(
                   onPress: onPressDeposit,
                   action: "Receive",
-                  iconData: PhosphorIcons.arrowDownBold,
+                  iconData: PhosphorIcons.qrCode,
                 ),
                 const SizedBox(width: 25,),
                 _ActionButton(
@@ -65,7 +65,7 @@ class BalanceCard extends StatelessWidget {
                 onPressSwap != null ? _ActionButton(
                   onPress: onPressSwap,
                   action: "Swap",
-                  iconData: PhosphorIcons.arrowsDownUpBold,
+                  iconData: PhosphorIcons.arrowsClockwise,
                 ) : const SizedBox.shrink(),
               ],
             ),

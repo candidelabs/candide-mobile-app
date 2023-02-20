@@ -53,22 +53,15 @@ class _CreateAccountChainScreenState extends State<CreateAccountChainScreen> {
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        text: "Choose the ",
+                        text: "Select the ",
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),
                         children: const [
                           TextSpan(
-                            text: "chain",
+                            text: "network",
                             style: TextStyle(color: Colors.deepOrange),
                           ),
                           TextSpan(
-                            text: " on which your account will be created in. and choose a ",
-                          ),
-                          TextSpan(
-                            text: "name",
-                            style: TextStyle(color: Colors.deepOrange),
-                          ),
-                          TextSpan(
-                            text: " for your account.",
+                            text: " in which your account will live in. ",
                           ),
                         ]
                       )
@@ -103,7 +96,7 @@ class _CreateAccountChainScreenState extends State<CreateAccountChainScreen> {
                               color: Colors.black.withOpacity(0.8),
                               borderRadius: BorderRadius.circular(8)
                             ),
-                            child: const Text("This name is stored locally and will never be shared with us or any third parties."),
+                            child: const Text("This name is stored locally and will never be shared with us or with any third parties."),
                           ),
                           child: const Icon(
                             Icons.info,
@@ -171,7 +164,7 @@ class _AccountChainAlert extends StatelessWidget {
             child: RichText(
               textAlign: TextAlign.start,
               text: TextSpan(
-                  text: "The account will",
+                  text: "This account is unique and will",
                   style: TextStyle(fontSize: 12, fontFamily: AppThemes.fonts.gilroy, color: network.color),
                   children: [
                     TextSpan(
@@ -186,7 +179,7 @@ class _AccountChainAlert extends StatelessWidget {
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)
                     ),
                     const TextSpan(
-                      text: " chain.",
+                      text: " network.",
                     ),
                   ]
               ),

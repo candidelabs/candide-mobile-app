@@ -140,7 +140,7 @@ class DepositAlertFundsLoss extends StatelessWidget {
               child: RichText(
                 textAlign: TextAlign.start,
                 text: TextSpan(
-                  text: "This address only supports ",
+                  text: "This address is unique to ",
                   style: TextStyle(fontSize: 13, fontFamily: AppThemes.fonts.gilroy, color: network.color),
                   children: [
                     TextSpan(
@@ -148,10 +148,10 @@ class DepositAlertFundsLoss extends StatelessWidget {
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)
                     ),
                     const TextSpan(
-                      text: " chain.\n",
+                      text: " network.\n",
                     ),
                     const TextSpan(
-                      text: "Make sure you're depositing on ",
+                      text: "Only deposit from ",
                     ),
                     TextSpan(
                         text: network.name,
