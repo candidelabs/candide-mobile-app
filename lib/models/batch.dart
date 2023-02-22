@@ -22,7 +22,6 @@ import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 
 class Batch {
   static final EthereumAddress paymasterAddress = EthereumAddress.fromHex("0xA275Da33fE068CD62510B8e3Af7818EdE891cdff");
-  static final EthereumAddress _multiSendCallAddress = EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D");
   BigInt baseGas = BigInt.zero;
   FeeToken? _feeToken;
   EthereumAddress refundReceiver = Constants.addressZero;
@@ -137,7 +136,7 @@ class Batch {
     Uint8List multiSendCallData = hexToBytes(EncodeFunctionData.multiSend(sink.asBytes()));
     GnosisTransaction transaction = GnosisTransaction(
       id: "multi-send",
-      to: _multiSendCallAddress,
+      to: Networks.selected().multiSendCall,
       value: BigInt.zero,
       data: multiSendCallData,
       operation: BigInt.one,

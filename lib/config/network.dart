@@ -31,6 +31,7 @@ class Networks {
           fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
           socialRecoveryModule: EthereumAddress.fromHex("0x0014F33Fc01017d9AC6762E8285b51Ad07089E51"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
+          multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
           //
           ensRegistryWithFallback: EthereumAddress.fromHex("0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
           //
@@ -61,6 +62,7 @@ class Networks {
           fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
           socialRecoveryModule: EthereumAddress.fromHex("0x0014F33Fc01017d9AC6762E8285b51Ad07089E51"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
+          multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
           //
           client: Web3Client(Env.optimismGoerliRpcEndpoint, Client()),
           //
@@ -127,6 +129,7 @@ class Network{
   EthereumAddress fallbackHandler;
   EthereumAddress socialRecoveryModule;
   EthereumAddress entrypoint;
+  EthereumAddress multiSendCall;
   EthereumAddress? ensRegistryWithFallback;
   Web3Client client;
   Magic? magicInstance;
@@ -149,6 +152,7 @@ class Network{
       required this.fallbackHandler,
       required this.socialRecoveryModule,
       required this.entrypoint,
+      required this.multiSendCall,
       this.ensRegistryWithFallback,
       required this.client,
       required this.features});
