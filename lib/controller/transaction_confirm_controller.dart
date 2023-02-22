@@ -132,7 +132,7 @@ class TransactionConfirmController {
     transactionActivity.hash = response?.hash;
     transactionActivity.status = response?.status ?? "failed-to-submit";
     transactionActivity.fee = TransactionFeeActivityData(
-      paymasterAddress: batch.includesPaymaster ? Constants.addressZeroHex : Batch.paymasterAddress.hexEip55,
+      paymasterAddress: batch.includesPaymaster ? Constants.addressZeroHex : batch.feeCurrency!.paymaster.hexEip55,
       currencyAddress: batch.getFeeToken(),
       fee: batch.getFee(),
     );
