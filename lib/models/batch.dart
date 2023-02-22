@@ -21,7 +21,6 @@ import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
 
 class Batch {
-  static final EthereumAddress paymasterAddress = EthereumAddress.fromHex("0xA275Da33fE068CD62510B8e3Af7818EdE891cdff");
   BigInt baseGas = BigInt.zero;
   FeeToken? _feeToken;
   EthereumAddress refundReceiver = Constants.addressZero;
@@ -48,7 +47,7 @@ class Batch {
         to: EthereumAddress.fromHex(feeCurrency.token.address),
         value: BigInt.zero,
         data: hexToBytes(EncodeFunctionData.erc20Approve(
-          paymasterAddress,
+          feeCurrency.paymaster,
           feeCurrency.fee,
         )),
         type: GnosisTransactionType.execTransactionFromEntrypoint,
@@ -113,7 +112,7 @@ class Batch {
     if (paymasterData == null){ // todo network: handle fetching errors
       userOp.paymasterAndData = "0x";
     }else{
-      List<int> paymasterAndData = paymasterAddress.addressBytes + hexToBytes(paymasterData);
+      List<int> paymasterAndData = feeCurrency!.paymaster.addressBytes + hexToBytes(paymasterData);
       userOp.paymasterAndData = bytesToHex(paymasterAndData, include0x: true);
     }
   }

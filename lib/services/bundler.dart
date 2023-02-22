@@ -68,7 +68,14 @@ class Bundler {
         var _tokenData = jsonDecode(tokenData.replaceAll("'", '"'));
         TokenInfo? _token = TokenInfoStorage.getTokenByAddress(_tokenData["address"]);
         if (_token == null) continue;
-        result.add(FeeToken(token: _token, fee: BigInt.zero, conversion: _tokenData["tokenToEthPrice"].runtimeType == String ? BigInt.parse(_tokenData["tokenToEthPrice"]) : BigInt.from(_tokenData["tokenToEthPrice"])));
+        result.add(
+          FeeToken(
+            paymaster: EthereumAddress.fromHex(_tokenData["paymaster"]),
+            token: _token,
+            fee: BigInt.zero,
+            conversion: _tokenData["tokenToEthPrice"].runtimeType == String ? BigInt.parse(_tokenData["tokenToEthPrice"]) : BigInt.from(_tokenData["tokenToEthPrice"])
+          )
+        );
       }
       return result;
     } on DioError catch(e){
