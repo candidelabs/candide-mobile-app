@@ -147,7 +147,7 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
                       textDirection: TextDirection.rtl,
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          Utils.launchUri("https://goerli.etherscan.io/tx/${widget.transaction.hash}", mode: LaunchMode.externalApplication);
+                          Utils.launchUri("${Networks.selected().explorerUrl}/tx/${widget.transaction.hash}", mode: LaunchMode.externalApplication);
                         },
                         style: ButtonStyle(
                           minimumSize: MaterialStateProperty.all(Size(Get.width * 0.9, 40)),
