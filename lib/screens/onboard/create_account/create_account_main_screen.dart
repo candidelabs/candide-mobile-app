@@ -67,6 +67,7 @@ class _CreateAccountMainScreenState extends State<CreateAccountMainScreen> {
       factory: network.proxyFactory,
       fallbackHandler: network.fallbackHandler,
       entrypoint: network.entrypoint,
+      client: network.client
     );
     if (SignersController.instance.privateKeys.isEmpty && password != null){
       Credentials? credentials = await AccountHelpers.decryptSigner(mainSigner, password);
