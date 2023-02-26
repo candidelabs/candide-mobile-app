@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:candide_mobile_app/config/env.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
@@ -17,6 +18,7 @@ class Bundler {
     UserOperation signedOperation = UserOperation.fromJson(operation.toJson());
     await signedOperation.sign(
       privateKey,
+      Networks.getByChainId(chainId)!.entrypoint,
       BigInt.from(chainId),
       overrideRequestId: userOpHash,
     );
