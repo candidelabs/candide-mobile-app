@@ -26,10 +26,10 @@ class Networks {
           coinGeckoAssetPlatform: "ethereum",
           candideBalances: EthereumAddress.fromHex("0xdc1e0B26F8D92243A28087172b941A169C2B4354"),
           //
-          safeSingleton: EthereumAddress.fromHex("0x8C6E9E2365515aB8b0cE45871885B3F0c42cdaEe"), // todo change
-          proxyFactory: EthereumAddress.fromHex("0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"),
+          safeSingleton: EthereumAddress.fromHex("0x23e4fd58F38cD9c75957a182DB90bB449879A6A3"),
+          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
           fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
-          socialRecoveryModule: EthereumAddress.fromHex("0x0014F33Fc01017d9AC6762E8285b51Ad07089E51"),
+          socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
           multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
           //
@@ -57,10 +57,10 @@ class Networks {
           coinGeckoAssetPlatform: "optimistic-ethereum",
           candideBalances: EthereumAddress.fromHex("0x97A8c45e8Da6608bAbf09eb1222292d7B389B1a1"),
           //
-          safeSingleton: EthereumAddress.fromHex("0x0D4Aa715760B3d081e45A6c5fbdA8Aa1AaaD0Daf"), // todo change
-          proxyFactory: EthereumAddress.fromHex("0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"),
+          safeSingleton: EthereumAddress.fromHex("0x23e4fd58F38cD9c75957a182DB90bB449879A6A3"),
+          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
           fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
-          socialRecoveryModule: EthereumAddress.fromHex("0x0014F33Fc01017d9AC6762E8285b51Ad07089E51"),
+          socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
           multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
           //
@@ -86,10 +86,10 @@ class Networks {
           coinGeckoAssetPlatform: "optimistic-ethereum",
           candideBalances: EthereumAddress.fromHex("0x82998037a1C25D374c421A620db6D9ff26Fb50b5"),
           //
-          safeSingleton: EthereumAddress.fromHex("0xb5D864ab6fb2D505ef8849463a8C0BC48F178D6F"),
-          proxyFactory: EthereumAddress.fromHex("0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"),
+          safeSingleton: EthereumAddress.fromHex("0x23e4fd58F38cD9c75957a182DB90bB449879A6A3"),
+          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
           fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
-          socialRecoveryModule: EthereumAddress.fromHex("0x0014F33Fc01017d9AC6762E8285b51Ad07089E51"),
+          socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
           //
           client: Web3Client(Env.optimismRpcEndpoint, Client()),
