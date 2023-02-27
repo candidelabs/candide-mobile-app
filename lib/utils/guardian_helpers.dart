@@ -75,7 +75,7 @@ class GuardianOperationsHelper {
     TransactionActivity transactionActivity = TransactionActivity(
       date: DateTime.now(),
       action: "guardian-grant",
-      title: "Added guardian",
+      title: "Added recovery contact",
       status: "pending",
       data: {"guardian": guardian.hexEip55},
     );
@@ -162,7 +162,7 @@ class GuardianOperationsHelper {
     TransactionActivity transactionActivity = TransactionActivity(
       date: DateTime.now(),
       action: "guardian-revoke",
-      title: "Removed guardian",
+      title: "Removed recovery contact",
       status: "pending",
       data: {"guardian": guardian.hexEip55},
     );

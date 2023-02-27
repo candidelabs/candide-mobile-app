@@ -164,7 +164,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
               );
             },
             icon: const Icon(PhosphorIcons.plusBold, size: 15,),
-            label: Text("Add guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, height: 1.6),),
+            label: Text("Add recovery contact", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, height: 1.6),),
           ),
         ),
       ],

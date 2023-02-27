@@ -29,7 +29,7 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
       child: Column(
         children: [
           const SizedBox(height: 15,),
-          Text("Add guardian", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
+          Text("Add recovery contact", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
           const SizedBox(height: 35,),
           AddressField(
             onAddressChanged: (val){
