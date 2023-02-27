@@ -326,10 +326,10 @@ class _AccountCardState extends State<_AccountCard> {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             visualDensity: VisualDensity.compact,
                           ),
-                          icon: const Icon(PhosphorIcons.caretRight, size: 10,),
+                          icon: const Icon(PhosphorIcons.caretRight, size: 9,),
                           label: const Text(
-                            "Set up guardians now",
-                            style: TextStyle(fontSize: 11.5),
+                            "Set up recovery contacts",
+                            style: TextStyle(fontSize: 11),
                           ),
                         ),
                       )

@@ -322,7 +322,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                       text: "here",
                       style: TextStyle(color: Colors.blue.withOpacity(0.7)),
                       recognizer: TapGestureRecognizer()
-                        ..onTap = () => Utils.launchUri("", mode: LaunchMode.externalApplication), // todo add link
+                        ..onTap = () => Utils.launchUri("https://docs.candidewallet.com/getting-started/guides/recover-your-account", mode: LaunchMode.externalApplication),
                     ),
                   ]
               ),
