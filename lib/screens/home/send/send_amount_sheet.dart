@@ -157,10 +157,10 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                             _amountFocus.unfocus();
                             actualAmount = PersistentData.getCurrencyBalance(selectedToken.address.toLowerCase());
                             amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, selectedToken, includeSymbol: false));
-                            _amountController.text = "$amount $selectedToken";
+                            _amountController.text = "$amount ${selectedToken.symbol}";
                             _validateAmountInput(amount.toString(), setActualAmount: false);
                             if (amount.toString() == "0.0" && actualAmount > BigInt.zero){
-                              _amountController.text = "<0.000001 $selectedToken";
+                              _amountController.text = "<0.000001 ${selectedToken.symbol}";
                             }
                           },
                           child: Text("USE MAX", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
