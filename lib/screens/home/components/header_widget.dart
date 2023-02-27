@@ -12,9 +12,10 @@ import 'package:wallet_dart/wallet/account.dart';
 class HeaderWidget extends StatefulWidget {
   final Account account;
   final bool showWalletConnectIcon;
+  final VoidCallback onCopyAddress;
   final VoidCallback onPressWalletConnect;
   final VoidCallback onPressWalletSelector;
-  const HeaderWidget({Key? key, required this.account, this.showWalletConnectIcon=true, required this.onPressWalletConnect, required this.onPressWalletSelector}) : super(key: key);
+  const HeaderWidget({Key? key, required this.account, this.showWalletConnectIcon=true, required this.onCopyAddress, required this.onPressWalletConnect, required this.onPressWalletSelector}) : super(key: key);
 
   @override
   State<HeaderWidget> createState() => _HeaderWidgetState();
@@ -113,9 +114,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
           ),
           const SizedBox(height: 10,),
           InkWell(
-            onTap: (){
-              Utils.copyText(widget.account.address.hexEip55, message: "Address copied to clipboard!");
-            },
+            onTap: widget.onCopyAddress,
             borderRadius: BorderRadius.circular(15),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

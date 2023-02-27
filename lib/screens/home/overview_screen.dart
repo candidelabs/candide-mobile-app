@@ -118,6 +118,17 @@ class _OverviewScreenState extends State<OverviewScreen> {
     }
     return true;
   }
+
+  void showDepositModal(){
+    showBarModalBottomSheet(
+      context: context,
+      backgroundColor: Get.theme.canvasColor,
+      builder: (context) => SingleChildScrollView(
+        controller: ModalScrollController.of(context),
+        child: DepositSheet(account: account),
+      ),
+    );
+  }
   
   @override
   void initState() {
@@ -172,6 +183,9 @@ class _OverviewScreenState extends State<OverviewScreen> {
             HeaderWidget(
               account: account,
               showWalletConnectIcon: account.recoveryId == null,
+              onCopyAddress: (){
+                showDepositModal();
+              },
               onPressWalletSelector: () async {
                 bool? refresh = await showBarModalBottomSheet(
                   context: context,
@@ -256,14 +270,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 });
               },
               onPressDeposit: (){
-                showBarModalBottomSheet(
-                  context: context,
-                  backgroundColor: Get.theme.canvasColor,
-                  builder: (context) => SingleChildScrollView(
-                    controller: ModalScrollController.of(context),
-                    child: DepositSheet(account: account),
-                  ),
-                );
+                showDepositModal();
               },
               onPressSend: () async {
                 var refresh = await showBarModalBottomSheet(
