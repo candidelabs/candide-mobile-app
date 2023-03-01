@@ -1,9 +1,11 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/screens/home/components/unique_address_onboarding.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:wallet_dart/wallet/account.dart';
@@ -23,7 +25,17 @@ class _DepositSheetState extends State<DepositSheet> {
   @override
   void initState() {
     network = Networks.getByChainId(widget.account.chainId)!;
+    checkUniqueAddressOnboarding();
     super.initState();
+  }
+
+  void checkUniqueAddressOnboarding() async {
+    await Future.delayed(const Duration(milliseconds: 250)); // cooldown for the widget to not interrupt the widget while being built
+    bool? onboardSeenStatus = Hive.box("state").get("unique_address_onboard_tutorial_seen(${network.chainId})");
+    if (onboardSeenStatus == null || onboardSeenStatus == false){
+      Get.to(const UniqueAddressOnBoarding());
+      await Hive.box("state").put("unique_address_onboard_tutorial_seen(${network.chainId})", true);
+    }
   }
 
   copyAddress() async {
