@@ -48,6 +48,14 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      elevation: 15,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: Colors.grey.withOpacity(0.25),
+          width: 0.75,
+        ),
+        borderRadius: BorderRadius.circular(5.0),
+      ),
       child: InkWell(
         onTap: (){
           showFeeCurrencySelectionModal();
