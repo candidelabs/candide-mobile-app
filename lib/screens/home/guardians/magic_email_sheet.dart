@@ -63,7 +63,7 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
               focusNode: nicknameFocus,
               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
               decoration: const InputDecoration(
-                label: Text("Guardian nickname"),
+                label: Text("Nickname (Optional)"),
                 border: ContinousInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(35)),
                 ),
@@ -77,7 +77,7 @@ class _MagicEmailSheetState extends State<MagicEmailSheet> {
             child: RichText(
               text: TextSpan(
                 text: "By proceeding, you agree to Magic Labs ",
-                style: const TextStyle(fontStyle: FontStyle.italic),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
                 children: [
                   TextSpan(
                     text: "terms of service ",

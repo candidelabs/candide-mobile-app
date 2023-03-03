@@ -53,7 +53,7 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
   Widget build(BuildContext context) {
     String title = widget.guardian.type.replaceAll("-", " ").capitalize!;
     if (widget.guardian.type == "magic-link"){
-      title = "Email Guardian";
+      title = "Email Recovery";
     }
     String dateAdded;
     if (widget.guardian.creationDate == null) {
