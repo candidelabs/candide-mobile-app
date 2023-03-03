@@ -302,7 +302,7 @@ class _GuardianCardState extends State<_GuardianCard> {
   Widget build(BuildContext context) {
     String title = widget.guardian.type.replaceAll("-", " ").capitalize!;
     if (widget.guardian.type == "magic-link"){
-      title = "Email Guardian";
+      title = "Email Recovery";
     }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
