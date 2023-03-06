@@ -55,6 +55,9 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
     if (widget.guardian.type == "magic-link"){
       title = "Email Recovery";
     }
+    if (widget.guardian.type == "hardware-wallet"){
+      title = "Hardware Wallet";
+    }
     String dateAdded;
     if (widget.guardian.creationDate == null) {
       dateAdded = "Unknown";
