@@ -1,4 +1,3 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/home/components/address_field.dart';
