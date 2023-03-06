@@ -43,7 +43,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
     await Future.delayed(const Duration(milliseconds: 250)); // cooldown for the widget to not interrupt the widget while being built
     bool? onboardSeenStatus = Hive.box("state").get("guardian_onboard_tutorial_seen");
     if (onboardSeenStatus == null || onboardSeenStatus == false){
-      Get.to(const GuardianSystemOnBoarding());
+      Get.to(GuardianSystemOnBoarding(account:PersistentData.selectedAccount));
       await Hive.box("state").put("guardian_onboard_tutorial_seen", true);
     }
   }
@@ -95,7 +95,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const GuardianSystemOnBoarding()),
+                        MaterialPageRoute(builder: (context) => GuardianSystemOnBoarding(account:PersistentData.selectedAccount)),
                       );
                     },
                   ),

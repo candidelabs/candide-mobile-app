@@ -1,16 +1,19 @@
+import 'package:blockies/blockies.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/components/onboarding_feature_card.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:onboarding/onboarding.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:wallet_dart/wallet/account.dart';
 
 
 class GuardianSystemOnBoarding extends StatefulWidget {
-  const GuardianSystemOnBoarding({Key? key}) : super(key: key);
+  final Account account;
+  const GuardianSystemOnBoarding({Key? key, required this.account}) : super(key: key);
 
   @override
   State<GuardianSystemOnBoarding> createState() =>
@@ -19,77 +22,96 @@ class GuardianSystemOnBoarding extends StatefulWidget {
 
 class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
   late int index;
-  final onboardingPagesList = [
-    PageModel(
-      widget: _OnBoardStep(
-        leading: SvgPicture.asset('assets/images/logo_cropped.svg', width: 150, height: 150, color: Get.theme.colorScheme.primary,),
-        title: "Own It. Really do",
-        description: "Your Wallet is self-custodial. Only you have access to your funds",
-      )
-    ),
-    PageModel(
+  List<PageModel> onboardingPagesList =[];
+
+  void constructOnboardingPages() {
+    onboardingPagesList = [
+      PageModel(
         widget: _OnBoardStep(
-          leading: SvgPicture.asset('assets/images/friends_cropped.svg', width: 150, height: 130,),
-          title: "Add Recovery Contacts",
-          description: "These are people and devices that you trust to recover your account in case you get locked out",
-          trailing: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 15),
-            child: const OnboardingFeatureCard(
-              title: "You will need the approval of the majority to recover your account", 
-              icon: Icon(PhosphorIcons.infoLight, size: 25, color: Colors.blue),
-            ), 
+          leading: SvgPicture.asset('assets/images/logo_cropped.svg', width: 150, height: 150, color: Get.theme.colorScheme.primary,),
+          title: "Own It. Really do",
+          description: "Your Wallet is self-custodial. Only you have access to your funds",
+        )
+      ),
+      PageModel(
+          widget: _OnBoardStep(
+            leading: SvgPicture.asset('assets/images/friends_cropped.svg', width: 150, height: 130,),
+            title: "Add Recovery Contacts",
+            description: "These are people and devices that you trust to recover your account in case you get locked out",
+            trailing: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 15),
+              child: const OnboardingFeatureCard(
+                title: "You will need the approval of the majority to recover your account", 
+                icon: Icon(PhosphorIcons.infoLight, size: 25, color: Colors.blue),
+              ), 
+            ),
+          )
+      ),
+      PageModel(
+          widget: _OnBoardStep(
+            leading: Image.asset('assets/images/shield_icon.png', width: 150),
+            title: "Secure your account",
+            description: "We recommend adding at least 3 recovery contacts from different backgrounds.",
+            trailing: Column(
+            children: const [
+              OnboardingFeatureCard(title: "A family member or a friend", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),), 
+              OnboardingFeatureCard(title: "A hardware wallet you own", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),),
+              OnboardingFeatureCard(title: "Your Email", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),),
+              ]
           ),
         )
-    ),
-    PageModel(
-        widget: _OnBoardStep(
-          leading: Image.asset("assets/images/magic_link_vertical_logo.png", width: 120, color: const Color(0xff6851FF)),
-          title: "Add Email Recovery",
-          description: "Use your email as one of your recovery methods with Magic Link.",
-          trailing: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 25),
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: TextButton.icon(
-                onPressed: () => Utils.launchUri("https://magic.link/auth", mode: LaunchMode.externalApplication),
-                style: ButtonStyle(
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  visualDensity: VisualDensity.compact,
-                  padding: MaterialStateProperty.all(EdgeInsets.zero),
+      ),
+      PageModel(
+          widget: _OnBoardStep(
+            leading: Column(children: [
+                const SizedBox(height: 10,),
+                SizedBox(width: 100, height: 100, 
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(70),
+                    child: Blockies(
+                      seed: widget.account.address.hexEip55 + widget.account.chainId.toString(),
+                      color: Get.theme.colorScheme.primary,
+                    ),
+                  ),
                 ),
-                icon: Container(
-                  margin: const EdgeInsets.only(bottom: 3.5),
-                  child: const Icon(PhosphorIcons.arrowSquareOutLight, size: 15, color: Colors.lightBlue)
-                ),
-                label: Text(
-                  "Learn more about Magic, the company",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 14, color: Colors.lightBlue)
+              const SizedBox(height: 5,),
+            ],),
+            title: "Save your public address",
+            description: "You will need it during the recovery process",
+            trailing: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 25),
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: InkWell(
+                  onTap: () => Utils.copyText(widget.account.address.hexEip55, message: "Address copied to clipboard"),
+                  borderRadius: BorderRadius.circular(15),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Networks.selected().color.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(15)
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(Utils.truncate(widget.account.address.hexEip55, leadingDigits: 4, trailingDigits: 4), textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12)),
+                        const SizedBox(width: 5,),
+                        const Icon(PhosphorIcons.copyLight, size: 14,)
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        )
-    ),
-    PageModel(
-        widget: _OnBoardStep(
-          leading: Image.asset('assets/images/shield_icon.png', width: 150),
-          title: "Secure your account",
-          description: "We recommend adding at least 3 recovery contacts from different backgrounds.",
-          trailing: Column(
-          children: const [
-            OnboardingFeatureCard(title: "A family member or a friend", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),), 
-            OnboardingFeatureCard(title: "A hardware wallet you own", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),),
-            OnboardingFeatureCard(title: "Your Email", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),),
-            ]
-        ),
-      )
-    ),
-  ];
+          )
+      ),
+    ];
+  }
 
   @override
   void initState() {
     index = 0;
+    constructOnboardingPages();
     super.initState();
   }
 
