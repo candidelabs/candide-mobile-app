@@ -63,9 +63,12 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
       ),
       PageModel(
           widget: _OnBoardStep(
-            leading: Column(children: [
+            leading: Column(
+              children: [
                 const SizedBox(height: 10,),
-                SizedBox(width: 100, height: 100, 
+                SizedBox(
+                  width: 100,
+                  height: 100,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(70),
                     child: Blockies(
@@ -74,8 +77,9 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
                     ),
                   ),
                 ),
-              const SizedBox(height: 5,),
-            ],),
+                const SizedBox(height: 5,),
+              ],
+            ),
             title: "Save your public address",
             description: "You will need it during the recovery process",
             trailing: Container(
@@ -134,8 +138,8 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
         Navigator.pop(context);
       },
       style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all(Get.theme.colorScheme.primary),
-          shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))
+        backgroundColor: MaterialStateProperty.all(Get.theme.colorScheme.primary),
+        shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)))
       ),
       child: Text("Got it", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.onPrimary),),
     );
@@ -206,9 +210,10 @@ class _OnBoardStep extends StatelessWidget {
             child: Text(
               description,
               style: TextStyle(
-                  fontFamily: AppThemes.fonts.gilroy,
-                  color: Colors.white,
-                  fontSize: 20),
+                fontFamily: AppThemes.fonts.gilroy,
+                color: Colors.white,
+                fontSize: 20
+              ),
               textAlign: TextAlign.center,
             ),
           ),
