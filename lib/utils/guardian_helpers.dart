@@ -44,7 +44,7 @@ class GuardianOperationsHelper {
     }
   }
 
-  static Future<bool> grantGuardian(Account account, EthereumAddress guardian, String? nickname, {Map? magicLinkData}) async {
+  static Future<bool> grantGuardian(Account account, EthereumAddress guardian, String? nickname, String type, {Map? magicLinkData}) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     Batch grantBatch = Batch();
     int friendsCount = 0;
@@ -116,7 +116,7 @@ class GuardianOperationsHelper {
       }else{
         PersistentData.guardians.add(AccountGuardian(
           index: friendsCount,
-          type: "family-and-friends",
+          type: type,
           address: guardian.hexEip55,
           nickname: nickname,
           email: null,
@@ -210,7 +210,7 @@ class GuardianOperationsHelper {
       cancelLoad.call();
       cancelLoad = null;
       if (metadata.publicAddress == null) return false;
-      refresh = await grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(metadata.publicAddress!), nickname, magicLinkData: {"email":email});
+      refresh = await grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(metadata.publicAddress!), nickname, "magic-link", magicLinkData: {"email":email});
     } on Exception catch (e) {
       cancelLoad?.call();
       print(e);

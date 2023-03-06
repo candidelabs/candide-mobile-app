@@ -133,6 +133,12 @@ class _GuardiansPageState extends State<GuardiansPage> {
                     height: 35,
                     child: SvgPicture.asset("assets/images/friends.svg")
                 );
+              }else if (guardian.type == "hardware-wallet"){
+                logo = SizedBox(
+                    width: 35,
+                    height: 35,
+                  child: SvgPicture.asset("assets/images/hardware-wallet.svg")
+                );
               }else{
                 logo = Container(
                     margin: const EdgeInsets.only(right: 10, bottom: 5),
@@ -232,7 +238,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                     title: "Add recovery contact",
                     onProceed: (String address, String? nickname) async {
                       Get.back();
-                      bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname);
+                      bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname, "family-and-friends");
                       if (refresh){
                         fetchGuardians();
                       }
@@ -265,7 +271,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                     title: "Add hardware wallet",
                     onProceed: (String address, String? nickname) async {
                       Get.back();
-                      bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname);
+                      bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname, "hardware-wallet");
                       if (refresh){
                         fetchGuardians();
                       }
@@ -346,6 +352,8 @@ class _GuardianCardState extends State<_GuardianCard> {
     String title = widget.guardian.type.replaceAll("-", " ").capitalize!;
     if (widget.guardian.type == "magic-link"){
       title = "Email Recovery";
+    } else if (widget.guardian.type == "hardware-wallet"){
+      title = "Hardware Wallet";
     }
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10),
