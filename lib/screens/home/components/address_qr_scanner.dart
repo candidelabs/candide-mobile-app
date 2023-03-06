@@ -120,7 +120,7 @@ class _AddressQRScannerState extends State<AddressQRScanner> with WidgetsBinding
                           const Icon(PhosphorIcons.warning, size: 40, color: Colors.amber,),
                           const SizedBox(height: 10,),
                           const Text(
-                            "We need your permission to use the camera in order to be able to scan a WalletConnect QR code",
+                            "We need your permission to use the camera in order to be able to scan a QR Address",
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 20,),
