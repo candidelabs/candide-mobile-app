@@ -54,9 +54,9 @@ class _GuardianSystemOnBoardingState extends State<GuardianSystemOnBoarding> {
             description: "We recommend adding at least 3 recovery contacts from different backgrounds.",
             trailing: Column(
             children: const [
-              OnboardingFeatureCard(title: "A family member or a friend", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),), 
+              OnboardingFeatureCard(title: "A family member", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),), 
+              OnboardingFeatureCard(title: "A close friend", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),),
               OnboardingFeatureCard(title: "A hardware wallet you own", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),),
-              OnboardingFeatureCard(title: "Your Email", icon: Icon(PhosphorIcons.checkCircleLight, size: 25, color: Colors.green),),
               ]
           ),
         )
