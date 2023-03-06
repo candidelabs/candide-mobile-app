@@ -20,6 +20,7 @@ class TransactionReviewSheet extends StatefulWidget {
   final Map<String, String> tableEntriesData;
   final VoidCallback? onBack;
   final bool showRejectButton;
+  final List<String> confirmCheckboxes;
   const TransactionReviewSheet({
     Key? key,
     this.modalId,
@@ -31,6 +32,7 @@ class TransactionReviewSheet extends StatefulWidget {
     this.currency,
     this.value,
     this.showRejectButton = false,
+    this.confirmCheckboxes = const []
   }) : super(key: key);
 
   @override
@@ -43,6 +45,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     "balance": "Insufficient balance",
     "fee": "Insufficient balance to cover network fee",
   };
+  List<bool> confirmedCheckBoxes = [];
   //
   FeeToken? selectDefaultFeeCurrency(List<FeeToken> feeCurrencies){
     FeeToken? result;
@@ -87,6 +90,13 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     setState(() {});
   }
 
+  bool _allCheckboxesConfirmed(){
+    for (bool confirmed in confirmedCheckBoxes) {
+      if (!confirmed) return false;
+    }
+    return true;
+  }
+
   @override
   void initState() {
     FeeToken? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
@@ -96,11 +106,13 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     }else{
       errorMessage = _errors["fee"]!;
     }
+    confirmedCheckBoxes = List.generate(widget.confirmCheckboxes.length, (index) => false);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    bool confirmButtonEnabled =  _allCheckboxesConfirmed() && errorMessage.isEmpty;
     return LayoutBuilder(
       builder: (context, constraints){
         return SingleChildScrollView(
@@ -153,6 +165,23 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                     ),
                   ),
                   const Spacer(),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Column(
+                      children: [
+                        for (int i=0; i < widget.confirmCheckboxes.length; i++)
+                          CheckboxListTile(
+                            onChanged: (val) => setState(() => confirmedCheckBoxes[i] = val ?? false),
+                            value: confirmedCheckBoxes[i],
+                            activeColor: Colors.blue,
+                            title: Text(
+                              widget.confirmCheckboxes[i],
+                              style: const TextStyle(fontSize: 13, color: Colors.white),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                   errorMessage.isNotEmpty ? Container(
                     margin: EdgeInsets.symmetric(horizontal: Get.width * 0.05),
                     padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -189,7 +218,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                       ) : const SizedBox.shrink(),
                       SizedBox(width: widget.showRejectButton ? 15 : 0,),
                       ElevatedButton(
-                        onPressed: errorMessage.isEmpty ? (){
+                        onPressed: confirmButtonEnabled ? (){
                           TransactionConfirmController.onPressConfirm(widget.batch, widget.transactionActivity);
                         } : null,
                         style: ButtonStyle(
@@ -197,7 +226,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                             elevation: MaterialStateProperty.all(0),
                             shape: MaterialStateProperty.all(RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(25),
-                                side: BorderSide(color: errorMessage.isEmpty ? Get.theme.colorScheme.primary : Colors.grey.withOpacity(0.25))
+                                side: BorderSide(color: confirmButtonEnabled ? Get.theme.colorScheme.primary : Colors.grey.withOpacity(0.25))
                             ))
                         ),
                         child: Text("Confirm", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
