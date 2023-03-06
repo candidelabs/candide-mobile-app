@@ -1,11 +1,11 @@
-import 'dart:io';
-
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class AddressQRScanner extends StatefulWidget {
@@ -17,10 +17,21 @@ class AddressQRScanner extends StatefulWidget {
   State<AddressQRScanner> createState() => _AddressQRScannerState();
 }
 
-class _AddressQRScannerState extends State<AddressQRScanner> {
+class _AddressQRScannerState extends State<AddressQRScanner> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   Barcode? result;
   QRViewController? controller;
+  bool? cameraPermissionDenied;
+
+  _permissionRequest() async {
+    var permissionResult = await Permission.camera.request();
+    if (permissionResult.isDenied || permissionResult.isPermanentlyDenied) {
+      cameraPermissionDenied = true;
+    }else{
+      cameraPermissionDenied = false;
+    }
+    setState(() {});
+  }
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
@@ -50,19 +61,27 @@ class _AddressQRScannerState extends State<AddressQRScanner> {
   }
 
   @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _permissionRequest();
+        break;
+      default: break;
+    }
   }
 
   @override
-  void reassemble() {
-    super.reassemble();
-    if (Platform.isAndroid) {
-      controller!.pauseCamera();
-    } else if (Platform.isIOS) {
-      controller!.resumeCamera();
-    }
+  void initState() {
+    _permissionRequest();
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
   }
 
   @override
@@ -89,13 +108,40 @@ class _AddressQRScannerState extends State<AddressQRScanner> {
                         const Spacer(flex: 3,),
                       ],
                     ),
-                    Expanded(
+                    cameraPermissionDenied == null ? const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CircularProgressIndicator()
+                    ) : cameraPermissionDenied! ? Container(
+                      height: Get.height * 0.65,
+                      margin: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(PhosphorIcons.warning, size: 40, color: Colors.amber,),
+                          const SizedBox(height: 10,),
+                          const Text(
+                            "We need your permission to use the camera in order to be able to scan a WalletConnect QR code",
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 20,),
+                          const Text(
+                            "You need to give this permission from the system settings",
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 10,),
+                          ElevatedButton(
+                            onPressed: () => openAppSettings(),
+                            child: Text("Open settings" ,style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)),
+                          )
+                        ],
+                      ),
+                    ) : Expanded(
                       child: QRView(
                         key: _qrKey,
                         onQRViewCreated: _onQRViewCreated,
                       ),
                     ),
-                    widget.alertWidget,
+                    !(cameraPermissionDenied ?? true) ? widget.alertWidget : const SizedBox.shrink(),
                   ],
                 ),
               ),

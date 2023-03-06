@@ -3,6 +3,8 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class WCScanSheet extends StatefulWidget {
@@ -13,14 +15,24 @@ class WCScanSheet extends StatefulWidget {
   State<WCScanSheet> createState() => _WCScanSheetState();
 }
 
-class _WCScanSheetState extends State<WCScanSheet> {
+class _WCScanSheetState extends State<WCScanSheet> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   Barcode? result;
   QRViewController? controller;
+  bool? cameraPermissionDenied;
+
+  _permissionRequest() async {
+    var permissionResult = await Permission.camera.request();
+    if (permissionResult.isDenied || permissionResult.isPermanentlyDenied) {
+      cameraPermissionDenied = true;
+    }else{
+      cameraPermissionDenied = false;
+    }
+    setState(() {});
+  }
 
   void _onQRViewCreated(QRViewController controller) {
     this.controller = controller;
-    //controller.resumeCamera();
     controller.scannedDataStream.listen((scanData) {
       if (scanData.code == null) return;
       String uri = scanData.code!;
@@ -40,6 +52,29 @@ class _WCScanSheetState extends State<WCScanSheet> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _permissionRequest();
+        break;
+      default: break;
+    }
+  }
+
+  @override
+  void initState() {
+    _permissionRequest();
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -48,9 +83,36 @@ class _WCScanSheetState extends State<WCScanSheet> {
           children: [
             Expanded(
               child: Stack(
+                fit: StackFit.expand,
                 alignment: Alignment.center,
                 children: [
-                  QRView(
+                  cameraPermissionDenied == null ? const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: CircularProgressIndicator()
+                  ) : cameraPermissionDenied! ? Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(PhosphorIcons.warning, size: 40, color: Colors.amber,),
+                        const SizedBox(height: 10,),
+                        const Text(
+                          "We need your permission to use the camera in order to be able to scan a WalletConnect QR code",
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20,),
+                        const Text(
+                          "You need to give this permission from the system settings",
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10,),
+                        ElevatedButton(
+                          onPressed: () => openAppSettings(),
+                          child: Text("Open settings" ,style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)),
+                        )
+                      ],
+                    ),
+                  ) : QRView(
                     key: _qrKey,
                     overlay: QrScannerOverlayShape(
                       borderColor: Get.theme.colorScheme.primary,
