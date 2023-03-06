@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/home/components/address_field.dart';
@@ -7,8 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class GuardianAddressSheet extends StatefulWidget {
+  final String title;
   final Function(String, String?) onProceed;
-  const GuardianAddressSheet({Key? key, required this.onProceed}) : super(key: key);
+  const GuardianAddressSheet({Key? key, required this.title, required this.onProceed}) : super(key: key);
 
   @override
   State<GuardianAddressSheet> createState() => _GuardianAddressSheetState();
@@ -29,7 +31,7 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
       child: Column(
         children: [
           const SizedBox(height: 15,),
-          Text("Add recovery contact", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
+          Text(widget.title, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
           const SizedBox(height: 35,),
           AddressField(
             onAddressChanged: (val){

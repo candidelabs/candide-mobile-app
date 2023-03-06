@@ -285,7 +285,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   _refreshController.requestRefresh();
                 }
               },
-              onPressSwap: Networks.selected().features.contains("swap") ? () async {
+              onPressSwap: Networks.selected().isFeatureEnabled("swap.basic") ? () async {
                 var refresh = await showBarModalBottomSheet(
                   context: context,
                   backgroundColor: Get.theme.canvasColor,
