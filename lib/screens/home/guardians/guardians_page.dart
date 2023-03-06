@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
@@ -172,71 +173,113 @@ class _GuardiansPageState extends State<GuardiansPage> {
   }
 
   Widget noGuardiansWidget(bool showTitle){
+    bool magicLinkEnabled = Networks.selected().isFeatureEnabled("social-recovery.magic-link");
+    bool familyFriendsEnabled = Networks.selected().isFeatureEnabled("social-recovery.family-and-friends");
+    bool hardwareWalletsEnabled = Networks.selected().isFeatureEnabled("social-recovery.hardware-wallet");
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 15,),
-        _GuardianAddCard(
-          type: "Email recovery",
-          description: "Through Magic Link",
-          logo: SizedBox(
-            width: 25,
-            height: 25,
-            child: SvgPicture.asset("assets/images/magic_link.svg")
-          ),
-          onPress: (){
-            showBarModalBottomSheet(
-              context: context,
-              backgroundColor: Get.theme.canvasColor,
-              builder: (context) => SingleChildScrollView(
-                controller: ModalScrollController.of(context),
-                child: MagicEmailSheet(
-                  onProceed: (String email, String? nickname) async {
-                    bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email, nickname);
-                    if (result){
-                      fetchGuardians();
-                    }
-                    if (!showTitle){
-                      Get.back();
-                    }
-                  },
-                ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 10,),
-        _GuardianAddCard(
-          type: "Family and friends",
-          logo: SizedBox(
+        magicLinkEnabled ? Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          child: _GuardianAddCard(
+            type: "Email recovery",
+            description: "Through Magic Link",
+            logo: SizedBox(
               width: 25,
               height: 25,
-              child: SvgPicture.asset("assets/images/friends.svg")
-          ),
-          onPress: (){
-            showBarModalBottomSheet(
-              context: context,
-              backgroundColor: Get.theme.canvasColor,
-              builder: (context) => SingleChildScrollView(
-                controller: ModalScrollController.of(context),
-                child: GuardianAddressSheet(
-                  onProceed: (String address, String? nickname) async {
-                    Get.back();
-                    bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname);
-                    if (refresh){
-                      fetchGuardians();
-                    }
-                    if (!showTitle){
-                      Get.back();
-                    }
-                  },
+              child: SvgPicture.asset("assets/images/magic_link.svg")
+            ),
+            onPress: (){
+              showBarModalBottomSheet(
+                context: context,
+                backgroundColor: Get.theme.canvasColor,
+                builder: (context) => SingleChildScrollView(
+                  controller: ModalScrollController.of(context),
+                  child: MagicEmailSheet(
+                    onProceed: (String email, String? nickname) async {
+                      bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email, nickname);
+                      if (result){
+                        fetchGuardians();
+                      }
+                      if (!showTitle){
+                        Get.back();
+                      }
+                    },
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 15,)
+              );
+            },
+          ),
+        ) : const SizedBox.shrink(),
+        familyFriendsEnabled ? Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          child: _GuardianAddCard(
+            type: "Family and friends",
+            logo: SizedBox(
+                width: 25,
+                height: 25,
+                child: SvgPicture.asset("assets/images/friends.svg")
+            ),
+            onPress: (){
+              showBarModalBottomSheet(
+                context: context,
+                backgroundColor: Get.theme.canvasColor,
+                builder: (context) => SingleChildScrollView(
+                  controller: ModalScrollController.of(context),
+                  child: GuardianAddressSheet(
+                    title: "Add recovery contact",
+                    onProceed: (String address, String? nickname) async {
+                      Get.back();
+                      bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname);
+                      if (refresh){
+                        fetchGuardians();
+                      }
+                      if (!showTitle){
+                        Get.back();
+                      }
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ) : const SizedBox.shrink(),
+        hardwareWalletsEnabled ? Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          child: _GuardianAddCard(
+            type: "Hardware wallet",
+            logo: SizedBox(
+                width: 25,
+                height: 25,
+                child: SvgPicture.asset("assets/images/hardware-wallet.svg")
+            ),
+            onPress: (){
+              showBarModalBottomSheet(
+                context: context,
+                backgroundColor: Get.theme.canvasColor,
+                builder: (context) => SingleChildScrollView(
+                  controller: ModalScrollController.of(context),
+                  child: GuardianAddressSheet(
+                    title: "Add hardware wallet",
+                    onProceed: (String address, String? nickname) async {
+                      Get.back();
+                      bool refresh = await GuardianOperationsHelper.grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(address), nickname);
+                      if (refresh){
+                        fetchGuardians();
+                      }
+                      if (!showTitle){
+                        Get.back();
+                      }
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ) : const SizedBox.shrink(),
+        const SizedBox(height: 5,)
       ],
     );
   }

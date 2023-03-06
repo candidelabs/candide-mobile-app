@@ -35,13 +35,23 @@ class Networks {
           //
           client: Web3Client(Env.optimismGoerliRpcEndpoint, Client()),
           //
-          features: [
-            "deposit-simple",
-            /*"deposit-fiat",*/
-            "transfer",
-            /*"swap",*/
-            "social-recovery"
-          ],
+          features: {
+            "deposit": {
+              "deposit-address": true,
+              "deposit-fiat": false,
+            },
+            "transfer": {
+              "basic": true
+            },
+            "swap": {
+              "basic": false
+            },
+            "social-recovery": {
+              "family-and-friends": true,
+              "magic-link": true,
+              "hardware-wallet": false,
+            },
+          },
         ),
         Network(
           name: "Görli",
@@ -66,13 +76,23 @@ class Networks {
           //
           client: Web3Client(Env.goerliRpcEndpoint, Client()),
           //
-          features: [
-            "deposit-simple",
-            /*"deposit-fiat",*/
-            "transfer",
-            "swap",
-            "social-recovery"
-          ],
+          features: {
+            "deposit": {
+              "deposit-address": true,
+              "deposit-fiat": false,
+            },
+            "transfer": {
+              "basic": true
+            },
+            "swap": {
+              "basic": true
+            },
+            "social-recovery": {
+              "family-and-friends": true,
+              "magic-link": true,
+              "hardware-wallet": false,
+            },
+          },
         ),
         /*Network(
           name: "Optimism",
@@ -133,7 +153,7 @@ class Network{
   EthereumAddress? ensRegistryWithFallback;
   Web3Client client;
   Magic? magicInstance;
-  List<String> features;
+  Map<String, dynamic> features;
 
   String get normalizedName => name.replaceAll("ö", "oe");
 
@@ -156,6 +176,22 @@ class Network{
       this.ensRegistryWithFallback,
       required this.client,
       required this.features});
+
+  bool isFeatureEnabled(String feature){
+    if (!feature.contains(".")){
+      feature = "$feature.basic";
+    }
+    var paths = feature.split(".");
+    var tempMap = features;
+    for (String feature in paths.sublist(0, paths.length-1)){
+      tempMap = tempMap[feature];
+    }
+    if (tempMap[paths.last] is! bool){
+      return false;
+    }
+    return tempMap[paths.last];
+  }
+
 }
 
 class _TestnetData {

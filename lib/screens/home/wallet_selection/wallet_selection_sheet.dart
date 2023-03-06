@@ -204,6 +204,7 @@ class _AccountCardState extends State<_AccountCard> {
 
   void checkRecoverability() async {
     _recoverable = await PersistentData.isAccountRecoverable(widget.account);
+    if (!mounted) return;
     setState(() {});
   }
 
