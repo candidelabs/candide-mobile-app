@@ -273,10 +273,10 @@ class _AccountCardState extends State<_AccountCard> {
                             value: 1,
                             child: Text("Edit Account"),
                           ),
-                          /*PopupMenuItem(
+                          PopupMenuItem(
                             value: 2,
-                            child: Text("Remove Wallet"),
-                          ),*/
+                            child: Text("Remove Account"),
+                          ),
                         ],
                         onSelected: (int action) async {
                           if (action == 1){
