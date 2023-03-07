@@ -201,6 +201,7 @@ class _AccountCard extends StatefulWidget {
 
 class _AccountCardState extends State<_AccountCard> {
   bool? _recoverable;
+  List<PopupMenuEntry<int>> popupMenuItems = [];
 
   void checkRecoverability() async {
     _recoverable = await PersistentData.isAccountRecoverable(widget.account);
@@ -211,6 +212,20 @@ class _AccountCardState extends State<_AccountCard> {
   @override
   void initState() {
     checkRecoverability();
+    popupMenuItems = [
+      const PopupMenuItem(
+        value: 1,
+        child: Text("Edit Account"),
+      )
+    ];
+    if (widget.account.recoveryId == null){
+      popupMenuItems.add(
+        const PopupMenuItem(
+          value: 2,
+          child: Text("Remove Account"),
+        )
+      );
+    }
     super.initState();
   }
 
@@ -268,16 +283,7 @@ class _AccountCardState extends State<_AccountCard> {
                       ),
                       const Spacer(),
                       widget.editState ? PopupMenuButton(
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(
-                            value: 1,
-                            child: Text("Edit Account"),
-                          ),
-                          PopupMenuItem(
-                            value: 2,
-                            child: Text("Remove Account"),
-                          ),
-                        ],
+                        itemBuilder: (context) => popupMenuItems,
                         onSelected: (int action) async {
                           if (action == 1){
                             showDialog(
