@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 Future<bool> confirm(
   BuildContext context, {
   Widget? title,
-  Widget? content,
-  Widget? textYes,
-  Widget? textNo,
+  required Widget content,
+  Widget? confirm,
+  Widget? cancel,
 }) async {
   final bool? isConfirm = await showDialog<bool>(
     context: context,
@@ -13,14 +13,14 @@ Future<bool> confirm(
     builder: (_) => WillPopScope(
       child: AlertDialog(
         title: title,
-        content: content ?? const Text('Are you sure continue?'),
+        content: content,
         actions: <Widget>[
           TextButton(
-            child: textNo ?? const Text('No'),
+            child: cancel ?? const Text('No'),
             onPressed: () => Navigator.pop(context, false),
           ),
           TextButton(
-            child: textYes ?? const Text('Yes'),
+            child: confirm ?? const Text('Yes'),
             onPressed: () => Navigator.pop(context, true),
           ),
         ],

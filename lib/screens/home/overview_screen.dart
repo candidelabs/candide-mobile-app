@@ -5,7 +5,7 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
-import 'package:candide_mobile_app/screens/components/confirm_dialog.dart';
+import 'package:candide_mobile_app/screens/home/components/delete_account_confirm_dialog.dart';
 import 'package:candide_mobile_app/screens/home/components/header_widget.dart';
 import 'package:candide_mobile_app/screens/home/components/token_management_sheet.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_sheet.dart';
@@ -87,11 +87,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
   }
 
   Future<bool> requestWalletRemoval(Account account) async {
-    bool delete = await confirm(
-      context,
-      title: const Text("Are you sure ?"),
-      content: const Text("You are about to delete your wallet locally from this device. \n\nYou will need your Guardians and this wallet's public address to regain access to your wallet again"),
-    );
+    bool? delete = await showDialog<bool>(
+      context: context,
+      useRootNavigator: false,
+      builder: (_) => DeleteAccountConfirmDialog(account: account,)
+    ) ?? false;
     if (!delete) return false;
     int deletedWalletIndex = PersistentData.accounts.indexOf(account);
     await WalletConnectController.disconnectAllSessions();
@@ -198,11 +198,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
                         Get.back(result: true);
                       },
                       onPressRemove: (Account account) async {
-                        /*bool removed = await requestWalletRemoval(account);
+                        bool removed = await requestWalletRemoval(account);
                         if (removed){
                           Get.back(result: true);
                           return;
-                        }*/
+                        }
                       },
                       onSetupRecovery: (Account account) async {
                         PersistentData.selectAccount(address: account.address, chainId: account.chainId);
