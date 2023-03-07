@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
@@ -103,7 +104,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
     await Hive.box("activity").delete("transactions(${account.address.hex}-${account.chainId})");
     await Hive.box("wallet_connect").delete("sessions(1)(${account.address.hex}-${account.chainId})");
     if (PersistentData.accounts.isEmpty){
+      SignersController.instance.clearPrivateKeys();
+      await Hive.box("wallet").clear();
+      await Hive.box("signers").clear();
       Get.off(const LandingScreen());
+      return false;
     }else{
       Account nextAccount;
       if (PersistentData.accounts.length > deletedWalletIndex + 1){
