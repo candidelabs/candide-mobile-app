@@ -97,7 +97,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                 RichText(
                   text: TextSpan(
                     text: Utils.truncate(widget.account.name, leadingDigits: 12, trailingDigits: 12),
-                    style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),
+                    style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
                     /*children: const [ // todo re-visit when ens services are up
                       TextSpan(
                         text: ".candide.id",
@@ -127,7 +127,6 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                 children: [
                   Text(Utils.truncate(widget.account.address.hex, leadingDigits: 4, trailingDigits: 4), textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12)),
                   const SizedBox(width: 5,),
-                  const Icon(PhosphorIcons.copyLight, size: 14,)
                 ],
               ),
             ),
