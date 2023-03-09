@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:walletconnect_dart/walletconnect_dart.dart';
 
 class WCSessionRequestSheet extends StatefulWidget {
@@ -78,18 +79,34 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
                   text: " wants to connect",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 16),
                 ),
-                TextSpan(
-                  text: "\n\n$peerUrl",
-                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12, color: Colors.grey, height: 0.2),
-                ),
               ]
             )
+          ),
+        ),
+        const SizedBox(height: 5,),
+        InkWell(
+          onTap: () => Utils.launchUri(peerUrl, mode: LaunchMode.externalApplication),
+          borderRadius: BorderRadius.circular(15),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.35),
+              borderRadius: BorderRadius.circular(15)
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(peerUrl, textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12)),
+                const SizedBox(width: 5,),
+                const Icon(PhosphorIcons.arrowSquareOut, size: 14,),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 25,),
         SizedBox(
           width: Get.width * 0.9,
-          child: Text("By connecting you are giving those permissions to this dapp:", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 14)),
+          child: Text("App Permissions:", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 14, color: Colors.grey)),
         ),
         const SizedBox(height: 10,),
         Container(
@@ -99,18 +116,27 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: const [
-                  Icon(PhosphorIcons.walletLight, color: Colors.grey,),
+                  Icon(PhosphorIcons.walletLight, color: Colors.green,),
                   SizedBox(width: 10,),
-                  Text("View your balance and activity", style: TextStyle(color: Colors.grey)),
+                  Text("View your balance and activity", style: TextStyle(color: Colors.white)),
                 ],
               ),
               const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: const [
-                  Icon(PhosphorIcons.currencyEthLight, color: Colors.grey,),
+                  Icon(PhosphorIcons.currencyEthLight, color: Colors.green,),
                   SizedBox(width: 10,),
-                  Text("Request approval for transactions", style: TextStyle(color: Colors.grey)),
+                  Text("Request approval for transactions", style: TextStyle(color: Colors.white)),
+                ],
+              ),
+              const SizedBox(height: 5,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: const [
+                  Icon(PhosphorIcons.x, color: Colors.red,),
+                  SizedBox(width: 10,),
+                  Text("Transfer your assets without consent", style: TextStyle(color: Colors.white)),
                 ],
               ),
             ],
