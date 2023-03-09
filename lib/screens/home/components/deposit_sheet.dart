@@ -160,7 +160,7 @@ class DepositAlertFundsLoss extends StatelessWidget {
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)
                     ),
                     const TextSpan(
-                      text: " network.\n",
+                      text: ".\n",
                     ),
                     const TextSpan(
                       text: "Only deposit from ",
