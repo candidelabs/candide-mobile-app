@@ -98,6 +98,7 @@ class Networks {
           name: "Optimism",
           testnetData: null,
           color: const Color(0xfff01a37),
+          chainLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
           logo: SvgPicture.asset("assets/images/optimism.svg"),
           nativeCurrency: 'ETH',
           chainId: BigInt.from(10),
@@ -138,6 +139,7 @@ class Network{
   String name;
   _TestnetData? testnetData;
   Color color;
+  Widget? chainLogo;
   Widget logo;
   String nativeCurrency;
   BigInt chainId;
@@ -161,6 +163,7 @@ class Network{
       {required this.name,
       this.testnetData,
       required this.color,
+      this.chainLogo,
       required this.logo,
       required this.nativeCurrency,
       required this.chainId,
