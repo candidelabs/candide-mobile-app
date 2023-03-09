@@ -61,7 +61,19 @@ class WCSignatureRejectDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       contentPadding: EdgeInsets.zero,
-      title: Text("Wallet not deployed", textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+      title: RichText(
+        textAlign: TextAlign.center,
+        text: TextSpan(
+            text: connector.session.peerMeta!.name,
+            style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 22, color: Get.theme.colorScheme.primary),
+            children: const [
+              TextSpan(
+                text: " wants your signature",
+                style: TextStyle(fontSize: 20, color: Colors.white),
+              )
+            ]
+        ),
+      ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -80,21 +92,9 @@ class WCSignatureRejectDialog extends StatelessWidget {
                   width: Get.width * 0.4,
                   repeat: true,
                 ),
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: TextSpan(
-                      text: connector.session.peerMeta!.name,
-                      style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 22, color: Get.theme.colorScheme.primary),
-                      children: const [
-                        TextSpan(
-                          text: " wants your signature",
-                          style: TextStyle(fontSize: 20, color: Colors.white),
-                        )
-                      ]
-                  ),
-                ),
+                Text("Your account needs to be activated", textAlign: TextAlign.left, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
                 const SizedBox(height: 10,),
-                Text("Signing feature is not accessible until your wallet has been deployed.\nPlease note that deployment occurs automatically upon completion of your initial transaction with this wallet.", textAlign: TextAlign.start, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, color: Colors.grey)),
+                Text("In order to sign this message you need to first activate your account on ${Networks.selected().name}\n\nActivating your account can be done manually or automatically on your first transaction.", textAlign: TextAlign.start, style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 15, color: Colors.white)),
               ],
             ),
           ),
@@ -111,7 +111,7 @@ class WCSignatureRejectDialog extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.symmetric(horizontal: BorderSide(color: Colors.grey.withOpacity(0.5), width: 0.5)),
               ),
-              child:  Text("Manually deploy wallet", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary, fontSize: 15)),
+              child:  Text("Manually Activate Account", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Get.theme.colorScheme.primary, fontSize: 15)),
             ),
           ),
           InkWell(
