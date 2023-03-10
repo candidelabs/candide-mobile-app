@@ -122,13 +122,7 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                 color: network.color.withOpacity(0.35),
                 borderRadius: BorderRadius.circular(15)
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(Utils.truncate(widget.account.address.hex, leadingDigits: 4, trailingDigits: 4), textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12)),
-                  const SizedBox(width: 5,),
-                ],
-              ),
+              child: Text(Utils.truncate(widget.account.address.hex, leadingDigits: 4, trailingDigits: 4), textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12)),
             ),
           )
         ],

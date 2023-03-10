@@ -8,6 +8,7 @@ import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/home/components/delete_account_confirm_dialog.dart';
 import 'package:candide_mobile_app/screens/home/components/header_widget.dart';
+import 'package:candide_mobile_app/screens/home/components/recover_warning_card.dart';
 import 'package:candide_mobile_app/screens/home/components/token_management_sheet.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_sheet.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_main_sheet.dart';
@@ -51,6 +52,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
   bool isRecovery = false;
   RecoveryRequest? recoveryRequest;
   Account account = PersistentData.selectedAccount;
+  bool? accountRecoverable = true;
 
   fetchOverview() async {
     await Explorer.fetchAddressOverview(
@@ -134,10 +136,19 @@ class _OverviewScreenState extends State<OverviewScreen> {
       ),
     );
   }
+
+  void checkRecoverability() async {
+    setState(() => accountRecoverable = null);
+    if (account.recoveryId != null) return;
+    bool _recoverable = await PersistentData.isAccountRecoverable(account);
+    if (!mounted) return;
+    setState(() => accountRecoverable = _recoverable);
+  }
   
   @override
   void initState() {
     checkRecovery();
+    checkRecoverability();
     PersistentData.loadExplorerJson(account, null);
     transactionStatusSubscription = eventBus.on<OnTransactionStatusChange>().listen((event) {
       if (!mounted) return;
@@ -243,6 +254,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 if (refresh){
                   account = PersistentData.selectedAccount;
                   checkRecovery();
+                  checkRecoverability();
                   _refreshController.requestRefresh();
                   eventBus.fire(OnAccountChange());
                   setState(() {});
@@ -306,6 +318,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               balance: PersistentData.accountBalance,
             ) : const SizedBox.shrink(),
             const SizedBox(height: 10,),
+            !isRecovery && accountRecoverable == false ? RecoverWarningCard(
+              onPressed: (){
+                eventBus.fire(OnHomeRequestChangePageIndex(index: 2));
+              },
+            ) : const SizedBox.shrink(),
             !isRecovery ? Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
