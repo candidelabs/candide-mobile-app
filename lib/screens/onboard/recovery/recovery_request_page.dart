@@ -296,7 +296,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                text: "A grace period has started.\n",
+                text: "A wait period has started.\n",
                 style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),
                 children: [
                   const TextSpan(
