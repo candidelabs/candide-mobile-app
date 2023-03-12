@@ -356,6 +356,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
               children: [
                 for (TokenInfo token in TokenInfoStorage.tokens.where((element) => element.visible))
                   CurrencyBalanceCard(token: token, balanceVisible: balancesVisible,),
+                const SizedBox(height: 10,)
               ],
             ) : const SizedBox.shrink(),
             //const SizedBox(height: 10,),

@@ -1,5 +1,8 @@
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/models/gas_estimators/gas_estimator.dart';
+import 'package:candide_mobile_app/models/gas_estimators/l1_gas_estimator.dart';
+import 'package:candide_mobile_app/models/gas_estimators/l2_gas_estimator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -32,6 +35,8 @@ class Networks {
           socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
           multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
+          //
+          gasEstimator: L2GasEstimator(chainId: 420, ovmGasOracle: EthereumAddress.fromHex("0x420000000000000000000000000000000000000F")),
           //
           client: Web3Client(Env.optimismGoerliRpcEndpoint, Client()),
           //
@@ -74,6 +79,8 @@ class Networks {
           //
           ensRegistryWithFallback: EthereumAddress.fromHex("0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
           //
+          gasEstimator: L1GasEstimator(chainId: 5),
+          //
           client: Web3Client(Env.goerliRpcEndpoint, Client()),
           //
           features: {
@@ -112,6 +119,7 @@ class Networks {
           fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
           socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
+          multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
           //
           client: Web3Client(Env.optimismRpcEndpoint, Client()),
           //
@@ -153,6 +161,7 @@ class Network{
   EthereumAddress entrypoint;
   EthereumAddress multiSendCall;
   EthereumAddress? ensRegistryWithFallback;
+  GasEstimator gasEstimator;
   Web3Client client;
   Magic? magicInstance;
   Map<String, dynamic> features;
@@ -177,6 +186,7 @@ class Network{
       required this.entrypoint,
       required this.multiSendCall,
       this.ensRegistryWithFallback,
+      required this.gasEstimator,
       required this.client,
       required this.features});
 

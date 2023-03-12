@@ -5,6 +5,7 @@ import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:dio/dio.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
@@ -40,7 +41,6 @@ class Bundler {
           })
       );
       //
-      //print(response.data);
       if ((response.data as Map).containsKey("error")){
         if (response.data["error"]["data"]["status"] == "failed-to-submit"){
           return RelayResponse(status: "failed-to-submit", hash: response.data["error"]["data"]["txHash"]);
@@ -51,6 +51,37 @@ class Bundler {
     } on DioError catch(e){
       print("Error occurred ${e.type.toString()}");
       return RelayResponse(status: "failed-to-submit", hash: null);
+    }
+  }
+
+  static Future<GasEstimate?> getUserOperationGasEstimates(UserOperation operation, int chainId) async {
+    var bundlerEndpoint = Env.getBundlerUrlByChainId(chainId);
+    try{
+      var response = await Dio().post(
+          "$bundlerEndpoint/jsonrpc/bundler",
+          data: jsonEncode({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "eth_estimateUserOperationGas",
+            "params": [
+              operation.toJson()
+            ]
+          })
+      );
+      //
+      if ((response.data as Map).containsKey("error")){
+        return null;
+      }
+      return GasEstimate(
+        callGasLimit: ((response.data["result"]["callGasLimit"] * 1.2) as double).toInt(),
+        verificationGasLimit: response.data["result"]["verificationGasLimit"],
+        preVerificationGas: response.data["result"]["preVerificationGas"],
+        maxFeePerGas: 0,
+        maxPriorityFeePerGas: 0,
+      );
+    } on DioError catch(e){
+      print("Error occurred ${e.type.toString()}");
+      return null;
     }
   }
 

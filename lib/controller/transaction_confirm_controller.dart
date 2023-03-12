@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
@@ -61,10 +59,7 @@ class TransactionConfirmController {
       }
     }
     //
-    Uint8List privateKey = credentials.privateKey;
     await Explorer.fetchAddressOverview(account: PersistentData.selectedAccount, skipBalances: true);
-    batch.configureNonces(PersistentData.accountStatus.nonce);
-    batch.signTransactions(privateKey, PersistentData.selectedAccount);
     UserOperation unsignedUserOperation = await batch.toUserOperation(
       PersistentData.selectedAccount,
       PersistentData.accountStatus.nonce,
