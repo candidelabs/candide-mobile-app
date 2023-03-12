@@ -12,6 +12,7 @@ import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/controller/send_controller.dart';
 import 'package:candide_mobile_app/screens/home/send/send_amount_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/send_to_sheet.dart';
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
@@ -113,6 +114,12 @@ class _SendSheetState extends State<SendSheet> {
       onBack: (){
         gotoPage(1);
       },
+      confirmCheckboxes: [
+        currency.address == Constants.addressZeroHex
+            ? ["I am not sending to an exchange", "Most exchanges do not detect \$${currency.symbol} transfers coming from smart contract accounts"]
+            : null,
+        ["The person I'm sending to has a wallet that supports ${Networks.selected().name} network"],
+      ],
     );
     //
     gotoPage(2);

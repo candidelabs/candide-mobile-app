@@ -98,7 +98,7 @@ class GuardianOperationsHelper {
           batch: grantBatch,
           transactionActivity: transactionActivity,
           confirmCheckboxes: magicLinkData == null ? [
-            "The recovery contact has a wallet that supports ${Networks.selected().name} network",
+            ["The recovery contact has a wallet that supports ${Networks.selected().name} network"],
           ] : [],
         );
       },
