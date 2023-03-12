@@ -9,6 +9,7 @@ import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/components/token_fee_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:info_popup/info_popup.dart';
 
 class TransactionReviewSheet extends StatefulWidget {
   final String? modalId;
@@ -20,7 +21,7 @@ class TransactionReviewSheet extends StatefulWidget {
   final Map<String, String> tableEntriesData;
   final VoidCallback? onBack;
   final bool showRejectButton;
-  final List<String> confirmCheckboxes;
+  final List<List<String>?> confirmCheckboxes;
   const TransactionReviewSheet({
     Key? key,
     this.modalId,
@@ -106,7 +107,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     }else{
       errorMessage = _errors["fee"]!;
     }
-    confirmedCheckBoxes = List.generate(widget.confirmCheckboxes.length, (index) => false);
+    confirmedCheckBoxes = List.generate(widget.confirmCheckboxes.length, (index) => widget.confirmCheckboxes[index] == null || widget.confirmCheckboxes[index]!.isEmpty ? true : false);
     super.initState();
   }
 
@@ -170,15 +171,46 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                     child: Column(
                       children: [
                         for (int i=0; i < widget.confirmCheckboxes.length; i++)
-                          CheckboxListTile(
-                            onChanged: (val) => setState(() => confirmedCheckBoxes[i] = val ?? false),
-                            value: confirmedCheckBoxes[i],
-                            activeColor: Colors.blue,
-                            title: Text(
-                              widget.confirmCheckboxes[i],
-                              style: const TextStyle(fontSize: 13, color: Colors.white),
+                          widget.confirmCheckboxes[i] != null && widget.confirmCheckboxes[i]!.isNotEmpty ? FittedBox(
+                            fit: BoxFit.fitWidth,
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                  width: Get.width,
+                                  child: Directionality(
+                                    textDirection: TextDirection.rtl,
+                                    child: CheckboxListTile(
+                                      onChanged: (val) => setState(() => confirmedCheckBoxes[i] = val ?? false),
+                                      value: confirmedCheckBoxes[i],
+                                      activeColor: Colors.blue,
+                                      contentPadding: EdgeInsets.zero,
+                                      title: Text(
+                                        widget.confirmCheckboxes[i]![0],
+                                        textDirection: TextDirection.ltr,
+                                        style: const TextStyle(fontSize: 13, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                widget.confirmCheckboxes[i]!.length > 1 ? InfoPopupWidget(
+                                  arrowTheme: InfoPopupArrowTheme(
+                                    color: Colors.black.withOpacity(0.8),
+                                  ),
+                                  customContent: Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+                                    decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.8),
+                                        borderRadius: BorderRadius.circular(8)
+                                    ),
+                                    child: Text(widget.confirmCheckboxes[i]![1]),
+                                  ),
+                                  child: const Icon(
+                                    Icons.info,
+                                  ),
+                                ) : const SizedBox.shrink(),
+                              ],
                             ),
-                          ),
+                          ) : const SizedBox.shrink(),
                       ],
                     ),
                   ),
