@@ -106,6 +106,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     await Hive.box("activity").delete("transactions(${account.address.hex}-${account.chainId})");
     await Hive.box("wallet_connect").delete("sessions(1)(${account.address.hex}-${account.chainId})");
     if (PersistentData.accounts.isEmpty){
+      PersistentData.walletSigners.clear();
       SignersController.instance.clearPrivateKeys();
       await Hive.box("wallet").clear();
       await Hive.box("signers").clear();
