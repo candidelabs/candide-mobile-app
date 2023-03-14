@@ -21,7 +21,7 @@ class RecoverAccountSheet extends StatefulWidget {
 
 class _RecoverAccountSheetState extends State<RecoverAccountSheet> {
   String _lostAccountAddress = "";
-  int chainId = Networks.instances[0].chainId.toInt();
+  int chainId = Networks.instances.firstWhere((element) => element.visible).chainId.toInt();
   bool isValid = false;
 
   @override

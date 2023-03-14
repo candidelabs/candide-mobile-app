@@ -64,6 +64,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Hive.openBox("tokens_storage"),
     ]);
     Networks.initialize();
+    Networks.configureVisibility();
     PersistentData.loadSigners();
     PersistentData.loadAccounts();
     SettingsData.loadFromJson(null);

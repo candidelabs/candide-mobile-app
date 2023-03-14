@@ -4,7 +4,6 @@ import 'package:candide_mobile_app/models/gas_estimators/gas_estimator.dart';
 import 'package:candide_mobile_app/models/gas_estimators/l1_gas_estimator.dart';
 import 'package:candide_mobile_app/models/gas_estimators/l2_gas_estimator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:magic_sdk/magic_sdk.dart';
 import 'package:web3dart/web3dart.dart';
@@ -14,14 +13,25 @@ class Networks {
   static List<Network> instances = [];
   static final Map<int, Network> _instancesMap = {};
 
+  static configureVisibility(){
+    var hiddenNetworks = PersistentData.loadHiddenNetworks();
+    for (Network network in instances){
+      if (hiddenNetworks.contains(network.chainId.toInt())){
+        network.visible = false;
+      }else{
+        network.visible = true;
+      }
+    }
+  }
+
   static initialize(){
     instances.addAll(
       [
         Network(
           name: "Optimism Goerli",
           testnetData: _TestnetData(testnetForChainId: 10),
+          visible: false,
           color: const Color.fromARGB(255, 255, 137, 225),
-          logo: SvgPicture.asset("assets/images/optimism.svg"),
           nativeCurrency: 'ETH',
           chainId: BigInt.from(420),
           explorerUrl: "https://goerli-optimism.etherscan.io",
@@ -61,8 +71,8 @@ class Networks {
         Network(
           name: "Görli",
           testnetData: _TestnetData(testnetForChainId: 1),
+          visible: false,
           color: const Color(0xff4d99eb),
-          logo: SvgPicture.asset("assets/images/optimism.svg"),
           nativeCurrency: 'ETH',
           chainId: BigInt.from(5),
           explorerUrl: "https://goerli.etherscan.io",
@@ -104,9 +114,10 @@ class Networks {
         /*Network(
           name: "Optimism",
           testnetData: null,
+          visible: true,
           color: const Color(0xfff01a37),
-          chainLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
           logo: SvgPicture.asset("assets/images/optimism.svg"),
+          extendedLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
           nativeCurrency: 'ETH',
           chainId: BigInt.from(10),
           explorerUrl: "https://optimism.etherscan.io",
@@ -121,15 +132,27 @@ class Networks {
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
           multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
           //
+          gasEstimator: L2GasEstimator(chainId: 420, ovmGasOracle: EthereumAddress.fromHex("0x420000000000000000000000000000000000000F")),
+          //
           client: Web3Client(Env.optimismRpcEndpoint, Client()),
           //
-          features: [
-            "deposit-simple",
-            "deposit-fiat",
-            "transfer",
-            "swap",
-            "social-recovery"
-          ],
+          features: {
+            "deposit": {
+              "deposit-address": true,
+              "deposit-fiat": false,
+            },
+            "transfer": {
+              "basic": true
+            },
+            "swap": {
+              "basic": true
+            },
+            "social-recovery": {
+              "family-and-friends": true,
+              "magic-link": false,
+              "hardware-wallet": true,
+            },
+          },
         ),*/
       ]
     );
@@ -147,8 +170,8 @@ class Network{
   String name;
   _TestnetData? testnetData;
   Color color;
-  Widget? chainLogo;
-  Widget logo;
+  Widget? logo;
+  Widget? extendedLogo;
   String nativeCurrency;
   BigInt chainId;
   String explorerUrl;
@@ -165,6 +188,8 @@ class Network{
   Web3Client client;
   Magic? magicInstance;
   Map<String, dynamic> features;
+  //
+  bool visible;
 
   String get normalizedName => name.replaceAll("ö", "oe");
 
@@ -172,8 +197,8 @@ class Network{
       {required this.name,
       this.testnetData,
       required this.color,
-      this.chainLogo,
-      required this.logo,
+      this.logo,
+      this.extendedLogo,
       required this.nativeCurrency,
       required this.chainId,
       required this.explorerUrl,
@@ -188,7 +213,8 @@ class Network{
       this.ensRegistryWithFallback,
       required this.gasEstimator,
       required this.client,
-      required this.features});
+      required this.features,
+      this.visible=true});
 
   bool isFeatureEnabled(String feature){
     if (!feature.contains(".")){

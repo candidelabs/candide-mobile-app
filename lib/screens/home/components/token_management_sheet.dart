@@ -76,14 +76,11 @@ class _TokenCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 15),
       child: Card(
         child: ListTile(
-          trailing: Transform.scale(
-            scale: 0.7,
-            child: CustomSwitch(
-              onChanged: (bool selected) => onVisibilityChange(),
-              activeColor: Colors.blue,
-              inactiveColor: Colors.grey[850],
-              value: token.visible,
-            ),
+          trailing: CustomSwitch(
+            onChanged: (bool selected) => onVisibilityChange(),
+            activeColor: Colors.blueAccent,
+            inactiveColor: Colors.grey[850],
+            value: token.visible,
           ),
           title: Row(
             mainAxisAlignment: MainAxisAlignment.start,

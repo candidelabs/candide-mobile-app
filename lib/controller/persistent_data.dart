@@ -27,6 +27,9 @@ class PersistentData {
   // Load from Box called "state" at "guardians_metadata(accountAddress-chainId)"
   static List<AccountGuardian> guardians = [];
 
+  // Load from Box called "state" at "hidden_networks"
+  static List<int> hiddenNetworks = [];
+
   // Load from Box called "state" at "address_data(accountAddress-chainId)"
   static late AccountStatus accountStatus;
   static late AccountBalance accountBalance;
@@ -226,8 +229,6 @@ class PersistentData {
     await Hive.box("wallet").put("accounts", accounts.map((e) => e.toJson()).toList());
   }
 
-
-
   static void selectAccount({EthereumAddress? address, int? chainId}){
     if (address == null || chainId == null){
       String? selectedData = Hive.box("wallet").get("selected_account", defaultValue: null);
@@ -266,6 +267,15 @@ class PersistentData {
     loadExplorerJson(account, json);
     //
     await Hive.box("state").put("address_data(${account.address.hex}-${account.chainId})", json);
+  }
+
+  static List<int> loadHiddenNetworks() {
+    hiddenNetworks = Hive.box("state").get("hidden_networks", defaultValue: []).cast<int>();
+    return hiddenNetworks;
+  }
+
+  static Future<void> storeHiddenNetworks() async {
+    await Hive.box("state").put("hidden_networks", hiddenNetworks);
   }
 
   static BigInt getCurrencyBalance(String currencyAddress){

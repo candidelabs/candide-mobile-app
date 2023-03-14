@@ -8,7 +8,7 @@ class NetworkBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return network.chainLogo == null ? Container(
+    return network.extendedLogo == null ? Container(
       padding: const EdgeInsets.symmetric(vertical: 3),
       decoration: BoxDecoration(
         color: network.color.withOpacity(0.35),
@@ -37,6 +37,6 @@ class NetworkBar extends StatelessWidget {
           const SizedBox(width: 10,),
         ],
       ),
-    ) : SizedBox(width: 90, child: network.chainLogo,);
+    ) : SizedBox(width: 90, child: network.extendedLogo,);
   }
 }

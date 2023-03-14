@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:animations/animations.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/screens/home/activity/activity_screen.dart';
@@ -39,14 +40,14 @@ class _HomeScreenState extends State<HomeScreen> {
     WalletConnectController.restoreAllSessions(PersistentData.selectedAccount);
     PersistentData.loadTransactionsActivity(PersistentData.selectedAccount);
     WalletConnectController.startConnectivityAssuranceTimer();
-    if (PersistentData.selectedAccount.recoveryId != null){
+    if (PersistentData.selectedAccount.recoveryId != null || !Networks.selected().visible){
       showNavigationBar = false;
     }
     //
     accountChangeListener = eventBus.on<OnAccountChange>().listen((event) {
       if (!mounted) return;
       PersistentData.loadTransactionsActivity(PersistentData.selectedAccount);
-      if (PersistentData.selectedAccount.recoveryId != null){
+      if (PersistentData.selectedAccount.recoveryId != null || !Networks.selected().visible){
         showNavigationBar = false;
       }else{
         showNavigationBar = true;

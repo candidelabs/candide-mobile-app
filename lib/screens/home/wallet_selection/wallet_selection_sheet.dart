@@ -43,6 +43,7 @@ class _AccountSelectionSheetState extends State<AccountSelectionSheet> {
   void initState() {
     Set<int> _tempChainIds = {};
     for (Account account in PersistentData.accounts){
+      if (PersistentData.hiddenNetworks.contains(account.chainId)) continue;
       _tempChainIds.add(account.chainId);
     }
     walletChainIds.addAll(_tempChainIds);
