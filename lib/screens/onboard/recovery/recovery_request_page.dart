@@ -212,7 +212,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                   onPressed: () {
                     final box = context.findRenderObject() as RenderBox?;
                     Share.share(
-                      "Here's my public address: ${widget.request.accountAddress}.\n I need you to approve my recovery request on https://security.candidewallet.com.\nInsure you are approving the same set of emojis ${widget.request.emoji!}",
+                      "Hi, I need your help to recover my CANDIDE wallet Account. Here's my public address: ${widget.request.accountAddress}.\nApprove my recovery request on https://security.candidewallet.com.\nInsure you approve the same set of emojis ${widget.request.emoji!}",
                       sharePositionOrigin:
                       box!.localToGlobal(Offset.zero) & box.size,
                     );
