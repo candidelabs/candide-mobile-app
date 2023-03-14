@@ -249,7 +249,22 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
               entries: [
                 SummaryTableEntry(
                   title: "Account address",
-                  value: refreshing ? "..." : request.accountAddress,
+                  value: "",
+                  trailing: InkWell(
+                    onTap: (){
+                      Utils.copyText(request.accountAddress, message: "Address copied to clipboard!");
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      child: Row(
+                        children: [
+                          Text(Utils.truncate(refreshing ? "..." : request.accountAddress), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13)),
+                          const SizedBox(width: 5,),
+                          const Icon(PhosphorIcons.copyLight, size: 14,),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 SummaryTableEntry(
                   title: "Recovery status",
