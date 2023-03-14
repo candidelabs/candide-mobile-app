@@ -315,7 +315,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                 style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),
                 children: [
                   const TextSpan(
-                    text: "The recovery will be finalized on\n",
+                    text: "You will regain access to your account on\n",
                   ),
                   TextSpan(
                     text: DateFormat("EEE, MMM d, yyyy hh:mm aaa").format(DateTime.fromMillisecondsSinceEpoch(onChainRecovery![2].toInt() * 1000)),
@@ -330,7 +330,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                  text: "You'll regain access to the account once it is finalized, understand more about account recovery ",
+                  text: "The wait period provides you with additional protection against the minor risk of malicious contacts overtaking your account while you are away. Learn more ",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12, color: Colors.grey),
                   children: [
                     TextSpan(
