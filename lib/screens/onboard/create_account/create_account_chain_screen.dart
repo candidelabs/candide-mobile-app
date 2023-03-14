@@ -18,7 +18,7 @@ class CreateAccountChainScreen extends StatefulWidget {
 
 class _CreateAccountChainScreenState extends State<CreateAccountChainScreen> {
   String name = "";
-  int chainId = Networks.instances[0].chainId.toInt();
+  int chainId = Networks.instances.firstWhere((element) => element.visible).chainId.toInt();
 
   bool isValidName(String name){
     /*RegExp regexp = RegExp(r"^[a-zA-Z0-9\-]+$");

@@ -30,13 +30,13 @@ class CustomSwitch extends StatelessWidget {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: SizedBox(
-        height: 35,
-        width: 70,
+        height: 21,
+        width: 44,
         child: Stack(
           children: [
             AnimatedContainer(
-              height: 35,
-              width: 70,
+              height: 21,
+              width: 44,
               curve: Curves.ease,
               duration: _kSwitchAnimationDuration,
               decoration: BoxDecoration(
@@ -51,8 +51,8 @@ class CustomSwitch extends StatelessWidget {
               duration: _kSwitchAnimationDuration,
               alignment: !value ? Alignment.centerLeft : Alignment.centerRight,
               child: Container(
-                height: 30,
-                width: 30,
+                height: 16,
+                width: 16,
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,

@@ -45,7 +45,7 @@ class CustomLicensePage extends StatelessWidget {
                               child: Column(
                                 children: [
                                   Text(currentPackage, style: const TextStyle(fontSize: 17,),),
-                                  Text("${licenseData!.packageLicenseBindings[currentPackage]!.length} Licenses", style: TextStyle(color: Theme.of(context).textTheme.subtitle2!.color,),),
+                                  Text("${licenseData!.packageLicenseBindings[currentPackage]!.length} Licenses", style: TextStyle(color: Theme.of(context).textTheme.titleSmall!.color,),),
                                 ],
                               ),
                               onPressed: () {

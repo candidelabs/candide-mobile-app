@@ -118,10 +118,10 @@ class Utils {
     }
   }
 
-  static void showError({required String title, required String message}){
+  static void showError({String? title, required String message}){
     DangerAlertBox(
         context: Get.context,
-        title: title,
+        title: title ?? "",
         titleTextColor: Get.theme.colorScheme.primary,
         messageText: message
     );

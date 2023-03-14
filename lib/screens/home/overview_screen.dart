@@ -8,6 +8,7 @@ import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/home/components/delete_account_confirm_dialog.dart';
 import 'package:candide_mobile_app/screens/home/components/header_widget.dart';
+import 'package:candide_mobile_app/screens/home/components/invisible_accounts_screen.dart';
 import 'package:candide_mobile_app/screens/home/components/recover_warning_card.dart';
 import 'package:candide_mobile_app/screens/home/components/token_management_sheet.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_sheet.dart';
@@ -47,12 +48,14 @@ class _OverviewScreenState extends State<OverviewScreen> {
   final RefreshController _refreshController = RefreshController(initialRefresh: true);
   late final StreamSubscription transactionStatusSubscription;
   late final StreamSubscription accountDataEditSubscription;
+  late final StreamSubscription accountChangeSubscription;
   //
   bool balancesVisible = true;
   bool isRecovery = false;
   RecoveryRequest? recoveryRequest;
   Account account = PersistentData.selectedAccount;
   bool? accountRecoverable = true;
+  //
 
   fetchOverview() async {
     await Explorer.fetchAddressOverview(
@@ -106,6 +109,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
     await Hive.box("activity").delete("transactions(${account.address.hex}-${account.chainId})");
     await Hive.box("wallet_connect").delete("sessions(1)(${account.address.hex}-${account.chainId})");
     if (PersistentData.accounts.isEmpty){
+      PersistentData.walletSigners.clear();
       SignersController.instance.clearPrivateKeys();
       await Hive.box("wallet").clear();
       await Hive.box("signers").clear();
@@ -147,8 +151,10 @@ class _OverviewScreenState extends State<OverviewScreen> {
   
   @override
   void initState() {
-    checkRecovery();
-    checkRecoverability();
+    if (Networks.selected().visible){
+      checkRecovery();
+      checkRecoverability();
+    }
     PersistentData.loadExplorerJson(account, null);
     transactionStatusSubscription = eventBus.on<OnTransactionStatusChange>().listen((event) {
       if (!mounted) return;
@@ -173,6 +179,18 @@ class _OverviewScreenState extends State<OverviewScreen> {
       }
       setState(() {});
     });
+    accountChangeSubscription = eventBus.on<OnAccountChange>().listen((event) {
+      if (!mounted) return;
+      account = PersistentData.selectedAccount;
+      if (Networks.selected().visible){
+        checkRecovery();
+        checkRecoverability();
+        Future.delayed(const Duration(milliseconds: 250), (){ // delay because if InvisibleAccountsScreen was rendered then refreshController would not be assigned to any SmartRefresher
+          _refreshController.requestRefresh();
+        });
+      }
+      setState(() {});
+    });
     super.initState();
   }
 
@@ -180,11 +198,15 @@ class _OverviewScreenState extends State<OverviewScreen> {
   void dispose() {
     transactionStatusSubscription.cancel();
     accountDataEditSubscription.cancel();
+    accountChangeSubscription.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!Networks.selected().visible){
+      return const InvisibleAccountsScreen();
+    }
     return SmartRefresher(
       physics: const BouncingScrollPhysics(),
       controller: _refreshController,
@@ -252,12 +274,7 @@ class _OverviewScreenState extends State<OverviewScreen> {
                 );
                 refresh ??= false;
                 if (refresh){
-                  account = PersistentData.selectedAccount;
-                  checkRecovery();
-                  checkRecoverability();
-                  _refreshController.requestRefresh();
                   eventBus.fire(OnAccountChange());
-                  setState(() {});
                 }
               },
               onPressWalletConnect: () async {
