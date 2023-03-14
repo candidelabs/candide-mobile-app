@@ -28,6 +28,7 @@ import 'package:candide_mobile_app/screens/home/send/send_sheet.dart';
 import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -222,7 +223,11 @@ class _OverviewScreenState extends State<OverviewScreen> {
               account: account,
               showWalletConnectIcon: account.recoveryId == null,
               onCopyAddress: (){
-                showDepositModal();
+                if (account.recoveryId == null){
+                  showDepositModal();
+                }else{
+                  Utils.copyText(account.address.hexEip55, message: "Address copied!");
+                }
               },
               onPressWalletSelector: () async {
                 bool? refresh = await showBarModalBottomSheet(
