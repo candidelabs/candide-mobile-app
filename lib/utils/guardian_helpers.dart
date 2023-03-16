@@ -92,7 +92,7 @@ class GuardianOperationsHelper {
           ),
           tableEntriesData: {
             "Operation": "Add Recovery Contact",
-            "Recovery Contact address": guardian.hexEip55,
+            "Address": guardian.hexEip55,
             "Network": Networks.selected().chainId.toString(),
           },
           batch: grantBatch,
@@ -181,8 +181,8 @@ class GuardianOperationsHelper {
             operation: GuardianOperation.revoke,
           ),
           tableEntriesData: {
-            "Operation": "Removing guardian",
-            "Guardian address": guardian.hexEip55,
+            "Operation": "Removing Recovery Contact",
+            "Address": guardian.hexEip55,
             "Network": Networks.selected().chainId.toString(),
           },
           batch: revokeBatch,

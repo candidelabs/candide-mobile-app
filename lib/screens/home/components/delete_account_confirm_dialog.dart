@@ -30,7 +30,7 @@ class _DeleteAccountConfirmDialogState extends State<DeleteAccountConfirmDialog>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(),
-          const Text("You are about to delete your account from this device. \n\nYou will need your Guardians and this wallet's public address to regain access to your wallet again"),
+          const Text("You are about to delete your account from this device. \n\nYou will need your Recovery Contacts and this account address to regain access to it again"),
           Text("\nAccount name: ${widget.account.name}", style: const TextStyle(fontWeight: FontWeight.bold),),
           Text("Account network: ${Networks.getByChainId(widget.account.chainId)!.name}", style: const TextStyle(fontWeight: FontWeight.bold),),
           const SizedBox(height: 10,),
