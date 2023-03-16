@@ -76,7 +76,7 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     const SizedBox(height: 15,),
-                    Text("Guardian Details", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
+                    Text("Recovery Contact Details", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 20),),
                     const SizedBox(height: 50,),
                     Transform.scale(
                         scale: 2.5,
@@ -110,7 +110,7 @@ class _GuardianDetailsCardState extends State<GuardianDetailsSheet> {
                       child: SummaryTable(
                         entries: [
                           SummaryTableEntry(
-                            title: "Guardian Address",
+                            title: "Address",
                             value: Utils.truncate(widget.guardian.address, trailingDigits: 4),
                             trailing: IconButton(
                               splashRadius: 12,
