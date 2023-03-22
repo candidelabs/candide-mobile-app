@@ -112,7 +112,7 @@ class WalletConnectController {
       connector.reconnect();
     }
     if (!connector.connected){
-      connector.connect(chainId: 5);
+      connector.connect(chainId: Networks.selected().chainId.toInt());
     }
     instances.add(this);
     return connector;
