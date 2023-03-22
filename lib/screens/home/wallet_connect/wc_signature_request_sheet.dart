@@ -104,7 +104,7 @@ class _SignatureRequestSheetState extends State<SignatureRequestSheet> {
                   const SizedBox(height: 50,),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Text(signatureContent, style: const TextStyle(fontSize: 12, color: Colors.grey),)
+                    child: Text(signatureContent, style: const TextStyle(fontSize: 15, color: Colors.white),)
                   ),
                   const Spacer(),
                   Row(
