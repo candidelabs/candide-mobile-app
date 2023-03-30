@@ -11,6 +11,7 @@ class L1GasEstimator extends GasEstimator {
 
   @override
   Future<List<int>?> getNetworkGasFees() async {
+    if (chainId == 11155111) return [1510000000, 1500000000];
     try{
       var response = await Dio().get("https://gas-api.metaswap.codefi.network/networks/$chainId/suggestedGasFees");
       //
