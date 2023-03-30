@@ -56,6 +56,9 @@ class TopTokens {
       ["0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1", "DAI", 18],
       ["0xeeDeF0B71B98Fb3563184706C3e94Dd2d8abd927", "USDC", 6],
     ],
+    11155111: [
+      ["0x0000000000000000000000000000000000000000", "ETH", 18],
+    ],
   };
 
   static List<EthereumAddress> getChainTokens(int chainId){

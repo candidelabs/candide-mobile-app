@@ -154,6 +154,47 @@ class Networks {
             },
           },
         ),*/
+        Network(
+          name: "Sepolia",
+          testnetData: _TestnetData(testnetForChainId: 1),
+          visible: true,
+          color: Colors.green,
+          nativeCurrency: 'ETH',
+          chainId: BigInt.from(11155111),
+          explorerUrl: "https://sepolia.etherscan.io",
+          //
+          coinGeckoAssetPlatform: "ethereum",
+          candideBalances: EthereumAddress.fromHex("0xa5d1be20e7b73651416cc04c86d6e4f79a012960"),
+          //
+          safeSingleton: EthereumAddress.fromHex("0x8505037E655eBC2Ff57cabf3aa8d19790E60aF02"),
+          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
+          fallbackHandler: EthereumAddress.fromHex("0x017062a1dE2FE6b99BE3d9d37841FeD19F573804"),
+          socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
+          entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
+          multiSendCall: EthereumAddress.fromHex("0x998739BFdAAdde7C933B942a68053933098f9EDa"),
+          //
+          gasEstimator: L1GasEstimator(chainId: 11155111),
+          //
+          client: Web3Client(Env.sepoliaRpcEndpoint, Client()),
+          //
+          features: {
+            "deposit": {
+              "deposit-address": true,
+              "deposit-fiat": false,
+            },
+            "transfer": {
+              "basic": true
+            },
+            "swap": {
+              "basic": true
+            },
+            "social-recovery": {
+              "family-and-friends": true,
+              "magic-link": false,
+              "hardware-wallet": true,
+            },
+          },
+        ),
       ]
     );
     for (Network network in instances){

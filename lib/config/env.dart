@@ -5,10 +5,12 @@ class Env {
   static late String securityUri;
   static late String goerliBundlerEndpoint;
   static late String optimismGoerliBundlerEndpoint;
+  static late String sepoliaBundlerEndpoint;
   static late String mainnetRpcEndpoint;
   static late String goerliRpcEndpoint;
   static late String optimismGoerliRpcEndpoint;
   static late String optimismRpcEndpoint;
+  static late String sepoliaRpcEndpoint;
   static late String magicApiKey;
 
   static String getNodeUrlByChainId(int chainId){
@@ -16,6 +18,7 @@ class Env {
       case 5: return goerliRpcEndpoint;
       case 10: return optimismRpcEndpoint;
       case 420: return optimismGoerliRpcEndpoint;
+      case 11155111: return sepoliaRpcEndpoint;
       //
       default: return optimismRpcEndpoint;
     }
@@ -26,6 +29,7 @@ class Env {
       case 5: return goerliBundlerEndpoint;
       //case 10: return optimismGoerliBundlerEndpoint;
       case 420: return optimismGoerliBundlerEndpoint;
+      case 11155111: return sepoliaBundlerEndpoint;
       //
       default: return optimismRpcEndpoint;
     }
@@ -38,9 +42,11 @@ class Env {
     magicApiKey = dotenv.get('MAGIC_API_KEY', fallback: '-');
     goerliBundlerEndpoint = dotenv.get('GOERLI_BUNDLER_NODE', fallback: '-');
     optimismGoerliBundlerEndpoint = dotenv.get('OPTIMISM_GOERLI_BUNDLER_NODE', fallback: '-');
+    sepoliaBundlerEndpoint = dotenv.get('SEPOLIA_BUNDLER_NODE', fallback: '-');
     mainnetRpcEndpoint = dotenv.get('MAINNET_NODE_RPC_ENDPOINT', fallback: '-');
     goerliRpcEndpoint = dotenv.get('GOERLI_NODE_RPC_ENDPOINT', fallback: '-');
     optimismGoerliRpcEndpoint = dotenv.get('OPTIMISM_GOERLI_NODE_RPC_ENDPOINT', fallback: '-');
     optimismRpcEndpoint = dotenv.get('OPTIMISM_NODE_RPC_ENDPOINT', fallback: '-');
+    sepoliaRpcEndpoint = dotenv.get('SEPOLIA_NODE_RPC_ENDPOINT', fallback: '-');
   }
 }

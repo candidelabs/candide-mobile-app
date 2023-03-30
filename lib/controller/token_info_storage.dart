@@ -98,6 +98,16 @@ class TokenInfoStorage {
         logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/optimism.svg",
         visible: false,
       ),
+    ],
+    11155111: [
+      TokenInfo(
+        name: "Ethereum",
+        symbol: "ETH",
+        address: "0x0000000000000000000000000000000000000000",
+        decimals: 18,
+        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/ethereum.svg",
+        visible: true,
+      ),
     ]
   };
 
