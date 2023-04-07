@@ -26,6 +26,7 @@ class SwapController {
         baseCurrencyValue
       )),
       type: GnosisTransactionType.execTransactionFromEntrypoint,
+      suggestedGasLimit: BigInt.from(50000),
     ) : null;
     //
     GnosisTransaction swapTransaction = GnosisTransaction(
@@ -34,6 +35,7 @@ class SwapController {
       value: BigInt.parse(optimalQuote.transaction["value"]),
       data: hexToBytes(optimalQuote.transaction["data"]),
       type: GnosisTransactionType.execTransactionFromEntrypoint,
+      suggestedGasLimit: BigInt.from(150000),
     );
     //
     if (approveRouterTransaction != null){

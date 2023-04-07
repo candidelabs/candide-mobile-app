@@ -10,12 +10,12 @@ import 'package:hive_flutter/hive_flutter.dart';
 void main() async {
   await Env.initialize();
   await Hive.initFlutter();
-  runApp(const MyApp());
+  runApp(const CandideApp());
 }
 
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class CandideApp extends StatelessWidget {
+  const CandideApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

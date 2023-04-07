@@ -1069,12 +1069,20 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  version:
+    dependency: "direct main"
+    description:
+      name: version
+      sha256: "3d4140128e6ea10d83da32fef2fa4003fccbf6852217bb854845802f04191f94"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.2"
   wallet_dart:
     dependency: "direct main"
     description:
       path: "."
       ref: main
-      resolved-ref: "613a46eebae0f2b7fab3ca0cc8be73ae801d8c69"
+      resolved-ref: "679ffa98823d78e384a9016ec3340b361465329e"
       url: "https://github.com/candidelabs/wallet-dart.git"
     source: git
     version: "0.0.1"

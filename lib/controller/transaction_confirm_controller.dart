@@ -62,7 +62,7 @@ class TransactionConfirmController {
     await Explorer.fetchAddressOverview(account: PersistentData.selectedAccount, skipBalances: true);
     UserOperation unsignedUserOperation = await batch.toUserOperation(
       PersistentData.selectedAccount,
-      PersistentData.accountStatus.nonce,
+      BigInt.from(PersistentData.accountStatus.nonce),
       proxyDeployed: PersistentData.accountStatus.proxyDeployed,
     );
     //

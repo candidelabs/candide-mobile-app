@@ -4,6 +4,7 @@ import 'package:candide_mobile_app/models/gas_estimators/gas_estimator.dart';
 import 'package:candide_mobile_app/models/gas_estimators/l1_gas_estimator.dart';
 import 'package:candide_mobile_app/models/gas_estimators/l2_gas_estimator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:magic_sdk/magic_sdk.dart';
 import 'package:web3dart/web3dart.dart';
@@ -28,6 +29,49 @@ class Networks {
     instances.addAll(
       [
         Network(
+          name: "Optimism",
+          testnetData: null,
+          visible: true,
+          color: const Color(0xfff01a37),
+          logo: SvgPicture.asset("assets/images/optimism.svg"),
+          extendedLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
+          nativeCurrency: 'ETH',
+          chainId: BigInt.from(10),
+          explorerUrl: "https://optimism.etherscan.io",
+          //
+          coinGeckoAssetPlatform: "optimistic-ethereum",
+          candideBalances: EthereumAddress.fromHex("0x82998037a1C25D374c421A620db6D9ff26Fb50b5"),
+          //
+          safeSingleton: EthereumAddress.fromHex("0x8505037E655eBC2Ff57cabf3aa8d19790E60aF02"),
+          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
+          fallbackHandler: EthereumAddress.fromHex("0x017062a1dE2FE6b99BE3d9d37841FeD19F573804"),
+          socialRecoveryModule: EthereumAddress.fromHex("0x4490F5eca1814a24a9ed9203DFA1B2FdE3795C9e"),
+          entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
+          multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
+          //
+          gasEstimator: L2GasEstimator(chainId: 420, ovmGasOracle: EthereumAddress.fromHex("0x420000000000000000000000000000000000000F")),
+          //
+          client: Web3Client(Env.optimismRpcEndpoint, Client()),
+          //
+          features: {
+            "deposit": {
+              "deposit-address": true,
+              "deposit-fiat": false,
+            },
+            "transfer": {
+              "basic": true
+            },
+            "swap": {
+              "basic": false
+            },
+            "social-recovery": {
+              "family-and-friends": true,
+              "magic-link": false,
+              "hardware-wallet": true,
+            },
+          },
+        ),
+        Network(
           name: "Optimism Goerli",
           testnetData: _TestnetData(testnetForChainId: 10),
           visible: false,
@@ -39,12 +83,12 @@ class Networks {
           coinGeckoAssetPlatform: "optimistic-ethereum",
           candideBalances: EthereumAddress.fromHex("0x97A8c45e8Da6608bAbf09eb1222292d7B389B1a1"),
           //
-          safeSingleton: EthereumAddress.fromHex("0x23e4fd58F38cD9c75957a182DB90bB449879A6A3"),
+          safeSingleton: EthereumAddress.fromHex("0x8505037E655eBC2Ff57cabf3aa8d19790E60aF02"),
           proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
+          fallbackHandler: EthereumAddress.fromHex("0x017062a1dE2FE6b99BE3d9d37841FeD19F573804"),
           socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
-          multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
+          multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
           //
           gasEstimator: L2GasEstimator(chainId: 420, ovmGasOracle: EthereumAddress.fromHex("0x420000000000000000000000000000000000000F")),
           //
@@ -80,9 +124,9 @@ class Networks {
           coinGeckoAssetPlatform: "ethereum",
           candideBalances: EthereumAddress.fromHex("0xdc1e0B26F8D92243A28087172b941A169C2B4354"),
           //
-          safeSingleton: EthereumAddress.fromHex("0x23e4fd58F38cD9c75957a182DB90bB449879A6A3"),
+          safeSingleton: EthereumAddress.fromHex("0x8505037E655eBC2Ff57cabf3aa8d19790E60aF02"),
           proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
+          fallbackHandler: EthereumAddress.fromHex("0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"),
           socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
           entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
           multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
@@ -112,49 +156,6 @@ class Networks {
           },
         ),
         /*Network(
-          name: "Optimism",
-          testnetData: null,
-          visible: true,
-          color: const Color(0xfff01a37),
-          logo: SvgPicture.asset("assets/images/optimism.svg"),
-          extendedLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
-          nativeCurrency: 'ETH',
-          chainId: BigInt.from(10),
-          explorerUrl: "https://optimism.etherscan.io",
-          //
-          coinGeckoAssetPlatform: "optimistic-ethereum",
-          candideBalances: EthereumAddress.fromHex("0x82998037a1C25D374c421A620db6D9ff26Fb50b5"),
-          //
-          safeSingleton: EthereumAddress.fromHex("0x23e4fd58F38cD9c75957a182DB90bB449879A6A3"),
-          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x9a77CD4a3e2B849f70616c82A9c69BdA1C2296ff"),
-          socialRecoveryModule: EthereumAddress.fromHex("0xCbf67d131Fa0775c5d18676c58de982c349aFC0b"),
-          entrypoint: EthereumAddress.fromHex("0x0576a174D229E3cFA37253523E645A78A0C91B57"),
-          multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
-          //
-          gasEstimator: L2GasEstimator(chainId: 420, ovmGasOracle: EthereumAddress.fromHex("0x420000000000000000000000000000000000000F")),
-          //
-          client: Web3Client(Env.optimismRpcEndpoint, Client()),
-          //
-          features: {
-            "deposit": {
-              "deposit-address": true,
-              "deposit-fiat": false,
-            },
-            "transfer": {
-              "basic": true
-            },
-            "swap": {
-              "basic": true
-            },
-            "social-recovery": {
-              "family-and-friends": true,
-              "magic-link": false,
-              "hardware-wallet": true,
-            },
-          },
-        ),*/
-        Network(
           name: "Sepolia",
           testnetData: _TestnetData(testnetForChainId: 1),
           visible: true,
@@ -186,7 +187,7 @@ class Networks {
               "basic": true
             },
             "swap": {
-              "basic": true
+              "basic": false
             },
             "social-recovery": {
               "family-and-friends": true,
@@ -194,7 +195,7 @@ class Networks {
               "hardware-wallet": true,
             },
           },
-        ),
+        ),*/
       ]
     );
     for (Network network in instances){

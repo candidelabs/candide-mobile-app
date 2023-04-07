@@ -42,12 +42,7 @@ class GnosisTransaction {
     throw UnimplementedError("Signing using `web3dart Credentials` object not yet implemented");
   }
 
-  String toCallData({
-    required BigInt baseGas,
-    required BigInt gasPrice,
-    required EthereumAddress gasToken,
-    required EthereumAddress refundReceiver,
-  }){
+  String toCallData(){
     if (type == GnosisTransactionType.execTransactionFromEntrypoint){
       return _toExecTransactionFromModuleCallData();
     }

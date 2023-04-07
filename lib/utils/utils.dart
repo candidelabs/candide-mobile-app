@@ -16,6 +16,11 @@ import 'package:url_launcher/url_launcher.dart';
 class Utils {
   static final Logger logger = Logger();
 
+  static void printWrapped(String text) {
+    final pattern = new RegExp('.{1,800}'); // 800 is the size of each chunk
+    pattern.allMatches(text).forEach((match) => print(match.group(0)));
+  }
+
   static String truncateIfAddress(String input, {int? leadingDigits, int? trailingDigits}){
     var regex = RegExp('^(0x[a-zA-Z0-9]{${trailingDigits ?? 6}})[a-zA-Z0-9]+([a-zA-Z0-9]{${trailingDigits ?? 6}})\$');
     var matches = regex.allMatches(input);

@@ -17,6 +17,7 @@ class GuardianController {
       value: BigInt.zero,
       data: hexToBytes(EncodeFunctionData.enableModule(socialModuleAddress)),
       type: GnosisTransactionType.execTransactionFromEntrypoint,
+      suggestedGasLimit: BigInt.from(50000),
     );
     return enable;
   }
@@ -50,6 +51,7 @@ class GuardianController {
           EncodeFunctionData.grantGuardian(account.address, guardian, BigInt.from(threshold))
         ),
         type: GnosisTransactionType.execTransactionFromEntrypoint,
+        suggestedGasLimit: BigInt.from(100000),
       );
       //
       transactions.add(grantGuardianTransaction);
@@ -73,6 +75,7 @@ class GuardianController {
       value: BigInt.zero,
       data: hexToBytes(EncodeFunctionData.revokeGuardian(account.address, previousGuardian, guardian, BigInt.from(threshold))),
       type: GnosisTransactionType.execTransactionFromEntrypoint,
+      suggestedGasLimit: BigInt.from(100000),
     );
     //
     transactions.add(revokeGuardianTransaction);

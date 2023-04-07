@@ -6,7 +6,7 @@ import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
-import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:get/get.dart';
@@ -40,12 +40,47 @@ class Batch {
     await _adjustFeeCurrencyCosts();
   }
 
+
   Future<void> _adjustFeeCurrencyCosts() async{
-    UserOperation userOperation = await toUserOperation(PersistentData.selectedAccount, PersistentData.accountStatus.nonce, proxyDeployed: PersistentData.accountStatus.proxyDeployed, skipPaymasterData: true);
+    List<Future<UserOperation>> _userOpsTemp = [];
+    List<Future<BigInt?>> _derivedValuesTemp = [];
+    Map<FeeToken, UserOperation> _userOps = {};
     for (FeeToken feeCurrency in _feeTokens){
+      print(feeCurrency.paymaster.hexEip55);
       bool isEther = feeCurrency.token.symbol == Networks.selected().nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
-      feeCurrency.fee = FeeCurrencyUtils.calculateFee(userOperation, feeCurrency.conversion, isEther);
+      _userOpsTemp.add(
+        toUserOperation(
+          PersistentData.selectedAccount,
+          BigInt.from(PersistentData.accountStatus.nonce),
+          proxyDeployed: PersistentData.accountStatus.proxyDeployed,
+          skipPaymasterData: true,
+          overrideFee: isEther ? null : feeCurrency,
+        ).then((op){
+          _userOps[feeCurrency] = op;
+          BigInt maxCost = FeeCurrencyUtils.calculateFee(_userOps[feeCurrency]!, isEther);
+          if (isEther){
+            feeCurrency.fee = maxCost;
+          }else{
+            //maxCost = maxCost.scale(1.05);// todo check
+            _derivedValuesTemp.add(
+                Paymaster.getDerivedValue(
+                  feeCurrency.paymaster,
+                  Networks.selected().chainId.toInt(),
+                  feeCurrency,
+                  maxCost
+                ).then((fee){
+                  if (fee == null) return fee;
+                  feeCurrency.fee = fee;
+                  return fee;
+                })
+            );
+          }
+          return op;
+        })
+      );
     }
+    await Future.wait(_userOpsTemp);
+    await Future.wait(_derivedValuesTemp);
   }
 
   String getFeeToken(){
@@ -57,7 +92,7 @@ class Batch {
   }
 
   Future<void> _addPaymasterToUserOp(UserOperation userOp, int chainId) async {
-    String? paymasterData = await Bundler.getPaymasterData(userOp, feeCurrency!.token.address, chainId);
+    String? paymasterData = await Paymaster.getPaymasterData(userOp, feeCurrency!.token.address, chainId);
     if (paymasterData == null){ // todo network: handle fetching errors
       userOp.paymasterAndData = "0x";
     }else{
@@ -66,15 +101,20 @@ class Batch {
     }
   }
 
-  void _addPaymasterToTransaction(GnosisTransaction transaction){
-    transaction.paymaster = feeCurrency!.paymaster;
-    transaction.approveToken = EthereumAddress.fromHex(feeCurrency!.token.address);
-    transaction.approveAmount = feeCurrency!.fee;
+  void _addPaymasterToTransaction(GnosisTransaction transaction, [FeeToken? feeToken]){
+    feeToken ??= feeCurrency;
+    if (feeToken == null) return;
+    transaction.paymaster = feeToken.paymaster;
+    transaction.approveToken = EthereumAddress.fromHex(feeToken.token.address);
+    transaction.approveAmount = feeToken.fee;
   }
 
   GnosisTransaction? _getMultiSendTransaction(){
     if (transactions.isEmpty) return null;
     if (transactions.length == 1){
+      transactions.first.paymaster = null;
+      transactions.first.approveToken = null;
+      transactions.first.approveAmount = null;
       return transactions.first;
     }
     BigInt suggestedGasLimit = BigInt.zero;
@@ -100,7 +140,7 @@ class Batch {
     return transaction;
   }
 
-  Future<UserOperation> toUserOperation(Account account, int nonce, {bool proxyDeployed=true, bool skipPaymasterData=false}) async {
+  Future<UserOperation> toUserOperation(Account account, BigInt nonce, {bool proxyDeployed=true, bool skipPaymasterData=false, FeeToken? overrideFee}) async {
     //
     String initCode = "0x";
     if (!proxyDeployed){
@@ -116,10 +156,10 @@ class Batch {
     GnosisTransaction? multiSendTransaction = _getMultiSendTransaction();
     String callData = "0x";
     if (multiSendTransaction != null){
-      if (includesPaymaster){
-        _addPaymasterToTransaction(multiSendTransaction);
+      if (includesPaymaster || overrideFee != null){
+        _addPaymasterToTransaction(multiSendTransaction, overrideFee);
       }
-      callData = multiSendTransaction.toCallData(baseGas: baseGas, gasPrice: feeCurrency?.fee ?? BigInt.zero, gasToken: EthereumAddress.fromHex(feeCurrency?.token.address ?? Constants.addressZero.hex), refundReceiver: refundReceiver);
+      callData = multiSendTransaction.toCallData();
     }
     UserOperation userOp = UserOperation.get(
       sender: account.address,
@@ -129,7 +169,7 @@ class Batch {
     );
     //
     Network network = Networks.getByChainId(account.chainId)!;
-    GasEstimate? gasEstimates = await network.gasEstimator.getGasEstimates(userOp, includesPaymaster: includesPaymaster); // todo handle null gas estimates (calldata error, or network error)
+    GasEstimate? gasEstimates = await network.gasEstimator.getGasEstimates(userOp, includesPaymaster: includesPaymaster || overrideFee != null); // todo enable, // todo handle null gas estimates (calldata error, or network error)
     //
     userOp.callGasLimit = gasEstimates!.callGasLimit;
     userOp.preVerificationGas = gasEstimates.preVerificationGas;
@@ -137,7 +177,8 @@ class Batch {
     userOp.maxFeePerGas = gasEstimates.maxFeePerGas;
     userOp.maxPriorityFeePerGas = gasEstimates.maxPriorityFeePerGas;
     if (userOp.initCode != "0x"){
-      userOp.verificationGasLimit = 350000; // higher than normal for deployment
+      userOp.verificationGasLimit = BigInt.from(350000); // higher than normal for deployment
+      userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit ?? userOp.callGasLimit; // todo remove when first simulateHandleOp is implemented
     }
     // userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit.toInt() ?? 0; // todo check
     if (includesPaymaster && !skipPaymasterData){

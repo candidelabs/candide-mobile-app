@@ -14,7 +14,7 @@ import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_rev
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_signature_reject_dialog.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/wc_session_request_sheet.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/wc_signature_request_sheet.dart';
-import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/services/transaction_watchdog.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/events.dart';
@@ -225,7 +225,7 @@ class WalletConnectController {
     );
     wcBatch.transactions.add(transaction);
     //
-    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
+    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
     if (feeCurrencies == null){
       // todo handle network errors
       return;
@@ -320,7 +320,7 @@ class WalletConnectController {
       wcBatch.transactions.add(transaction);
     }
     //
-    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
+    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
     if (feeCurrencies == null){
       // todo handle network errors
       return;

@@ -1,5 +1,4 @@
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/components/address_field.dart';
 import 'package:candide_mobile_app/screens/home/components/address_qr_scanner.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -55,7 +54,7 @@ class _SendToSheetState extends State<SendToSheet> {
                     qrAlertWidget: const QRAlertFundsLoss(),
                   ),
                   const SizedBox(height: 25,),
-                  Container(
+                  /*Container(
                       margin: const EdgeInsets.only(left: 15),
                       alignment: Alignment.centerLeft,
                       child: Text("Recent", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 20),)
@@ -63,7 +62,7 @@ class _SendToSheetState extends State<SendToSheet> {
                   PersistentData.contacts.isEmpty ? Container(
                     margin: const EdgeInsets.only(top: 25),
                     child: const Text("No recent contacts", style: TextStyle(color: Colors.grey),)
-                  ) : Container(),
+                  ) : Container(),*/ // todo
                   const Spacer(),
                   ElevatedButton(
                     onPressed: Utils.isValidAddress(address) || _ensResponse != null ? (){

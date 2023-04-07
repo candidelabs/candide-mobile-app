@@ -22,12 +22,6 @@ class _DepositSheetState extends State<DepositSheet> {
   bool _addressCopied = false;
   late Network network;
 
-  @override
-  void initState() {
-    network = Networks.getByChainId(widget.account.chainId)!;
-    checkUniqueAddressOnboarding();
-    super.initState();
-  }
 
   void checkUniqueAddressOnboarding() async {
     await Future.delayed(const Duration(milliseconds: 250)); // cooldown for the widget to not interrupt the widget while being built
@@ -45,6 +39,14 @@ class _DepositSheetState extends State<DepositSheet> {
     if (!mounted) return;
     setState(() => _addressCopied = false);
   }
+
+  @override
+  void initState() {
+    network = Networks.getByChainId(widget.account.chainId)!;
+    checkUniqueAddressOnboarding();
+    super.initState();
+  }
+
 
   @override
   Widget build(BuildContext context) {

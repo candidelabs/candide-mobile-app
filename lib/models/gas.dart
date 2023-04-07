@@ -1,9 +1,9 @@
 class GasEstimate {
-  int callGasLimit;
-  int preVerificationGas;
-  int verificationGasLimit;
-  int maxPriorityFeePerGas;
-  int maxFeePerGas;
+  BigInt callGasLimit;
+  BigInt preVerificationGas;
+  BigInt verificationGasLimit;
+  BigInt maxPriorityFeePerGas;
+  BigInt maxFeePerGas;
 
   GasEstimate(
       {required this.callGasLimit,

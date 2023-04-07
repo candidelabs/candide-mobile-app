@@ -30,10 +30,16 @@ class L1GasEstimator extends GasEstimator {
   @override
   Future<GasEstimate?> getGasEstimates(UserOperation userOp, {required bool includesPaymaster}) async {
     List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
-    GasEstimate? gasEstimate = await Bundler.getUserOperationGasEstimates(userOp, chainId);
+    UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
+    dummyOp.callGasLimit = BigInt.parse("ffffffffffffff", radix: 16);
+    dummyOp.preVerificationGas = BigInt.parse("fffffffffffffffff", radix: 16);
+    dummyOp.verificationGasLimit = BigInt.parse("ffffffffffff", radix: 16);
+    dummyOp.maxFeePerGas = BigInt.from(0);
+    dummyOp.maxPriorityFeePerGas = BigInt.from(0);
+    GasEstimate? gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
     if (gasEstimate == null) return null;
-    gasEstimate.maxFeePerGas = networkFees[0];
-    gasEstimate.maxPriorityFeePerGas = networkFees[1];
+    gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
+    gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
     return gasEstimate;
   }
 }

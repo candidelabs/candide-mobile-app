@@ -6,15 +6,15 @@ class FeeToken {
   EthereumAddress paymaster;
   TokenInfo token;
   BigInt fee;
-  BigInt conversion;
 
-  FeeToken({required this.paymaster, required this.token, required this.fee, required this.conversion});
+  FeeToken({required this.paymaster, required this.token, required this.fee});
 }
 
 class FeeCurrencyUtils {
-  static BigInt calculateFee(UserOperation op, BigInt conversion, bool isEther) {
-    BigInt operationMaxEthCostUsingPaymaster = BigInt.from(op.maxFeePerGas) * (BigInt.from(op.callGasLimit) + (BigInt.from(op.verificationGasLimit) * BigInt.from(isEther ? 1 : 3)) + BigInt.from(op.preVerificationGas));
-    BigInt tokenToEthPrice = operationMaxEthCostUsingPaymaster * (conversion ~/ BigInt.from(10).pow(18));
-    return tokenToEthPrice;
+  static final BigInt costOfPost = BigInt.from(35000); // todo shouldn't be hardcoded
+
+  static BigInt calculateFee(UserOperation op, bool isEther) {
+    BigInt operationMaxEthCostUsingPaymaster = op.maxFeePerGas * (costOfPost + op.callGasLimit + (op.verificationGasLimit * BigInt.from(isEther ? 1 : 3)) + op.preVerificationGas);
+    return operationMaxEthCostUsingPaymaster;
   }
 }

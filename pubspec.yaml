@@ -78,6 +78,7 @@ dependencies:
   short_uuids: ^2.0.0
   flutter_cache_manager: ^3.3.0
   permission_handler: ^10.2.0
+  version: ^3.0.0
   #
   flutter:
     sdk: flutter

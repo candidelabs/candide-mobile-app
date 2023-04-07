@@ -1,4 +1,5 @@
 import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/box_controller.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
@@ -10,7 +11,6 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:hive/hive.dart';
 import 'package:wallet_dart/wallet/account_helpers.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -54,14 +54,16 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   initialize() async {
+    var boxController = await BoxController.instance();
+    //
     await Future.wait([
-      Hive.openBox("signers"),
-      Hive.openBox("wallet"),
-      Hive.openBox("settings"),
-      Hive.openBox("state"),
-      Hive.openBox("activity"),
-      Hive.openBox("wallet_connect"),
-      Hive.openBox("tokens_storage"),
+      boxController.openBox("signers"),
+      boxController.openBox("wallet"),
+      boxController.openBox("settings"),
+      boxController.openBox("state"),
+      boxController.openBox("activity"),
+      boxController.openBox("wallet_connect"),
+      boxController.openBox("tokens_storage"),
     ]);
     Networks.initialize();
     Networks.configureVisibility();

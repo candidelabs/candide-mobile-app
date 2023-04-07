@@ -18,7 +18,7 @@ class L2GasEstimator extends GasEstimator {
 
   @override
   Future<List<int>?> getNetworkGasFees() async {
-    return [1100000, 1000000];
+    return [1100000, 1100000]; // same value so block.baseFee doesn't get invoked from EP https://github.com/eth-infinitism/account-abstraction/blob/develop/contracts/core/EntryPoint.sol#L594
   }
 
   @override
@@ -26,8 +26,13 @@ class L2GasEstimator extends GasEstimator {
     UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
     //
     if (includesPaymaster){
-      dummyOp.paymasterAndData = bytesToHex(Uint8List.fromList(List<int>.filled(150, 1)));
+      dummyOp.paymasterAndData = bytesToHex(Uint8List.fromList(List<int>.filled(340, 1)));
     }
+    dummyOp.callGasLimit = BigInt.parse("fffffff", radix: 16);
+    dummyOp.preVerificationGas = BigInt.parse("fffffffffffffffff", radix: 16);
+    dummyOp.verificationGasLimit = BigInt.parse("fffffff", radix: 16);
+    dummyOp.maxFeePerGas = BigInt.parse("fffffff", radix: 16);
+    dummyOp.maxPriorityFeePerGas = BigInt.parse("fffffff", radix: 16);
     dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)));
     //
     List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
@@ -47,13 +52,13 @@ class L2GasEstimator extends GasEstimator {
       gasOracle.getL1GasUsed(callData).then((value) => l1GasUsed = value),
       gasOracle.l1BaseFee().then((value) => l1BaseFee = value),
     ]);
+    gasEstimate.preVerificationGas = l1GasUsed * (l1BaseFee ~/ BigInt.from(networkFees[0]));
+    if (includesPaymaster){
+      gasEstimate.preVerificationGas += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
+    }
     //
-    var totalGas = (gasEstimate.callGasLimit + gasEstimate.preVerificationGas + gasEstimate.verificationGasLimit);
-    var totalCost = ((l1GasUsed * l1BaseFee) + BigInt.from(totalGas * networkFees[0]));
-    var newFee = totalCost / BigInt.from(totalGas);
-    //
-    gasEstimate.maxFeePerGas = newFee.toInt();
-    gasEstimate.maxPriorityFeePerGas = newFee.toInt() + 100000;
+    gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
+    gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
     return gasEstimate;
   }
 }

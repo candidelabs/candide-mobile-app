@@ -21,6 +21,7 @@ class SendController {
       data: !erc20Transfer ?
         Constants.nullCodeBytes : hexToBytes(EncodeFunctionData.erc20Transfer(EthereumAddress.fromHex(to), value)),
       type: GnosisTransactionType.execTransactionFromEntrypoint,
+      suggestedGasLimit: !erc20Transfer ? BigInt.from(35000) : BigInt.from(70000),
     );
     return transaction;
   }

@@ -11,9 +11,9 @@ import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
-import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/controller/guardian_controller.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
+import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/events.dart';
@@ -62,7 +62,7 @@ class GuardianOperationsHelper {
     );
     grantBatch.transactions.addAll(transactions);
     //
-    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
+    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
     if (feeCurrencies == null){
       // todo handle network errors
       return false;
@@ -152,7 +152,7 @@ class GuardianOperationsHelper {
     );
     revokeBatch.transactions.addAll(transactions);
     //
-    List<FeeToken>? feeCurrencies = await Bundler.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
+    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
     if (feeCurrencies == null){
       // todo handle network errors
       return false;
