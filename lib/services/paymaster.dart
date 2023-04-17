@@ -1,10 +1,8 @@
 import 'dart:convert';
 
 import 'package:candide_mobile_app/config/env.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
-import 'package:candide_mobile_app/models/gas_estimators/source/paymaster_contract.g.dart';
 import 'package:dio/dio.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:web3dart/web3dart.dart';
@@ -29,9 +27,10 @@ class Paymaster {
         if (_token == null) continue;
         result.add(
             FeeToken(
-                paymaster: EthereumAddress.fromHex(_tokenData["paymaster"]),
-                token: _token,
-                fee: BigInt.zero,
+              paymaster: EthereumAddress.fromHex(_tokenData["paymaster"]),
+              token: _token,
+              fee: BigInt.zero,
+              exchangeRate: _tokenData["exchangeRate"].runtimeType == String ? BigInt.parse(_tokenData["exchangeRate"]) : BigInt.from(_tokenData["exchangeRate"])
             )
         );
       }
@@ -61,18 +60,8 @@ class Paymaster {
       //
       return response.data["result"];
     } on DioError catch(e){
+      print("${e.message}");
       print("Error occurred ${e.type.toString()}");
-      return null;
-    }
-  }
-
-  static Future<BigInt?> getDerivedValue(EthereumAddress paymaster, int chainId, FeeToken feeToken, BigInt amount) async {
-    Network network = Networks.getByChainId(chainId)!;
-    try {
-      BigInt result = await PaymasterContract(client: network.client, address: paymaster, chainId: chainId).getDerivedValue(EthereumAddress.fromHex(feeToken.token.address), amount);
-      return result;
-    } on Exception catch(e){
-      print("Error occurred ${e.toString()}");
       return null;
     }
   }

@@ -25,7 +25,7 @@ class Explorer {
       int nonce = 0;
       await Future.wait([
         Networks.selected().client.getCode(account.address).then((value) => proxyDeployed = value.isNotEmpty),
-        IAccount.interface(address: account.address, client: Networks.selected().client).nonce().then((value) => nonce = value.toInt()).catchError((e, st){
+        IAccount.interface(address: account.address, client: Networks.selected().client).getNonce().then((value) => nonce = value.toInt()).catchError((e, st){
           return 0;
         }),
       ]);

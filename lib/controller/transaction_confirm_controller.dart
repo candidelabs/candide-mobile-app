@@ -68,6 +68,7 @@ class TransactionConfirmController {
     //
     var signedUserOperation = await Bundler.signUserOperations(
       credentials,
+      PersistentData.selectedAccount.entrypoint!,
       PersistentData.selectedAccount.chainId,
       unsignedUserOperation,
     );

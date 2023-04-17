@@ -43,10 +43,8 @@ class Batch {
 
   Future<void> _adjustFeeCurrencyCosts() async{
     List<Future<UserOperation>> _userOpsTemp = [];
-    List<Future<BigInt?>> _derivedValuesTemp = [];
     Map<FeeToken, UserOperation> _userOps = {};
     for (FeeToken feeCurrency in _feeTokens){
-      print(feeCurrency.paymaster.hexEip55);
       bool isEther = feeCurrency.token.symbol == Networks.selected().nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
       _userOpsTemp.add(
         toUserOperation(
@@ -57,30 +55,16 @@ class Batch {
           overrideFee: isEther ? null : feeCurrency,
         ).then((op){
           _userOps[feeCurrency] = op;
-          BigInt maxCost = FeeCurrencyUtils.calculateFee(_userOps[feeCurrency]!, isEther);
-          if (isEther){
-            feeCurrency.fee = maxCost;
-          }else{
+          BigInt maxCost = FeeCurrencyUtils.calculateFee(_userOps[feeCurrency]!, feeCurrency.exchangeRate, isEther);
+          if (!isEther){
             //maxCost = maxCost.scale(1.05);// todo check
-            _derivedValuesTemp.add(
-                Paymaster.getDerivedValue(
-                  feeCurrency.paymaster,
-                  Networks.selected().chainId.toInt(),
-                  feeCurrency,
-                  maxCost
-                ).then((fee){
-                  if (fee == null) return fee;
-                  feeCurrency.fee = fee;
-                  return fee;
-                })
-            );
           }
+          feeCurrency.fee = maxCost;
           return op;
         })
       );
     }
     await Future.wait(_userOpsTemp);
-    await Future.wait(_derivedValuesTemp);
   }
 
   String getFeeToken(){

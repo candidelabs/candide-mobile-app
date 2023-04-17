@@ -1081,8 +1081,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: main
-      resolved-ref: "679ffa98823d78e384a9016ec3340b361465329e"
+      ref: "feat/support_latest_entrypoint"
+      resolved-ref: "707a70322100acca3c77aaa0f0ab54dc910a7049"
       url: "https://github.com/candidelabs/wallet-dart.git"
     source: git
     version: "0.0.1"

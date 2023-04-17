@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:candide_mobile_app/config/env.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/utils/extensions/bigint_extensions.dart';
@@ -11,11 +10,11 @@ import 'package:web3dart/web3dart.dart';
 
 class Bundler {
 
-  static Future<UserOperation> signUserOperations(EthPrivateKey privateKey, int chainId, UserOperation operation) async{
+  static Future<UserOperation> signUserOperations(EthPrivateKey privateKey, EthereumAddress entryPoint, int chainId, UserOperation operation) async{
     UserOperation signedOperation = UserOperation.fromJson(operation.toJson());
     await signedOperation.sign(
       privateKey,
-      Networks.getByChainId(chainId)!.entrypoint,
+      entryPoint,
       BigInt.from(chainId),
     );
     return signedOperation;
