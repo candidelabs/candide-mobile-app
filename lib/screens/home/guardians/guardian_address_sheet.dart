@@ -1,4 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/home/components/address_field.dart';
 import 'package:candide_mobile_app/screens/home/components/address_qr_scanner.dart';
@@ -21,6 +22,16 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
   Map? ensResponse;
   bool valid = false;
 
+  bool isValidAddress(){
+    if (ensResponse != null && ensResponse!["address"].toString().toLowerCase() != PersistentData.selectedAccount.address.hex.toLowerCase()){ // todo: revisit when ENS support is enabled
+      return true;
+    }
+    if (Utils.isValidAddress(address) && address.toLowerCase() != PersistentData.selectedAccount.address.hex.toLowerCase()){
+      return true;
+    }
+    return false;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +50,14 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
             onENSChange: (Map? ens) {
               setState(() => ensResponse = ens);
             },
+            customValidators: [
+              (String val){
+                if (val.toLowerCase() == PersistentData.selectedAccount.address.hex.toLowerCase()){
+                  return "You can't set yourself as a guardian to your wallet";
+                }
+                return null;
+              }
+            ],
             hint: "Recovery Contact public address (0x)",
             filled: false,
             scanENS: false,
@@ -73,7 +92,7 @@ class _GuardianAddressSheetState extends State<GuardianAddressSheet> {
             margin: const EdgeInsets.symmetric(horizontal: 25),
             width: Get.width,
             child: ElevatedButton(
-              onPressed: Utils.isValidAddress(address) || ensResponse != null ? (){
+              onPressed: isValidAddress() ? (){
                 if (nickname?.removeAllWhitespace.isEmpty ?? true){
                   nickname = null;
                 }

@@ -23,8 +23,9 @@ class AddressField extends StatefulWidget {
   final bool filled;
   final Function(String) onAddressChanged;
   final Function(Map?) onENSChange;
+  final List<String? Function(String)> customValidators;
   final Widget qrAlertWidget;
-  const AddressField({Key? key, required this.onAddressChanged, required this.onENSChange, required this.hint, this.filled=true, this.scanENS=true, required this.qrAlertWidget}) : super(key: key);
+  const AddressField({Key? key, required this.onAddressChanged, required this.onENSChange, this.customValidators=const [], required this.hint, this.filled=true, this.scanENS=true, required this.qrAlertWidget}) : super(key: key);
 
   @override
   State<AddressField> createState() => _AddressFieldState();
@@ -181,6 +182,10 @@ class _AddressFieldState extends State<AddressField> {
                   return 'Invalid address';
                 }
                 if (ensError?.isNotEmpty ?? false) return ensError;
+                for (String? Function(String) validator in widget.customValidators){
+                  String? result = validator.call(val);
+                  if (result != null) return result;
+                }
                 return null;
               },
               onChanged: (val){
