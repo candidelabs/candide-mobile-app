@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:candide_mobile_app/config/network.dart';
@@ -39,6 +40,19 @@ class WalletConnectController {
   static Account? _lastRestoredSessionsAccount;
   static late PausableTimer _connectivityTimer;
   static List<WalletConnectController> instances = [];
+
+  // todo: remove when dapps support receiving UserOperation hashes
+  static final Map<String, List<dynamic>> _statusListenerHashes = {}; // key: UO hash, value: [connector, payload id]
+  static void initUserOpListener(){
+    eventBus.on<OnTransactionStatusChange>().listen((event) {
+      if (event.activity.hash == null) return;
+      if (_statusListenerHashes[event.activity.hash] != null){
+        if (event.activity.txHash == null) return;
+        WalletConnect connector = _statusListenerHashes[event.activity.hash]![0];
+        connector.approveRequest(id: _statusListenerHashes[event.activity.hash]![1], result: event.activity.txHash!);
+      }
+    });
+  }
 
   // Save to Box called "wallet_connect" at "sessions({wallet_connect_version})({account_address}-{chainId})"
   static Future<void> persistAllSessions(Account account) async {
@@ -276,8 +290,10 @@ class WalletConnectController {
     if (executed == null || !executed){
       connector.rejectRequest(id: payload.id, errorMessage: "Rejected by user");
     }else{
-      if (transactionActivity.hash != null){
-        connector.approveRequest(id: payload.id, result: transactionActivity.hash!);
+      if (transactionActivity.txHash != null){
+        connector.approveRequest(id: payload.id, result: transactionActivity.txHash!);
+      }else{
+        _statusListenerHashes[transactionActivity.hash!] = [connector, payload.id];
       }
     }
   }
@@ -365,8 +381,10 @@ class WalletConnectController {
     if (executed == null || !executed){
       connector.rejectRequest(id: payload.id, errorMessage: "Rejected by user");
     }else{
-      if (transactionActivity.hash != null){
-        connector.approveRequest(id: payload.id, result: transactionActivity.hash!);
+      if (transactionActivity.txHash != null){
+        connector.approveRequest(id: payload.id, result: transactionActivity.txHash!);
+      }else{
+        _statusListenerHashes[transactionActivity.hash!] = [connector, payload.id];
       }
     }
   }

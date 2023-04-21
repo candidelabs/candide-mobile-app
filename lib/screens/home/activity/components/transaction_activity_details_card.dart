@@ -143,11 +143,11 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
                       ),
                     ),
                     const Spacer(),
-                    widget.transaction.hash != null && (widget.transaction.hash?.removeAllWhitespace.isNotEmpty ?? false) ? Directionality(
+                    widget.transaction.txHash != null && (widget.transaction.txHash?.removeAllWhitespace.isNotEmpty ?? false) ? Directionality(
                       textDirection: TextDirection.rtl,
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          Utils.launchUri("${Networks.selected().explorerUrl}/tx/${widget.transaction.hash}", mode: LaunchMode.externalApplication);
+                          Utils.launchUri("${Networks.selected().explorerUrl}/tx/${widget.transaction.txHash}", mode: LaunchMode.externalApplication);
                         },
                         style: ButtonStyle(
                           minimumSize: MaterialStateProperty.all(Size(Get.width * 0.9, 40)),

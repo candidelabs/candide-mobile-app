@@ -288,11 +288,16 @@ class GuardianRecoveryHelper{
     EncryptedSigner? mainSigner;
     if (PersistentData.walletSigners.isEmpty){
       var signerSalt = bytesToHex(Utils.randomBytes(16, secure: true));
-      mainSigner = await AccountHelpers.createEncryptedSigner(salt: signerSalt, password: password!);
+      mainSigner = await AccountHelpers.createEncryptedSigner(
+        version: PersistentData.ENCRYPTED_SIGNERS_VERSION,
+        salt: signerSalt,
+        password: password!
+      );
     }else{
       mainSigner = SignersController.instance.getSignerFromId("main")!;
     }
     Account account = await AccountHelpers.createRecovery(
+      version: PersistentData.ACCOUNT_VERSION,
       chainId: network.chainId.toInt(),
       name: "",
       address: EthereumAddress.fromHex(address),

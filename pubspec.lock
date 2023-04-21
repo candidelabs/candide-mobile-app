@@ -1082,7 +1082,7 @@ packages:
     description:
       path: "."
       ref: "feat/support_latest_entrypoint"
-      resolved-ref: "707a70322100acca3c77aaa0f0ab54dc910a7049"
+      resolved-ref: "772971aaf2e11eb6889e6262161bacd29b2a197b"
       url: "https://github.com/candidelabs/wallet-dart.git"
     source: git
     version: "0.0.1"

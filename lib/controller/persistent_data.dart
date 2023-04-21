@@ -12,9 +12,11 @@ import 'package:web3dart/web3dart.dart';
 
 class PersistentData {
   // Load from Box called "wallet" at "selected_account"
+  static const String ACCOUNT_VERSION = "0.0.1";
   static late Account selectedAccount;
 
   // Load from Box called "signers" at ("id" = signer)
+  static const String ENCRYPTED_SIGNERS_VERSION = "0.0.0";
   static Map<String, EncryptedSigner> walletSigners = {};
 
   // Load from Box called "wallet" at "accounts"
@@ -204,12 +206,21 @@ class PersistentData {
     await Hive.box("signers").putAll(_signersMap);
   }
 
-  static void loadAccounts(){
+  static Future<void> loadAccounts() async {
+    List<String> deprecatedVersions = ["0.0.0"];
+    bool _deprecatedFlag = false;
     accounts.clear();
     List accountsAsJson = Hive.box("wallet").get("accounts") ?? []; // List<Json>
     for (var accountJson in accountsAsJson){
       var account = Account.fromJson(accountJson);
+      if (deprecatedVersions.contains(account.version)){
+        _deprecatedFlag = true;
+        continue;
+      }
       accounts.add(account);
+    }
+    if (_deprecatedFlag){
+      await saveAccounts();
     }
     selectAccount();
   }
@@ -229,7 +240,7 @@ class PersistentData {
     await Hive.box("wallet").put("accounts", accounts.map((e) => e.toJson()).toList());
   }
 
-  static void selectAccount({EthereumAddress? address, int? chainId}){
+  static void selectAccount({EthereumAddress? address, int? chainId}) async {
     if (address == null || chainId == null){
       String? selectedData = Hive.box("wallet").get("selected_account", defaultValue: null);
       if (selectedData == null){
@@ -251,6 +262,12 @@ class PersistentData {
         loadExplorerJson(selectedAccount, null);
         return;
       }
+    }
+    // if got here then there was no selected account
+    if (accounts.isNotEmpty){
+      selectedAccount = accounts.first;
+      TokenInfoStorage.loadAllTokens(selectedAccount.chainId);
+      loadExplorerJson(selectedAccount, null);
     }
   }
 
@@ -390,36 +407,51 @@ class AccountGuardian {
 }
 
 class TransactionActivity {
+  String version;
   DateTime date;
   String action;
   String title;
   String status;
+  String? paymasterEventTopic; // used to extract gas cost from paymaster emitted event
   String? hash;
+  String? txHash;
   Map<String, String> data;
   late TransactionFeeActivityData fee;
 
-  TransactionActivity({required this.date,
+  static const String _version = "0.0.1";
+
+  TransactionActivity({
+    this.version = _version,
+    required this.date,
     required this.action,
     required this.title,
     required this.status,
+    this.paymasterEventTopic,
     this.hash,
+    this.txHash,
     required this.data});
 
   TransactionActivity.fromJson(Map json)
-      : date = DateTime.fromMillisecondsSinceEpoch(int.parse(json['date'])),
+      : version = json['version'] ?? "0.0.0",
+        date = DateTime.fromMillisecondsSinceEpoch(int.parse(json['date'])),
         action = json['action'],
         title = json['title'],
         status = json['status'],
+        paymasterEventTopic = json['paymasterEventTopic'],
         hash = json['hash'],
+        txHash = json['txHash'],
         data = Map<String, String>.from(json['data']),
         fee = TransactionFeeActivityData.fromJson(json['fee']);
 
   Map<String, dynamic> toJson() => {
+    'version': version,
     'date': date.millisecondsSinceEpoch.toString(),
     'action': action,
     'title': title,
     'status': status,
+    'paymasterEventTopic': paymasterEventTopic,
     'hash': hash,
+    'txHash': txHash,
     'data': data,
     'fee': fee.toJson(),
   };

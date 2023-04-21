@@ -8,6 +8,7 @@ import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
+import 'package:candide_mobile_app/utils/extensions/bigint_extensions.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
 import 'package:get/get.dart';
 import 'package:wallet_dart/wallet/account.dart';
@@ -57,7 +58,7 @@ class Batch {
           _userOps[feeCurrency] = op;
           BigInt maxCost = FeeCurrencyUtils.calculateFee(_userOps[feeCurrency]!, feeCurrency.exchangeRate, isEther);
           if (!isEther){
-            //maxCost = maxCost.scale(1.05);// todo check
+            maxCost = maxCost.scale(1.05); // todo check
           }
           feeCurrency.fee = maxCost;
           return op;
@@ -153,11 +154,11 @@ class Batch {
     );
     //
     Network network = Networks.getByChainId(account.chainId)!;
-    GasEstimate? gasEstimates = await network.gasEstimator.getGasEstimates(userOp, includesPaymaster: includesPaymaster || overrideFee != null); // todo enable, // todo handle null gas estimates (calldata error, or network error)
+    GasEstimate? gasEstimates = await network.gasEstimator.getGasEstimates(userOp, paymasterAddress: includesPaymaster ? feeCurrency!.paymaster : overrideFee?.paymaster); // todo enable, // todo handle null gas estimates (calldata error, or network error)
     //
-    userOp.callGasLimit = gasEstimates!.callGasLimit;
+    userOp.callGasLimit = gasEstimates!.callGasLimit.scale(1.25);
     userOp.preVerificationGas = gasEstimates.preVerificationGas;
-    userOp.verificationGasLimit = gasEstimates.verificationGasLimit;
+    userOp.verificationGasLimit = gasEstimates.verificationGasLimit.scale(3);
     userOp.maxFeePerGas = gasEstimates.maxFeePerGas;
     userOp.maxPriorityFeePerGas = gasEstimates.maxPriorityFeePerGas;
     if (userOp.initCode != "0x"){

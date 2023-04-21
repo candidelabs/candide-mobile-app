@@ -22,18 +22,18 @@ class L2GasEstimator extends GasEstimator {
   }
 
   @override
-  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {required bool includesPaymaster}) async {
+  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {EthereumAddress? paymasterAddress}) async {
     UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
     //
-    if (includesPaymaster){
-      dummyOp.paymasterAndData = bytesToHex(Uint8List.fromList(List<int>.filled(340, 1)));
-    }
+    /*if (paymasterAddress != null){
+      dummyOp.paymasterAndData = bytesToHex(paymasterAddress.addressBytes + Uint8List.fromList(List<int>.filled(340, 1)), include0x: true);
+    }*/
     dummyOp.callGasLimit = BigInt.parse("fffffff", radix: 16);
-    dummyOp.preVerificationGas = BigInt.parse("fffffffffffffffff", radix: 16);
+    dummyOp.preVerificationGas = BigInt.parse("0", radix: 16);
     dummyOp.verificationGasLimit = BigInt.parse("fffffff", radix: 16);
-    dummyOp.maxFeePerGas = BigInt.parse("fffffff", radix: 16);
-    dummyOp.maxPriorityFeePerGas = BigInt.parse("fffffff", radix: 16);
-    dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)));
+    dummyOp.maxFeePerGas = BigInt.zero;
+    dummyOp.maxPriorityFeePerGas = BigInt.zero;
+    dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)), include0x: true);
     //
     List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
     GasEstimate? gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
@@ -53,7 +53,7 @@ class L2GasEstimator extends GasEstimator {
       gasOracle.l1BaseFee().then((value) => l1BaseFee = value),
     ]);
     gasEstimate.preVerificationGas = l1GasUsed * (l1BaseFee ~/ BigInt.from(networkFees[0]));
-    if (includesPaymaster){
+    if (paymasterAddress != null){
       gasEstimate.preVerificationGas += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
     }
     //

@@ -52,12 +52,17 @@ class _CreateAccountMainScreenState extends State<CreateAccountMainScreen> {
     Network network = Networks.getByChainId(chainId)!;
     if (PersistentData.walletSigners.isEmpty){
       var signerSalt = bytesToHex(Utils.randomBytes(16, secure: true));
-      EncryptedSigner mainSigner = await AccountHelpers.createEncryptedSigner(salt: signerSalt, password: password!);
+      EncryptedSigner mainSigner = await AccountHelpers.createEncryptedSigner(
+        version: PersistentData.ENCRYPTED_SIGNERS_VERSION,
+        salt: signerSalt,
+        password: password!
+      );
       await PersistentData.addSigner("main", mainSigner);
     }
     EncryptedSigner mainSigner = SignersController.instance.getSignerFromId("main")!;
     String salt = bytesToHex(Utils.randomBytes(16, secure: true), include0x: false);
     Account account = await AccountHelpers.createAccount(
+      version: PersistentData.ACCOUNT_VERSION,
       chainId: network.chainId.toInt(),
       name: name,
       signers: [mainSigner.publicAddress],

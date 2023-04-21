@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
+import 'package:candide_mobile_app/services/bundler.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:eth_sig_util/util/utils.dart';
@@ -17,7 +18,7 @@ class TransactionWatchdog {
 
   static Future<Map?> getBundleStatus(String bundleHash) async {
     try {
-      var receipt = await Networks.selected().client.getTransactionReceipt(bundleHash);
+      var receipt = await Bundler.getUserOperationReceipt(bundleHash, Networks.selected().chainId.toInt());
       if (receipt == null){
         if (transactions.containsKey(bundleHash)){
           return {
@@ -28,22 +29,22 @@ class TransactionWatchdog {
         }
         return null;
       }
-      if (!receipt.status!) return null;
+      if (!receipt["status"]!) return null;
       return {
         "calls": [
           {
             "status": "CONFIRMED",
             "receipt": {
-              "logs": receipt.logs.map((e) => {
+              "logs": receipt["receipt"]["logs"].map((e) => {
                 "address": e.address?.hexEip55,
                 "topics": e.topics,
                 "data": e.data,
               }).toList(),
-              "success": receipt.status,
-              "blockHash": bytesToHex(receipt.blockHash, include0x: true),
-              "blockNumber": "0x${receipt.blockNumber.blockNum.toRadixString(16)}",
-              "gasUsed": "0x${receipt.gasUsed?.toRadixString(16) ?? "0"}",
-              "transactionHash": bytesToHex(receipt.transactionHash, include0x: true),
+              "success": receipt["status"],
+              "blockHash": bytesToHex(receipt["receipt"]["blockHash"], include0x: true),
+              "blockNumber": receipt["receipt"]["blockNumber"],
+              "gasUsed": receipt["receipt"]["gasUsed"],
+              "transactionHash": receipt["receipt"]["transactionHash"],
             }
           },
         ]
@@ -53,11 +54,12 @@ class TransactionWatchdog {
     }
   }
 
-  static Future<String> getTransactionStatus(String hash) async {
+  static Future<String> getUserOperationStatus(String hash) async {
     try {
-      var receipt = await Networks.selected().client.getTransactionReceipt(hash);
+      var receipt = await Bundler.getUserOperationReceipt(hash, Networks.selected().chainId.toInt());
       if (receipt == null) return "pending";
-      return (receipt.status ?? false) ? "success" : "failed";
+      String transactionHash = receipt["receipt"]["transactionHash"];
+      return (receipt["success"] ?? false) ? "success:$transactionHash" : "failed:$transactionHash";
     } catch (e) {
       return "failed";
     }
@@ -77,9 +79,12 @@ class TransactionWatchdog {
     List<Future> futures = [];
     List<TransactionActivity> removedActivities = [];
     for (MapEntry<String, TransactionActivity> entry in transactions.entries){
-      futures.add(getTransactionStatus(entry.key).then((status) async {
+      futures.add(getUserOperationStatus(entry.key).then((status) async {
         if (status == "pending") return;
+        String txHash = status.split(":")[1];
+        status = status.split(":")[0];
         entry.value.status = status;
+        entry.value.txHash = txHash;
         removedActivities.add(entry.value);
         await PersistentData.updateTransactionActivityStorage(PersistentData.selectedAccount, entry.value);
       }));
