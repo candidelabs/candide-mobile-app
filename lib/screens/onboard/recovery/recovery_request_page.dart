@@ -33,6 +33,7 @@ class RecoveryRequestPage extends StatefulWidget {
 
 class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   late RecoveryRequest request;
+  String securityCenterUrl = "security.candidewallet.com";
   bool refreshing = false;
   bool? finalizing; // null = not attempted, true = currently finalizing, false = tried and failed
   int? minimumApprovals;
@@ -138,11 +139,15 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     request = widget.request;
     refreshData();
     getGuardians(EthereumAddress.fromHex(request.accountAddress));
+    if (Networks.getByChainId(widget.account.chainId.toInt())!.testnetData != null){
+      securityCenterUrl = "testnet-security.candidewallet.com";
+    }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+
     return SingleChildScrollView(
       child: onChainRecovery == null ? Column(
         children: [
@@ -156,11 +161,11 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroy, fontSize: 18),
                   children: [
                     TextSpan(
-                      text: "security.candidewallet.com",
+                      text: securityCenterUrl,
                       style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.blue),
                       recognizer: TapGestureRecognizer()
                         ..onTap = () async {
-                          Utils.launchUri("https://security.candidewallet.com/", mode: LaunchMode.externalApplication);
+                          Utils.launchUri("https://$securityCenterUrl/", mode: LaunchMode.externalApplication);
                         }
                     )
                   ]
