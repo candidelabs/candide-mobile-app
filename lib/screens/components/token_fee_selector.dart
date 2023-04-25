@@ -78,7 +78,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
               const Spacer(),
               Column(
                 children: [
-                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(widget.batch.feeCurrency!.fee, widget.batch.feeCurrency!.token) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
+                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(widget.batch.feeCurrency!.fee, widget.batch.feeCurrency!.token, formatSmallDecimals: true) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
                   Text(widget.batch.feeCurrency != null ? "\$${CurrencyUtils.convertToQuote(widget.batch.feeCurrency!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, widget.batch.feeCurrency!.fee).toPrecision(3)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
                 ],
               ),

@@ -26,7 +26,7 @@ class L2GasEstimator extends GasEstimator {
     UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
     //
     /*if (paymasterAddress != null){
-      dummyOp.paymasterAndData = bytesToHex(paymasterAddress.addressBytes + Uint8List.fromList(List<int>.filled(340, 1)), include0x: true);
+      dummyOp.paymasterAndData = bytesToHex(paymasterAddress.addressBytes + Uint8List.fromList(List<int>.filled(156, 1)), include0x: true);
     }*/
     dummyOp.callGasLimit = BigInt.parse("fffffff", radix: 16);
     dummyOp.preVerificationGas = BigInt.parse("0", radix: 16);
@@ -52,10 +52,15 @@ class L2GasEstimator extends GasEstimator {
       gasOracle.getL1GasUsed(callData).then((value) => l1GasUsed = value),
       gasOracle.l1BaseFee().then((value) => l1BaseFee = value),
     ]);
-    gasEstimate.preVerificationGas = l1GasUsed * (l1BaseFee ~/ BigInt.from(networkFees[0]));
     if (paymasterAddress != null){
-      gasEstimate.preVerificationGas += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
+      l1GasUsed += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
+      l1GasUsed += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
     }
+    BigInt scale = l1BaseFee ~/ BigInt.from(networkFees[0]);
+    if (scale == BigInt.zero){
+      scale = BigInt.one;
+    }
+    gasEstimate.preVerificationGas += l1GasUsed * (scale);
     //
     gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
     gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);

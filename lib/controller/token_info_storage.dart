@@ -104,7 +104,7 @@ class TokenInfoStorage {
         address: "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
         decimals: 18,
         logoUri: "https://raw.githubusercontent.com/ethereum-optimism/ethereum-optimism.github.io/master/data/USDC/logo.png",
-        visible: false,
+        visible: true,
       ),
     ],
     11155111: [

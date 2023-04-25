@@ -37,14 +37,10 @@ class Bundler {
             ]
           })
       );
-      print(response.data);
       //
-      /*if ((response.data as Map).containsKey("error")){
-        if (response.data["error"]["data"]["status"] == "failed-to-submit"){
-          return RelayResponse(status: "failed-to-submit", hash: response.data["error"]["data"]["txHash"]);
-        }
-        return RelayResponse(status: "failed", hash: response.data["error"]["data"]["txHash"]);
-      }*/
+      if ((response.data as Map).containsKey("error")){
+        return RelayResponse(status: "failed-to-submit", reason: response.data["error"]["message"]);
+      }
       return RelayResponse(status: "pending", hash: response.data["result"]);
     } on DioError catch(e){
       print("Error occurred ${e.type.toString()}");

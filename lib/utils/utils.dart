@@ -177,14 +177,16 @@ class Utils {
                 children: [
                   leading,
                   const SizedBox(width: 10,),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(text, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)),
-                      const SizedBox(height: 3,),
-                      Text(description, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                    ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(text, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold)),
+                        const SizedBox(height: 3,),
+                        Text(description, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                      ],
+                    ),
                   ),
                 ],
               ),

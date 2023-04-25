@@ -4,18 +4,20 @@ class Env {
   static late String explorerUri;
   static late String securityUri;
   //
+  static late String optimismBundlerEndpoint;
   static late String goerliBundlerEndpoint;
   static late String optimismGoerliBundlerEndpoint;
   static late String sepoliaBundlerEndpoint;
   //
+  static late String optimismPaymasterEndpoint;
   static late String goerliPaymasterEndpoint;
   static late String optimismGoerliPaymasterEndpoint;
   static late String sepoliaPaymasterEndpoint;
   //
   static late String mainnetRpcEndpoint;
+  static late String optimismRpcEndpoint;
   static late String goerliRpcEndpoint;
   static late String optimismGoerliRpcEndpoint;
-  static late String optimismRpcEndpoint;
   static late String sepoliaRpcEndpoint;
   //
   static late String magicApiKey;
@@ -34,7 +36,7 @@ class Env {
   static String getBundlerUrlByChainId(int chainId){
     switch (chainId){
       case 5: return goerliBundlerEndpoint;
-      //case 10: return optimismGoerliBundlerEndpoint;
+      case 10: return optimismBundlerEndpoint;
       case 420: return optimismGoerliBundlerEndpoint;
       case 11155111: return sepoliaBundlerEndpoint;
       //
@@ -45,7 +47,7 @@ class Env {
   static String getPaymasterUrlByChainId(int chainId){
     switch (chainId){
       case 5: return goerliPaymasterEndpoint;
-      //case 10: return optimismGoerliBundlerEndpoint;
+      case 10: return optimismPaymasterEndpoint;
       case 420: return optimismGoerliPaymasterEndpoint;
       case 11155111: return sepoliaPaymasterEndpoint;
     //
@@ -70,8 +72,11 @@ class Env {
     sepoliaBundlerEndpoint = dotenv.get('SEPOLIA_BUNDLER_NODE', fallback: '-');
     sepoliaPaymasterEndpoint = dotenv.get('SEPOLIA_PAYMASTER', fallback: '-');
     //
-    mainnetRpcEndpoint = dotenv.get('MAINNET_NODE_RPC_ENDPOINT', fallback: '-');
     optimismRpcEndpoint = dotenv.get('OPTIMISM_NODE_RPC_ENDPOINT', fallback: '-');
+    optimismBundlerEndpoint = dotenv.get('OPTIMISM_BUNDLER_NODE', fallback: '-');
+    optimismPaymasterEndpoint = dotenv.get('OPTIMISM_PAYMASTER', fallback: '-');
+    //
+    mainnetRpcEndpoint = dotenv.get('MAINNET_NODE_RPC_ENDPOINT', fallback: '-');
     //
     magicApiKey = dotenv.get('MAGIC_API_KEY', fallback: '-');
   }

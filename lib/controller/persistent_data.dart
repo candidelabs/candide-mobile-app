@@ -287,7 +287,7 @@ class PersistentData {
   }
 
   static List<int> loadHiddenNetworks() {
-    hiddenNetworks = Hive.box("state").get("hidden_networks", defaultValue: []).cast<int>();
+    hiddenNetworks = Hive.box("state").get("hidden_networks", defaultValue: List.from(Networks.DEFAULT_HIDDEN_NETWORKS)).cast<int>();
     return hiddenNetworks;
   }
 

@@ -94,15 +94,15 @@ class TransactionConfirmController {
         "Contact us for help",
         loading: false,
         success: false,
-        duration: const Duration(seconds: 6),
+        duration: const Duration(seconds: 8),
       );
     }else if (response?.status.toLowerCase() == "failed-to-submit"){
       Utils.showBottomStatus(
         "Transaction failed to submit",
-        "Contact us for help",
+        "${response?.reason}\nContact us for help",
         loading: false,
         success: false,
-        duration: const Duration(seconds: 6),
+        duration: const Duration(seconds: 8),
       );
     }else if (response?.status.toLowerCase() == "success"){
       Utils.showBottomStatus(

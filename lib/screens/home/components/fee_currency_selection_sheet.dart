@@ -126,7 +126,7 @@ class _FeeCurrencySelectionCard extends StatelessWidget {
                         ),
                         !disabled ? RichText(
                           text: TextSpan(
-                            text: CurrencyUtils.formatCurrency(currencyBalance.balance, feeCurrency.token, includeSymbol: false),
+                            text: CurrencyUtils.formatCurrency(currencyBalance.balance, feeCurrency.token, includeSymbol: false, formatSmallDecimals: true),
                             style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                             children: [
                               TextSpan(
@@ -146,7 +146,7 @@ class _FeeCurrencySelectionCard extends StatelessWidget {
                         : Column(
                       children: [
                         Text("Fee", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 14, color: Colors.white)),
-                        Text(CurrencyUtils.formatCurrency(feeCurrency.fee, feeCurrency.token), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 11)),
+                        Text(CurrencyUtils.formatCurrency(feeCurrency.fee, feeCurrency.token, formatSmallDecimals: true), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 11)),
                       ],
                     )
                   ),

@@ -158,14 +158,17 @@ class Batch {
     //
     userOp.callGasLimit = gasEstimates!.callGasLimit.scale(1.25);
     userOp.preVerificationGas = gasEstimates.preVerificationGas;
-    userOp.verificationGasLimit = gasEstimates.verificationGasLimit.scale(3);
+    userOp.verificationGasLimit = gasEstimates.verificationGasLimit.scale(1.15);
     userOp.maxFeePerGas = gasEstimates.maxFeePerGas;
     userOp.maxPriorityFeePerGas = gasEstimates.maxPriorityFeePerGas;
     if (userOp.initCode != "0x"){
-      userOp.verificationGasLimit = BigInt.from(350000); // higher than normal for deployment
+      userOp.verificationGasLimit += BigInt.from(200000); // higher than normal for deployment
       userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit ?? userOp.callGasLimit; // todo remove when first simulateHandleOp is implemented
     }
     // userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit.toInt() ?? 0; // todo check
+    if (includesPaymaster || overrideFee != null){
+      userOp.verificationGasLimit += BigInt.from(35000);
+    }
     if (includesPaymaster && !skipPaymasterData){
       await _addPaymasterToUserOp(userOp, account.chainId);
     }

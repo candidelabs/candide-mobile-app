@@ -45,6 +45,11 @@ class L1GasEstimator extends GasEstimator {
     dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)), include0x: true);
     GasEstimate? gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
     if (gasEstimate == null) return null;
+    if (paymasterAddress != null){
+      gasEstimate.preVerificationGas += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
+      gasEstimate.preVerificationGas += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
+    }
+    gasEstimate.preVerificationGas += BigInt.from(1260);
     gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
     gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
     return gasEstimate;
