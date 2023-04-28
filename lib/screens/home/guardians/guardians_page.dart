@@ -34,7 +34,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
 
   void fetchGuardians() async {
     setState(() => _loading = true);
-    await Explorer.fetchAddressOverview(account: PersistentData.selectedAccount, skipBalances: true);
+    await Explorer.fetchAddressOverview(account: PersistentData.selectedAccount, skipBalances: true, fetchSocialRecoveryModule: true);
     await PersistentData.loadGuardians(PersistentData.selectedAccount);
     if (!mounted) return;
     setState(() => _loading = false);
@@ -55,12 +55,16 @@ class _GuardiansPageState extends State<GuardiansPage> {
     fetchGuardians();
     transactionStatusSubscription = eventBus.on<OnTransactionStatusChange>().listen((event) async {
       if (!mounted) return;
+      if (!PersistentData.transactionsActivity.contains(event.activity)) return;
       if (event.activity.action.contains("guardian-")){
         if (event.activity.action == "guardian-revoke"){
           PersistentData.guardians.removeWhere((element) => element.address.toLowerCase() == event.activity.data["guardian"]!.toLowerCase());
           await PersistentData.storeGuardians(PersistentData.selectedAccount);
         }
         fetchGuardians();
+      }else if (event.activity.action == "guardian-grant"){
+        PersistentData.selectedAccount.socialRecoveryModule = Networks.selected().socialRecoveryModule;
+        await PersistentData.saveAccounts();
       }
     });
     super.initState();
@@ -149,7 +153,7 @@ class _GuardiansPageState extends State<GuardiansPage> {
                 guardian: guardian,
                 logo: logo,
                 onPressDelete: () async {
-                  bool refresh = await GuardianOperationsHelper.revokeGuardian(PersistentData.selectedAccount.address, EthereumAddress.fromHex(guardian.address));
+                  bool refresh = await GuardianOperationsHelper.revokeGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(guardian.address));
                   if (refresh){
                     fetchGuardians();
                   }

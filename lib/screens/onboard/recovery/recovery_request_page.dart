@@ -40,13 +40,13 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   List<dynamic>? onChainRecovery;
   List<EthereumAddress> guardians = [];
 
-  Future<void> fetchMinimumSignatures(EthereumAddress accountAddress) async {
-    minimumApprovals = (await ISocialModule.interface(address: Networks.selected().socialRecoveryModule, client: Networks.selected().client).threshold(accountAddress)).toInt();
+  Future<void> fetchMinimumSignatures() async {
+    minimumApprovals = (await ISocialModule.interface(address: widget.account.socialRecoveryModule!, client: Networks.selected().client).threshold(widget.account.address)).toInt();
     setState(() {});
   }
 
-  Future<void> getRecoveryRequestOnChain(EthereumAddress accountAddress) async {
-    var result = await ISocialModule.interface(address: Networks.selected().socialRecoveryModule, client: Networks.selected().client).getRecoveryRequest(accountAddress);
+  Future<void> getRecoveryRequestOnChain() async {
+    var result = await ISocialModule.interface(address: widget.account.socialRecoveryModule!, client: Networks.selected().client).getRecoveryRequest(widget.account.address);
     if (result[0] == BigInt.zero) return;
     if (result[3][0].toString().toLowerCase() != request.newOwner.toLowerCase()) return;
     setState(() {
@@ -54,8 +54,8 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     });
   }
 
-  Future<void> getGuardians(EthereumAddress accountAddress) async {
-    guardians = await ISocialModule.interface(address: Networks.selected().socialRecoveryModule, client: Networks.selected().client).getGuardians(accountAddress);
+  Future<void> getGuardians() async {
+    guardians = await ISocialModule.interface(address: widget.account.socialRecoveryModule!, client: Networks.selected().client).getGuardians(widget.account.address);
     setState(() {});
   }
 
@@ -78,8 +78,8 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
     request = _updatedRequest;
     bool _isOwner = false;
     await Future.wait([
-      fetchMinimumSignatures(EthereumAddress.fromHex(request.accountAddress)),
-      getRecoveryRequestOnChain(EthereumAddress.fromHex(request.accountAddress)),
+      fetchMinimumSignatures(),
+      getRecoveryRequestOnChain(),
       isOwner().then((value) => _isOwner = value)
     ]);
     setState(() => refreshing = false);
@@ -127,7 +127,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   }
 
   Future<bool> isOwner() async {
-    String currentOwner = (await IAccount.interface(address: EthereumAddress.fromHex(request.accountAddress), client: Networks.selected().client).getOwners())[0].hex.toLowerCase();
+    String currentOwner = (await IAccount.interface(address: widget.account.address, client: Networks.selected().client).getOwners())[0].hex.toLowerCase();
     if (currentOwner == request.newOwner.toLowerCase()){
       return true;
     }
@@ -138,7 +138,7 @@ class _RecoveryRequestPageState extends State<RecoveryRequestPage> {
   void initState() {
     request = widget.request;
     refreshData();
-    getGuardians(EthereumAddress.fromHex(request.accountAddress));
+    getGuardians();
     if (Networks.getByChainId(widget.account.chainId.toInt())!.testnetData != null){
       securityCenterUrl = "testnet-security.candidewallet.com";
     }

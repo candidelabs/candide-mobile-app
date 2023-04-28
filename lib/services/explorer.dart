@@ -4,6 +4,7 @@ import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/services/balance_service.dart';
+import 'package:candide_mobile_app/utils/guardian_helpers.dart';
 import 'package:dio/dio.dart';
 import 'package:wallet_dart/contracts/account.dart';
 import 'package:wallet_dart/wallet/account.dart';
@@ -14,6 +15,7 @@ class Explorer {
     required Account account,
     List<TokenInfo>? additionalCurrencies,
     bool skipBalances = false,
+    bool fetchSocialRecoveryModule = false,
   }) async {
     try{
       if (!skipBalances){
@@ -23,12 +25,20 @@ class Explorer {
       //
       bool proxyDeployed = true;
       int nonce = 0;
-      await Future.wait([
+      List<Future<dynamic>> futures = [
         Networks.selected().client.getCode(account.address).then((value) => proxyDeployed = value.isNotEmpty),
-        IAccount.interface(address: account.address, client: Networks.selected().client).getNonce().then((value) => nonce = value.toInt()).catchError((e, st){
+        IAccount.interface(address: account.address, client: Networks.getByChainId(account.chainId)!.client).getNonce().then((value) => nonce = value.toInt()).catchError((e, st){
           return 0;
         }),
-      ]);
+      ];
+      if (fetchSocialRecoveryModule && account.socialRecoveryModule == null){
+        futures.add(GuardianRecoveryHelper.getSocialRecoveryModule(account.address, account.chainId).then((value){
+          if (value == null) return;
+          account.socialRecoveryModule = value;
+          PersistentData.saveAccounts();
+        }));
+      }
+      await Future.wait(futures);
       PersistentData.accountStatus = AccountStatus(
         proxyDeployed: proxyDeployed,
         nonce: nonce,

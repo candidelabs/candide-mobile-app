@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/network.dart';
@@ -36,9 +38,18 @@ class GuardianOperationsHelper {
 
   static Batch? grantBatch;
 
-  static Future<bool> isSocialRecoveryModuleEnabled(EthereumAddress accountAddress) async {
+  static Future<bool> isSocialRecoveryModuleEnabled(Account account) async {
+    EthereumAddress? socialRecoveryModuleAddress;
+    if (account.socialRecoveryModule == null){
+      socialRecoveryModuleAddress = await GuardianRecoveryHelper.getSocialRecoveryModule(account.address, account.chainId);
+    }else{
+      socialRecoveryModuleAddress = account.socialRecoveryModule!;
+    }
+    if (socialRecoveryModuleAddress == null){
+      return false;
+    }
     try {
-      return await IAccount.interface(address: accountAddress, client: Networks.selected().client).isModuleEnabled(Networks.selected().socialRecoveryModule);
+      return await IAccount.interface(address: account.address, client: Networks.selected().client).isModuleEnabled(socialRecoveryModuleAddress);
     } catch (e) {
       return false;
     }
@@ -49,9 +60,9 @@ class GuardianOperationsHelper {
     Batch grantBatch = Batch();
     int friendsCount = 0;
     int threshold = 1;
-    bool moduleEnabled = await isSocialRecoveryModuleEnabled(account.address);
+    bool moduleEnabled = await isSocialRecoveryModuleEnabled(account);
     if (moduleEnabled){
-      friendsCount = (await ISocialModule.interface(address: Networks.selected().socialRecoveryModule, client: Networks.selected().client).guardiansCount(account.address)).toInt();
+      friendsCount = (await ISocialModule.interface(address: account.socialRecoveryModule!, client: Networks.selected().client).guardiansCount(account.address)).toInt();
       threshold = (((friendsCount + 1) / 2 ) + 1).floor();
     }
     List<GnosisTransaction> transactions = GuardianController.buildGrantTransactions(
@@ -130,10 +141,10 @@ class GuardianOperationsHelper {
   }
 
 
-  static Future<bool> revokeGuardian(EthereumAddress accountAddress, EthereumAddress guardian) async {
+  static Future<bool> revokeGuardian(Account account, EthereumAddress guardian) async {
     CancelFunc? cancelLoad = Utils.showLoading();
     Batch revokeBatch = Batch();
-    List<EthereumAddress> _prevGuardians = await ISocialModule.interface(address: Networks.selected().socialRecoveryModule, client: Networks.selected().client).getGuardians(accountAddress);
+    List<EthereumAddress> _prevGuardians = await ISocialModule.interface(address: account.socialRecoveryModule!, client: Networks.selected().client).getGuardians(account.address);
     int friendsCount = _prevGuardians.length;
     EthereumAddress previousGuardian = Constants.addressOne;
     int guardianIndex = _prevGuardians.indexOf(guardian);
@@ -224,10 +235,11 @@ class GuardianOperationsHelper {
 
 class GuardianRecoveryHelper{
 
-  static Future<EthereumAddress?> getSocialRecoveryModule(String accountAddress, int chainId, [GetModulesPaginated? modulesPaginated]) async{
+  static Future<EthereumAddress?> getSocialRecoveryModule(EthereumAddress accountAddress, int chainId, [GetModulesPaginated? modulesPaginated]) async{
+    Network network = Networks.getByChainId(chainId)!;
     if (modulesPaginated == null){
       try{
-        modulesPaginated = await IAccount.interface(address: EthereumAddress.fromHex(accountAddress), client: Networks.selected().client).getModulesPaginated(Constants.addressOne, BigInt.from(25));
+        modulesPaginated = await IAccount.interface(address: accountAddress, client: network.client).getModulesPaginated(Constants.addressOne, BigInt.from(25));
       }catch (e){
         return null;
       }
@@ -236,7 +248,7 @@ class GuardianRecoveryHelper{
     for (EthereumAddress module in modulesPaginated.array){
       try{
         final contract = DeployedContract(ContractAbi.fromJson(abi, 'SocialRecoveryModule'), module);
-        await Networks.getByChainId(chainId)!.client.call(contract: contract, function: contract.function("getGuardians"), params: [EthereumAddress.fromHex(accountAddress)]);
+        await network.client.call(contract: contract, function: contract.function("getGuardians"), params: [accountAddress]);
         return module;
       }catch (e){
         continue;
@@ -258,7 +270,7 @@ class GuardianRecoveryHelper{
       return;
     }
     //
-    EthereumAddress? socialModuleAddress = await getSocialRecoveryModule(address, chainId, modulesPaginated);
+    EthereumAddress? socialModuleAddress = await getSocialRecoveryModule(EthereumAddress.fromHex(address), chainId, modulesPaginated);
     if (socialModuleAddress == null){
       cancelLoad();
       Utils.showError(title: "Error", message: "This account does not have any recovery contacts, unfortunately this means this account cannot be recovered, contact us to learn more");
@@ -312,7 +324,18 @@ class GuardianRecoveryHelper{
       return;
     }
     //
+    EthereumAddress entrypoint = await IAccount.interface(address: account.address, client: network.client).entryPoint();
+    Uint8List _singletonBytes = await IAccount.interface(address: account.address, client: network.client).getStorageAt(BigInt.zero, BigInt.one);
+    Uint8List _fallbackBytes = await IAccount.interface(address: account.address, client: network.client).getStorageAt(BigInt.parse("49122629484629529244014240937346711770925847994644146912111677022347558721749"), BigInt.one);
+    EthereumAddress singleton = EthereumAddress(_singletonBytes.sublist(12));
+    EthereumAddress fallback = EthereumAddress(_fallbackBytes.sublist(12));
+    //
     account.recoveryId = request.id;
+    account.entrypoint = entrypoint;
+    account.singleton = singleton;
+    account.fallback = fallback;
+    account.socialRecoveryModule = socialModuleAddress;
+    //
     if (mainSigner != null){
       await PersistentData.addSigner("main", mainSigner);
     }

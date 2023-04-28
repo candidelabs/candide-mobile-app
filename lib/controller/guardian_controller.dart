@@ -34,10 +34,14 @@ class GuardianController {
     //
     List<GnosisTransaction> transactions = [];
     //
+    EthereumAddress socialRecoveryModuleAddress = Networks.getByChainId(account.chainId)!.socialRecoveryModule;
+    if (account.socialRecoveryModule != null){
+      socialRecoveryModuleAddress = account.socialRecoveryModule!;
+    }
     if (!socialModuleEnabled){
       GnosisTransaction enableModuleTransaction = buildSetupTransaction(
         accountAddress: account.address,
-        socialModuleAddress: Networks.getByChainId(account.chainId)!.socialRecoveryModule,
+        socialModuleAddress: socialRecoveryModuleAddress,
       );
       transactions.add(enableModuleTransaction);
     }
@@ -45,7 +49,7 @@ class GuardianController {
     for (EthereumAddress guardian in guardians){
       GnosisTransaction grantGuardianTransaction = GnosisTransaction(
         id: "social-grant",
-        to: Networks.getByChainId(account.chainId)!.socialRecoveryModule,
+        to: socialRecoveryModuleAddress,
         value: BigInt.zero,
         data: hexToBytes(
           EncodeFunctionData.grantGuardian(account.address, guardian, BigInt.from(threshold))
@@ -69,9 +73,13 @@ class GuardianController {
   }){
     List<GnosisTransaction> transactions = [];
     //
+    EthereumAddress socialRecoveryModuleAddress = Networks.getByChainId(account.chainId)!.socialRecoveryModule;
+    if (account.socialRecoveryModule != null){
+      socialRecoveryModuleAddress = account.socialRecoveryModule!;
+    }
     GnosisTransaction revokeGuardianTransaction = GnosisTransaction(
       id: "social-revoke",
-      to: Networks.getByChainId(account.chainId)!.socialRecoveryModule,
+      to: socialRecoveryModuleAddress,
       value: BigInt.zero,
       data: hexToBytes(EncodeFunctionData.revokeGuardian(account.address, previousGuardian, guardian, BigInt.from(threshold))),
       type: GnosisTransactionType.execTransactionFromEntrypoint,

@@ -121,6 +121,10 @@ class PersistentData {
   }
 
   static loadGuardians(Account account) async {
+    EthereumAddress socialRecoveryModuleAddress = Networks.getByChainId(account.chainId)!.socialRecoveryModule;
+    if (account.socialRecoveryModule != null){
+      socialRecoveryModuleAddress = account.socialRecoveryModule!;
+    }
     var json = Hive.box("state").get("guardians_metadata(${account.address.hex}-${account.chainId})");
     Map<String, List<dynamic>> metadata = {};
     //
@@ -139,7 +143,7 @@ class PersistentData {
     }
     //
     guardians.clear();
-    var interface = ISocialModule.interface(address: Networks.selected().socialRecoveryModule, client: Networks.selected().client);
+    var interface = ISocialModule.interface(address: socialRecoveryModuleAddress, client: Networks.selected().client);
     List<EthereumAddress> _guardians = (await interface.getGuardians(account.address));
     int guardiansCount = _guardians.length;
     if (guardiansCount > 0){
@@ -175,6 +179,7 @@ class PersistentData {
   }
 
   static Future<bool> isAccountRecoverable(Account account) async {
+    if (account.socialRecoveryModule == null) return false;
     if (_recoverableStatus.containsKey(account.hashCode)){
       var status = _recoverableStatus[account.hashCode];
       if ((status![1] as int) > DateTime.now().millisecondsSinceEpoch){
@@ -182,7 +187,7 @@ class PersistentData {
       }
     }
     Network network = Networks.getByChainId(account.chainId)!;
-    var interface = ISocialModule.interface(address: network.socialRecoveryModule, client: network.client);
+    var interface = ISocialModule.interface(address: account.socialRecoveryModule!, client: network.client);
     BigInt count = (await interface.guardiansCount(account.address));
     bool recoverable = count.toInt() > 0;
     _recoverableStatus[account.hashCode] = [recoverable, DateTime.now().millisecondsSinceEpoch + const Duration(minutes: 5).inMilliseconds];
