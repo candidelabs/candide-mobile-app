@@ -15,7 +15,7 @@ class CurrencyUtils {
       throw ArgumentError("Quote currency not supported"); // todo add simple routing
     }
     for (CurrencyBalance balance in PersistentData.currencies){
-      if (balance.currencyAddress == baseAddress){
+      if (balance.currencyAddress.toLowerCase() == baseAddress.toLowerCase()){
         if (balance.balance == BigInt.zero) return 0;
         int? decimals = TokenInfoStorage.getTokenByAddress(balance.currencyAddress)?.decimals;
         if (decimals == null) return 0;
