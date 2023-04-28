@@ -50,6 +50,14 @@ class KnownParamsComponent extends StatelessWidget {
                     if (transactionDetails.parameterTypes[i] == "address"){
                       value = (transactionDetails.parameterValues[i] as EthereumAddress).hexEip55;
                     }
+                    if (transactionDetails.parameterValues[i].runtimeType.toString() == "List<dynamic>"){ // todo decode nested arrays
+                      if (transactionDetails.parameterValues[i].isNotEmpty){
+                        if (transactionDetails.parameterValues[i][0].runtimeType.toString() == "_Uint8ArrayView"){
+                          value = (transactionDetails.parameterValues[i] as List<dynamic>).map((e) => bytesToHex(e, include0x: true)).toList().toString();
+                        }
+                      }
+
+                    }
                     if (transactionDetails.parameterValues[i].runtimeType.toString() == "_Uint8ArrayView"){
                       value = bytesToHex(transactionDetails.parameterValues[i], include0x: true);
                     }
