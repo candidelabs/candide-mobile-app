@@ -15,9 +15,9 @@ class Networks {
   static List<Network> instances = [];
   static final Map<int, Network> _instancesMap = {};
 
-  static configureVisibility(){
-    var hiddenNetworks = PersistentData.loadHiddenNetworks();
-    for (Network network in instances){
+  static void configureVisibility(){
+    final hiddenNetworks = PersistentData.loadHiddenNetworks();
+    for (final Network network in instances){
       if (hiddenNetworks.contains(network.chainId.toInt())){
         network.visible = false;
       }else{
@@ -26,7 +26,7 @@ class Networks {
     }
   }
 
-  static initialize(){
+  static void initialize(){
     instances.addAll(
       [
         Network(
@@ -36,11 +36,12 @@ class Networks {
           color: const Color(0xfff01a37),
           logo: SvgPicture.asset("assets/images/optimism.svg"),
           extendedLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
-          nativeCurrency: 'ETH',
           chainId: BigInt.from(10),
           explorerUrl: "https://optimistic.etherscan.io",
           //
           coinGeckoAssetPlatform: "optimistic-ethereum",
+          nativeCurrency: 'ETH',
+          nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           candideBalances: EthereumAddress.fromHex("0x82998037a1C25D374c421A620db6D9ff26Fb50b5"),
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
@@ -77,11 +78,12 @@ class Networks {
           testnetData: _TestnetData(testnetForChainId: 10),
           visible: false,
           color: const Color.fromARGB(255, 255, 137, 225),
-          nativeCurrency: 'ETH',
           chainId: BigInt.from(420),
           explorerUrl: "https://goerli-optimism.etherscan.io",
           //
           coinGeckoAssetPlatform: "optimistic-ethereum",
+          nativeCurrency: 'ETH',
+          nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           candideBalances: EthereumAddress.fromHex("0x97A8c45e8Da6608bAbf09eb1222292d7B389B1a1"),
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
@@ -118,11 +120,12 @@ class Networks {
           testnetData: _TestnetData(testnetForChainId: 1),
           visible: false,
           color: const Color(0xff4d99eb),
-          nativeCurrency: 'ETH',
           chainId: BigInt.from(5),
           explorerUrl: "https://goerli.etherscan.io",
           //
           coinGeckoAssetPlatform: "ethereum",
+          nativeCurrency: 'ETH',
+          nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           candideBalances: EthereumAddress.fromHex("0xdc1e0B26F8D92243A28087172b941A169C2B4354"),
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
@@ -215,10 +218,11 @@ class Network{
   Color color;
   Widget? logo;
   Widget? extendedLogo;
-  String nativeCurrency;
   BigInt chainId;
   String explorerUrl;
   String coinGeckoAssetPlatform;
+  String nativeCurrency;
+  EthereumAddress nativeCurrencyAddress;
   EthereumAddress candideBalances;
   EthereumAddress proxyFactory;
   EthereumAddress safeSingleton;
@@ -242,10 +246,11 @@ class Network{
       required this.color,
       this.logo,
       this.extendedLogo,
-      required this.nativeCurrency,
       required this.chainId,
       required this.explorerUrl,
       required this.coinGeckoAssetPlatform,
+      required this.nativeCurrency,
+      required this.nativeCurrencyAddress,
       required this.candideBalances,
       required this.proxyFactory,
       required this.safeSingleton,

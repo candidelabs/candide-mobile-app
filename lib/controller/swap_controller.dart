@@ -2,7 +2,6 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
@@ -15,7 +14,7 @@ class SwapController {
     required OptimalQuote optimalQuote,
   }){
     List<GnosisTransaction> transactions = [];
-    bool shouldApproveRouter = baseCurrency.symbol != Networks.selected().nativeCurrency && baseCurrency.address != Constants.addressZeroHex;
+    bool shouldApproveRouter = baseCurrency.address.toLowerCase() != Networks.selected().nativeCurrencyAddress.hex.toLowerCase();
     //
     GnosisTransaction? approveRouterTransaction = shouldApproveRouter ? GnosisTransaction(
       id: "approve-router",
