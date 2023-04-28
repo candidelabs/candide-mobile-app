@@ -173,6 +173,7 @@ class _TransactionCardState extends State<_TransactionCard> {
       case "pending": return Colors.orange;
       case "failed": return Colors.red;
       case "failed-to-submit": return Colors.red;
+      case "transaction-lost": return Colors.red;
       default: return Colors.green;
     }
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
@@ -69,16 +70,35 @@ class TransactionWatchdog {
     if (transactionActivity.hash == null) return;
     if (transactions.containsKey(transactionActivity.hash)) return;
     transactions[transactionActivity.hash!] = transactionActivity;
-    _timer ??= PausableTimer(const Duration(seconds: 1, milliseconds: 250), _checkAllTransactions);
+    _timer ??= PausableTimer(const Duration(seconds: 1, milliseconds: 500), _checkAllTransactions);
     if (!(_timer!.isActive)){
       _timer!..reset()..start();
     }
+  }
+
+  static bool _performCheck(int input) {
+    double interval = 0.5;
+    if (input < 10){
+      interval = 3;
+    }
+    if (input == 119 || (input % (interval * pow(10, (log(input) / ln10).floor()))) == 0) {
+      return true;
+    }
+    return false;
   }
 
   static _checkAllTransactions() async {
     List<Future> futures = [];
     List<TransactionActivity> removedActivities = [];
     for (MapEntry<String, TransactionActivity> entry in transactions.entries){
+      if (entry.value.checkCount == 120){
+        entry.value.status = "transaction-lost"; // when a transaction is sent to the bundler but cannot find a receipt for it
+        removedActivities.add(entry.value);
+        await PersistentData.updateTransactionActivityStorage(PersistentData.selectedAccount, entry.value);
+        continue;
+      }
+      entry.value.checkCount++;
+      if (!_performCheck(entry.value.checkCount.toInt())) continue;
       futures.add(getUserOperationStatus(entry.key).then((status) async {
         if (status == "pending") return;
         String txHash = status.split(":")[1];
@@ -112,6 +132,14 @@ class TransactionWatchdog {
               },
             );
           }
+        );
+      }else if (activity.status.toLowerCase() == "transaction-lost"){
+        Utils.showBottomStatus(
+          "Transaction failed",
+          "Transaction was lost, please check it yourself on the block explorer.\nContact us for help",
+          loading: false,
+          success: false,
+          duration: const Duration(seconds: 8),
         );
       }else{
         Utils.showBottomStatus(

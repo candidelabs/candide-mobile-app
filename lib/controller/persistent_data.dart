@@ -421,6 +421,8 @@ class TransactionActivity {
   String? hash;
   String? txHash;
   Map<String, String> data;
+  //
+  int checkCount = 0; // used for exponential check of user operation receipt in transaction watchdog
   late TransactionFeeActivityData fee;
 
   static const String _version = "0.0.1";
