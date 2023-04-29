@@ -84,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     var cancelLoad = Utils.showLoading();
     EncryptedSigner encryptedSigner = SignersController.instance.getSignersFromAccount(PersistentData.selectedAccount).first!;
     EncryptedSigner copy = EncryptedSigner.fromJson(encryptedSigner.toJson());
-    bool success = await AccountHelpers.reEncryptSigner(copy, newPin!);
+    bool success = await AccountHelpers.reEncryptSigner(copy, newPin!, credentials: SignersController.instance.getPrivateKeyFromSignerId(PersistentData.selectedAccount.signersIds.first));
     cancelLoad();
     if (!success) return;
     if (useBiometrics){
