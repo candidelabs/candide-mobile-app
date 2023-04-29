@@ -19,7 +19,7 @@ class _DeleteAccountConfirmDialogState extends State<DeleteAccountConfirmDialog>
 
   @override
   Widget build(BuildContext context) {
-    confirmEnabled = confirmationInput.toLowerCase() == "i understand";
+    confirmEnabled = confirmationInput.toLowerCase().trim() == "i understand";
     return AlertDialog(
       title: const Text("Are you sure ?"),
       insetPadding: const EdgeInsets.symmetric(horizontal: 25),

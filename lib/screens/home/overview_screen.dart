@@ -118,8 +118,8 @@ class _OverviewScreenState extends State<OverviewScreen> {
       return false;
     }else{
       Account nextAccount;
-      if (PersistentData.accounts.length > deletedWalletIndex + 1){
-        nextAccount = PersistentData.accounts[deletedWalletIndex+1];
+      if ((PersistentData.accounts.length-1) >= deletedWalletIndex){
+        nextAccount = PersistentData.accounts[deletedWalletIndex];
       }else{
         nextAccount = PersistentData.accounts[deletedWalletIndex-1];
       }
