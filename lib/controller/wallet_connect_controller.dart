@@ -136,6 +136,11 @@ class WalletConnectController {
     sessionId = _sessionId;
     connector = WalletConnect(
       uri: uri,
+      clientMeta: const PeerMeta(
+        name: "CANDIDE Wallet",
+        url: "https://candidewallet.com/",
+        icons: ["https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/logo.jpeg"],
+      ),
       sessionStorage: _WalletConnectSecureStorage(storageKey: sessionId)
     );
     _initializeListeners();
