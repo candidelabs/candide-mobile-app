@@ -109,6 +109,7 @@ class Bundler {
     if (value == null) return BigInt.zero;
     if (value is String){
       if (value.startsWith("0x") || !value.isNumericOnly){
+        if (value == "0x") return BigInt.zero;
         return BigInt.parse(value.replaceAll("0x", ""), radix: 16);
       }else{
         return BigInt.parse(value);
