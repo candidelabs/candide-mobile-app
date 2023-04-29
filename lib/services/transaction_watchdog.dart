@@ -80,6 +80,8 @@ class TransactionWatchdog {
     double interval = 0.5;
     if (input < 10){
       interval = 3;
+    }else if (input < 45){
+      interval = 0.3;
     }
     if (input == 119 || (input % (interval * pow(10, (log(input) / ln10).floor()))) == 0) {
       return true;
