@@ -46,7 +46,7 @@ class Networks {
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
           proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x017062a1dE2FE6b99BE3d9d37841FeD19F573804"),
+          fallbackHandler: EthereumAddress.fromHex("0x2a15DE4410d4c8af0A7b6c12803120f43C42B820"),
           socialRecoveryModule: EthereumAddress.fromHex("0xbc1920b63F35FdeD45382e2295E645B5c27fD2DA"),
           entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
           multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
@@ -88,7 +88,7 @@ class Networks {
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
           proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x017062a1dE2FE6b99BE3d9d37841FeD19F573804"),
+          fallbackHandler: EthereumAddress.fromHex("0x2a15DE4410d4c8af0A7b6c12803120f43C42B820"),
           socialRecoveryModule: EthereumAddress.fromHex("0x831153c6b9537d0fF5b7DB830C2749DE3042e776"),
           entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
           multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
@@ -130,7 +130,7 @@ class Networks {
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
           proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"),
+          fallbackHandler: EthereumAddress.fromHex("0x2a15DE4410d4c8af0A7b6c12803120f43C42B820"),
           socialRecoveryModule: EthereumAddress.fromHex("0x831153c6b9537d0fF5b7DB830C2749DE3042e776"),
           entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
           multiSendCall: EthereumAddress.fromHex("0x40A2aCCbd92BCA938b02010E17A5b8929b49130D"),
@@ -173,7 +173,7 @@ class Networks {
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
           proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x017062a1dE2FE6b99BE3d9d37841FeD19F573804"),
+          fallbackHandler: EthereumAddress.fromHex("0x2a15DE4410d4c8af0A7b6c12803120f43C42B820"),
           socialRecoveryModule: EthereumAddress.fromHex("0x831153c6b9537d0fF5b7DB830C2749DE3042e776"),
           entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
           multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
