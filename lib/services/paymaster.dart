@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:candide_mobile_app/config/env.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
@@ -23,7 +24,7 @@ class Paymaster {
       //
       List<FeeToken> result = [];
       //
-      TokenInfo? _ethereum = TokenInfoStorage.getTokenByAddress(Constants.addressZeroHex);
+      TokenInfo? _ethereum = TokenInfoStorage.getTokenByAddress(Networks.selected().nativeCurrencyAddress.hexEip55);
       result.add(FeeToken(
         paymaster: Constants.addressZero,
         token: _ethereum!,
