@@ -11,7 +11,17 @@ import 'package:web3dart/web3dart.dart';
 class Paymaster {
 
   static Future<List<FeeToken>?> fetchPaymasterFees(int chainId) async {
+    List<FeeToken> result = [];
+    TokenInfo? _ethereum = TokenInfoStorage.getTokenByAddress(Constants.addressZeroHex);
+    result.add(FeeToken(
+        paymaster: Constants.addressZero,
+        token: _ethereum!,
+        fee: BigInt.zero,
+        exchangeRate: BigInt.parse("1000000000000000000")
+    ));
+    //
     var paymasterEndpoint = Env.getPaymasterUrlByChainId(chainId);
+    if (paymasterEndpoint.trim().isEmpty || paymasterEndpoint.trim() == "-") return result;
     try{
       var response = await Dio().post(paymasterEndpoint,
           data: jsonEncode({
@@ -21,17 +31,9 @@ class Paymaster {
           })
       );
       //
-      List<FeeToken> result = [];
       //
-      TokenInfo? _ethereum = TokenInfoStorage.getTokenByAddress(Constants.addressZeroHex);
-      result.add(FeeToken(
-        paymaster: Constants.addressZero,
-        token: _ethereum!,
-        fee: BigInt.zero,
-        exchangeRate: BigInt.parse("1000000000000000000")
-      ));
+
       //
-      print(response.data);
       for (Map tokenData in response.data['result']){
         TokenInfo? _token = TokenInfoStorage.getTokenByAddress(tokenData["address"]);
         if (_token == null) continue;
