@@ -26,7 +26,7 @@ class Batch {
   List<FeeToken> _feeTokens = [];
   List<GnosisTransaction> transactions = [];
 
-  bool get includesPaymaster => _feeToken != null && _feeToken?.token.symbol != Networks.selected().nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
+  bool get includesPaymaster => _feeToken != null && _feeToken!.token.address.toLowerCase() != Networks.selected().nativeCurrencyAddress.hex.toLowerCase();
   FeeToken? get feeCurrency => _feeToken;
   List<FeeToken> get feeCurrencies => _feeTokens;
 
@@ -46,7 +46,7 @@ class Batch {
     List<Future<UserOperation>> _userOpsTemp = [];
     Map<FeeToken, UserOperation> _userOps = {};
     for (FeeToken feeCurrency in _feeTokens){
-      bool isEther = feeCurrency.token.symbol == Networks.selected().nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
+      bool isEther = feeCurrency.token.address.toLowerCase() != Networks.selected().nativeCurrencyAddress.hex.toLowerCase();
       _userOpsTemp.add(
         toUserOperation(
           PersistentData.selectedAccount,

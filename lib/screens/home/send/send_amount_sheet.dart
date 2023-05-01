@@ -1,8 +1,8 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -55,7 +55,7 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: CurrenciesSelectionSheet(
-          currencies: TokenInfoStorage.tokens.where((element) => element.address == Constants.addressZeroHex || PersistentData.getCurrencyBalance(element.address.toLowerCase()) > BigInt.zero).toList(),
+          currencies: TokenInfoStorage.tokens.where((element) => element.address.toLowerCase() == Networks.selected().nativeCurrencyAddress.hex || PersistentData.getCurrencyBalance(element.address.toLowerCase()) > BigInt.zero).toList(),
           initialSelection: selectedToken,
           onSelected: (token){
             setState(() {

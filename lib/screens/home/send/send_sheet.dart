@@ -115,7 +115,7 @@ class _SendSheetState extends State<SendSheet> {
         gotoPage(1);
       },
       confirmCheckboxes: [
-        currency.address == Constants.addressZeroHex
+        currency.address.toLowerCase() == Networks.selected().nativeCurrencyAddress.hex 
             ? ["I am not sending to an exchange", "Most exchanges do not detect \$${currency.symbol} transfers coming from smart contract accounts"]
             : null,
         ["The person I'm sending to has a wallet that supports ${Networks.selected().name} network"],
