@@ -182,7 +182,7 @@ class _WCSignatureHelpers {
 
   static Uint8List getMessageHashForSafe(Uint8List payload){
     Uint8List SAFE_MSG_TYPEHASH = hexToBytes("0x60b3cbf8b4a223d68d641b3b6ddf9a298e7f33710cf3d3a9d1146b5a6150fbca");
-    var domainSeparator = EncodeFunctionData.domainSeparator(PersistentData.selectedAccount.address);
+    var domainSeparator = EncodeFunctionData.domainSeparator(PersistentData.selectedAccount.address, BigInt.from(PersistentData.selectedAccount.chainId));
     var encodedMessage = encodeAbi(["bytes32", "bytes32"], [SAFE_MSG_TYPEHASH, keccak256(payload)]);
     var messageHash = keccak256(Message.solidityPack(
         ["bytes1", "bytes1", "bytes32", "bytes32",],

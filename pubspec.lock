@@ -1081,8 +1081,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "5f654a60042f286d6d97b170372a1fe2e8335829"
-      resolved-ref: "5f654a60042f286d6d97b170372a1fe2e8335829"
+      ref: "247af6f807c259ff85e09803250e9ccb0889d8cd"
+      resolved-ref: "247af6f807c259ff85e09803250e9ccb0889d8cd"
       url: "https://github.com/candidelabs/wallet-dart.git"
     source: git
     version: "0.0.1"
