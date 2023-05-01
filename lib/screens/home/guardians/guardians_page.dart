@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
@@ -184,6 +185,9 @@ class _GuardiansPageState extends State<GuardiansPage> {
 
   Widget noGuardiansWidget(bool showTitle){
     bool magicLinkEnabled = Networks.selected().isFeatureEnabled("social-recovery.magic-link");
+    if (Env.magicApiKey.trim().isEmpty || Env.magicApiKey.trim() == "-"){
+      magicLinkEnabled = false;
+    }
     bool familyFriendsEnabled = Networks.selected().isFeatureEnabled("social-recovery.family-and-friends");
     bool hardwareWalletsEnabled = Networks.selected().isFeatureEnabled("social-recovery.hardware-wallet");
     return Column(
