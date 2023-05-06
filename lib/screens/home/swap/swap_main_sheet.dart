@@ -8,7 +8,9 @@ import 'package:candide_mobile_app/screens/components/continous_input_border.dar
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
+import 'package:candide_mobile_app/utils/extensions/decimal_extensions.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -37,7 +39,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
   //
   TokenInfo baseCurrency = TokenInfoStorage.getTokenBySymbol("ETH")!;
   BigInt actualAmount = BigInt.zero;
-  double amount = 0.0;
+  Decimal amount = Decimal.zero;
   //
   TokenInfo quoteCurrency = TokenInfoStorage.getTokenBySymbol("UNI")!;
   OptimalQuote? quote;
@@ -75,11 +77,11 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
       baseCurrency = quoteCurrency;
       quoteCurrency = tempBaseCurrency;
       if (quote != null){
-        amount = double.parse(CurrencyUtils.formatCurrency(quote!.amount, baseCurrency, includeSymbol: false));
-        _baseController.text = "$amount";
+        amount = Decimal.parse(CurrencyUtils.formatCurrency(quote!.amount, baseCurrency, includeSymbol: false));
+        _baseController.text = amount.toTrimmedStringAsFixed(baseCurrency.decimals);
       }
     });
-    if (amount > 0){
+    if (amount > Decimal.zero){
       getSwapData();
     }
   }
@@ -95,7 +97,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
         getSwapData();
       }
       if (!_baseController.value.text.contains("<")){
-        _baseController.text = "$amount";
+        _baseController.text = amount.toTrimmedStringAsFixed(baseCurrency.decimals);
       }
     }
   }
@@ -107,9 +109,9 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
     if (input.isEmpty || input == "."){
       input = "0";
     }
-    amount = double.parse(input);
+    amount = Decimal.parse(input);
     if (setActualAmount){
-      actualAmount = CurrencyUtils.parseCurrency(amount.toString(), baseCurrency);
+      actualAmount = CurrencyUtils.parseCurrency(amount.toTrimmedStringAsFixed(baseCurrency.decimals), baseCurrency);
     }
     if (actualAmount == BigInt.zero){
       if (errorMessage != _errors["zero"]) {
@@ -158,12 +160,9 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                           onPressed: (){
                             _baseFocusNode.unfocus();
                             actualAmount = PersistentData.getCurrencyBalance(baseCurrency.address.toLowerCase());
-                            amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, baseCurrency, includeSymbol: false));
-                            _baseController.text = "$amount";
+                            amount = Decimal.parse(CurrencyUtils.formatCurrency(actualAmount, baseCurrency, includeSymbol: false));
+                            _baseController.text = amount.toTrimmedStringAsFixed(baseCurrency.decimals);
                             _validateAmountInput(amount.toString(), setActualAmount: false);
-                            if (amount.toString() == "0.0" && actualAmount > BigInt.zero){
-                              _baseController.text = "<0.000001";
-                            }
                           },
                           style: ButtonStyle(
                             padding: MaterialStateProperty.all(EdgeInsets.zero),

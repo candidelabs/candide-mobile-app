@@ -67,6 +67,7 @@ dependencies:
   font_awesome_flutter: ^10.1.0
   flutter_svg: ^1.1.1+1
   # Misc
+  decimal: ^2.3.2
   url_launcher: ^6.1.5
   flutter_dotenv: ^5.0.2
   share_plus: ^6.2.0

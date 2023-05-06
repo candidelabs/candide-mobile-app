@@ -4,7 +4,9 @@ import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
+import 'package:candide_mobile_app/utils/extensions/decimal_extensions.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -30,18 +32,18 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
     "zero": "Sending amount must be greater than zero",
   };
   BigInt actualAmount = BigInt.zero;
-  double amount = 0.0;
+  Decimal amount = Decimal.zero;
   //
   @override
   void initState() {
-    _amountController.text = "$amount ${selectedToken.symbol}";
+    _amountController.text = "${amount.toTrimmedStringAsFixed(selectedToken.decimals)} ${selectedToken.symbol}";
     _amountFocus.addListener((){
       if (_amountFocus.hasFocus){
-        _amountController.text = amount.toString();
+        _amountController.text = amount.toTrimmedStringAsFixed(selectedToken.decimals);
       }else{
         if (_amountController.value.text.contains("<")) return;
-        amount = double.parse(_amountController.value.text.isEmpty ? "0" : _amountController.value.text);
-        _amountController.text = "$amount ${selectedToken.symbol}";
+        amount = Decimal.parse(_amountController.value.text.isEmpty ? "0" : _amountController.value.text);
+        _amountController.text = "${amount.toTrimmedStringAsFixed(selectedToken.decimals)} ${selectedToken.symbol}";
       }
     });
     super.initState();
@@ -60,11 +62,11 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
           onSelected: (token){
             setState(() {
               if (selectedToken != token){
-                amount = 0;
+                amount = Decimal.zero;
               }
               selectedToken = token;
-              _amountController.text = "$amount ${selectedToken.symbol}";
-              _validateAmountInput(amount.toString());
+              _amountController.text = "${amount.toTrimmedStringAsFixed(selectedToken.decimals)} ${selectedToken.symbol}";
+              _validateAmountInput(amount.toTrimmedStringAsFixed(selectedToken.decimals));
             });
           },
         ),
@@ -76,9 +78,9 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
     if (input.isEmpty || input == "."){
       input = "0";
     }
-    amount = double.parse(input);
+    amount = Decimal.parse(input);
     if (setActualAmount){
-      actualAmount = CurrencyUtils.parseCurrency(amount.toString(), selectedToken);
+      actualAmount = CurrencyUtils.parseCurrency(amount.toTrimmedStringAsFixed(selectedToken.decimals), selectedToken);
     }
     if (actualAmount == BigInt.zero){
       if (errorMessage != _errors["zero"]) {
@@ -156,12 +158,10 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                           onPressed: (){
                             _amountFocus.unfocus();
                             actualAmount = PersistentData.getCurrencyBalance(selectedToken.address.toLowerCase());
-                            amount = double.parse(CurrencyUtils.formatCurrency(actualAmount, selectedToken, includeSymbol: false));
-                            _amountController.text = "$amount ${selectedToken.symbol}";
-                            _validateAmountInput(amount.toString(), setActualAmount: false);
-                            if (amount.toString() == "0.0" && actualAmount > BigInt.zero){
-                              _amountController.text = "<0.000001 ${selectedToken.symbol}";
-                            }
+                            amount = Decimal.parse(CurrencyUtils.formatCurrency(actualAmount, selectedToken, includeSymbol: false));
+                            String _amountString = amount.toTrimmedStringAsFixed(selectedToken.decimals);
+                            _amountController.text = "$_amountString ${selectedToken.symbol}";
+                            _validateAmountInput(_amountString, setActualAmount: false);
                           },
                           child: Text("USE MAX", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
                         ),

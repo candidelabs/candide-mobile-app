@@ -1,14 +1,12 @@
 // ignore_for_file: prefer_interpolation_to_compose_strings
 
-import 'dart:math';
-
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/utils/extensions/decimal_extensions.dart';
+import 'package:decimal/decimal.dart';
 
 class CurrencyUtils {
   static const int DECIMAL_PLACES = 6;
-  static final MULTIPLIER = pow(10, DECIMAL_PLACES);
-
 
   static double convertToQuote(String baseAddress, String quote, BigInt value){
     if (quote != PersistentData.accountBalance.quoteCurrency){
@@ -31,7 +29,7 @@ class CurrencyUtils {
     String result = displayGenericToken(value, token);
     if (formatSmallDecimals){
       var doubleString = result.split(" ")[0];
-      if (doubleString == "0.0" && value > BigInt.zero){
+      if ((doubleString == "0.0" || doubleString == "0") && value > BigInt.zero){
         result = "<0.000001 ${token.symbol}";
       }
     }
@@ -45,10 +43,10 @@ class CurrencyUtils {
   }
 
   static String displayGenericToken(BigInt value, TokenInfo token){
-    //return formatUnits(value, CurrencyMetadata.metadata[symbol]!.decimals);
-    return commify(((double.parse(
+    var multiplier = Decimal.fromInt(10).pow(token.decimals).toDecimal();
+    return commify(((Decimal.parse(
         formatUnits(value, token.decimals)
-    ) * MULTIPLIER).floor() / MULTIPLIER).toStringAsFixed(DECIMAL_PLACES)) + " " + token.symbol;
+    ) * multiplier).floor() / multiplier).toDecimal().toTrimmedStringAsFixed(DECIMAL_PLACES)) + " " + token.symbol;
   }
 
   static BigInt parseCurrency(String value, TokenInfo token){
