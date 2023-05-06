@@ -158,7 +158,7 @@ class Batch {
     //
     userOp.callGasLimit = gasEstimates!.callGasLimit.scale(1.25);
     userOp.preVerificationGas = gasEstimates.preVerificationGas;
-    userOp.verificationGasLimit = gasEstimates.verificationGasLimit.scale(1.5);
+    userOp.verificationGasLimit = gasEstimates.verificationGasLimit.scale(2);
     userOp.maxFeePerGas = gasEstimates.maxFeePerGas;
     userOp.maxPriorityFeePerGas = gasEstimates.maxPriorityFeePerGas;
     if (userOp.initCode != "0x"){
