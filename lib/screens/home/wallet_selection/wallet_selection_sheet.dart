@@ -323,7 +323,7 @@ class _AccountCardState extends State<_AccountCard> {
                   child: Row(
                     children: [
                       const Text(
-                        "This account is not recoverable. ",
+                        "Account not recoverable. ",
                         style: TextStyle(fontSize: 11.5),
                       ),
                       Directionality(
@@ -337,7 +337,7 @@ class _AccountCardState extends State<_AccountCard> {
                           ),
                           icon: const Icon(PhosphorIcons.caretRight, size: 9,),
                           label: const Text(
-                            "Set up recovery contacts",
+                            "Setup recovery contacts",
                             style: TextStyle(fontSize: 11),
                           ),
                         ),
