@@ -1,7 +1,7 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/screens/home/components/fee_currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
@@ -27,11 +27,11 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: FeeCurrenciesSelectionSheet(
-          currencies: widget.batch.feeCurrencies,
+          currencies: widget.batch.paymasterResponse.tokens,
           initialSelection: widget.batch.feeCurrency?.token,
           onSelected: (feeCurrency){
             setState(() {
-              widget.batch.changeFeeCurrency(feeCurrency);
+              widget.batch.setSelectedFeeToken(feeCurrency);
             });
             widget.onFeeCurrencyChange?.call(feeCurrency);
           },

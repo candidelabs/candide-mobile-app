@@ -1,16 +1,15 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 import 'package:animations/animations.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/swap_controller.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/swap/components/swap_review_leading.dart';
-import 'package:candide_mobile_app/controller/swap_controller.dart';
 import 'package:candide_mobile_app/screens/home/swap/swap_main_sheet.dart';
-import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -61,7 +60,7 @@ class _SwapSheetState extends State<SwapSheet> {
     quote = _quote;
     var cancelLoad = Utils.showLoading();
     //
-    swapBatch = Batch();
+    swapBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
     //
     List<GnosisTransaction> transactions = SwapController.buildTransactions(
         baseCurrency: baseCurrency,
@@ -70,13 +69,7 @@ class _SwapSheetState extends State<SwapSheet> {
     );
     swapBatch!.transactions.addAll(transactions);
     //
-    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
-    if (feeCurrencies == null){
-      // todo handle network errors
-      return;
-    }else{
-      await swapBatch!.changeFeeCurrencies(feeCurrencies);
-    }
+    await swapBatch!.fetchPaymasterResponse();
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(

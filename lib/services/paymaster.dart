@@ -2,26 +2,41 @@ import 'dart:convert';
 
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
+import 'package:candide_mobile_app/models/paymaster/paymaster_data.dart';
+import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
+import 'package:candide_mobile_app/models/paymaster/sponsor_data.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:dio/dio.dart';
+import 'package:eth_sig_util/util/utils.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Paymaster {
 
-  static Future<List<FeeToken>?> fetchPaymasterFees(int chainId) async {
+  static Future<PaymasterResponse?> fetchPaymasterFees(int chainId) async {
     List<FeeToken> result = [];
     TokenInfo? _ethereum = TokenInfoStorage.getTokenByAddress(Constants.addressZeroHex);
     result.add(FeeToken(
-        paymaster: Constants.addressZero,
         token: _ethereum!,
         fee: BigInt.zero,
         exchangeRate: BigInt.parse("1000000000000000000")
     ));
     //
     var paymasterEndpoint = Env.getPaymasterUrlByChainId(chainId);
-    if (paymasterEndpoint.trim().isEmpty || paymasterEndpoint.trim() == "-") return result;
+    //
+    PaymasterResponse paymasterResponse = PaymasterResponse(
+        tokens: result,
+        paymasterData: PaymasterData(
+          paymaster: Constants.addressZero,
+          eventTopic: hexToBytes("0x"),
+        ),
+        sponsorData: SponsorData(
+          sponsored: false,
+          sponsorMeta: null,
+        )
+    );
+    if (paymasterEndpoint.trim().isEmpty || paymasterEndpoint.trim() == "-") return paymasterResponse;
     try{
       var response = await Dio().post(paymasterEndpoint,
           data: jsonEncode({
@@ -34,20 +49,22 @@ class Paymaster {
       //
 
       //
+      EthereumAddress paymasterAddress = Constants.addressZero;
       for (Map tokenData in response.data['result']){
+        paymasterAddress = EthereumAddress.fromHex(tokenData["paymaster"]);
         TokenInfo? _token = TokenInfoStorage.getTokenByAddress(tokenData["address"]);
         if (_token == null) continue;
         result.add(
             FeeToken(
-              paymaster: EthereumAddress.fromHex(tokenData["paymaster"]),
-              paymasterEventTopic: tokenData["paymasterEventTopic"],
               token: _token,
               fee: BigInt.zero,
               exchangeRate: tokenData["exchangeRate"].runtimeType == String ? BigInt.parse(tokenData["exchangeRate"]) : BigInt.from(tokenData["exchangeRate"])
             )
         );
       }
-      return result;
+      paymasterResponse.tokens = result;
+      paymasterResponse.paymasterData.paymaster = paymasterAddress;
+      return paymasterResponse;
     } on DioError catch(e){
       print("Error occurred ${e.type.toString()}");
       return null;

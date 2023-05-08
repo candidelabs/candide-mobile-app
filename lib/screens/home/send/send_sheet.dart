@@ -2,16 +2,14 @@
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/send_controller.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/components/send_review_leading.dart';
-import 'package:candide_mobile_app/controller/send_controller.dart';
 import 'package:candide_mobile_app/screens/home/send/send_amount_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/send_to_sheet.dart';
-import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -69,7 +67,7 @@ class _SendSheetState extends State<SendSheet> {
     currency = _currency;
     var cancelLoad = Utils.showLoading();
     //
-    sendBatch = Batch();
+    sendBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
     //
     GnosisTransaction transaction = SendController.buildTransaction(
       sendToken: _currency,
@@ -79,13 +77,7 @@ class _SendSheetState extends State<SendSheet> {
     //
     sendBatch!.transactions.add(transaction);
     //
-    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
-    if (feeCurrencies == null){
-      // todo handle network errors
-      return;
-    }else{
-      await sendBatch!.changeFeeCurrencies(feeCurrencies);
-    }
+    await sendBatch!.fetchPaymasterResponse();
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
