@@ -207,8 +207,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Icon(PhosphorIcons.fingerprint, color: Colors.white,),
               ),
             ),
-            label: Text("Enable Fingerprint", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
-            description: const Text("Enable fingerprint to authorize transactions and access your wallet",),
+            label: Text("Enable Biometrics", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
+            description: const Text("Enable biometrics to authorize transactions and access your wallet",),
             trailing: Switch(
               onChanged: (val){
                 toggleFingerprint();
