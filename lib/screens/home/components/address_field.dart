@@ -11,11 +11,10 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:ens_dart/ens_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:web3dart/credentials.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart';
 
 class AddressField extends StatefulWidget {
   final String hint;

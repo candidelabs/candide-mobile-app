@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:wallet_dart/utils/abi_utils.dart';
+import 'package:web3dart/crypto.dart';
 
 class TransactionDecoder {
   /// List of contract functions that has special client UI to better illustrate the functionality of the transaction

@@ -7,10 +7,9 @@ import 'package:candide_mobile_app/screens/components/continous_input_border.dar
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class GuardianDetailsSheet extends StatefulWidget {
   final AccountGuardian guardian;

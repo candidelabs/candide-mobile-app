@@ -1,7 +1,7 @@
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
-import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/account.dart';
+import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 

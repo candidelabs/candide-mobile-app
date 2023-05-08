@@ -1,9 +1,10 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
-import 'package:candide_mobile_app/utils/currency.dart';import 'package:candide_mobile_app/utils/utils.dart';
+import 'package:candide_mobile_app/utils/currency.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

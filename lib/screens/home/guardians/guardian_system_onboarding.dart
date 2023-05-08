@@ -1,13 +1,13 @@
 import 'package:blockies/blockies.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/components/onboarding_feature_card.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:onboarding/onboarding.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:wallet_dart/wallet/account.dart';
 
 
