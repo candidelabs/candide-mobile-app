@@ -141,7 +141,11 @@ class TokenInfoStorage {
     }
     for (Map tokenInfoJson in data){
       TokenInfo tokenInfo = TokenInfo.fromJson(tokenInfoJson);
-      if (addedTokens.contains(tokenInfo.address.toLowerCase())) continue;
+      if (addedTokens.contains(tokenInfo.address.toLowerCase())){
+        TokenInfo addedToken = getTokenByAddress(tokenInfo.address)!;
+        addedToken.visible = tokenInfo.visible;
+        continue;
+      }
       tokens.add(tokenInfo);
     }
   }
