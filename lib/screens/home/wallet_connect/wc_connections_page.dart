@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_peer_icon.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class WCConnectionsPage extends StatefulWidget {
@@ -103,18 +103,6 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget peerIcon;
-    if (sessionController.connector.session.peerMeta == null
-          || sessionController.connector.session.peerMeta!.icons == null
-          || sessionController.connector.session.peerMeta!.icons!.isEmpty){
-      peerIcon = SvgPicture.asset("assets/images/walletconnect.svg");
-    }else{
-      if (sessionController.connector.session.peerMeta!.icons![0].endsWith(".svg")){
-        peerIcon = SvgPicture.network(sessionController.connector.session.peerMeta!.icons![0]);
-      }else{
-        peerIcon = Image.network(sessionController.connector.session.peerMeta!.icons![0]);
-      }
-    }
     return Card(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -127,7 +115,7 @@ class _SessionCard extends StatelessWidget {
                   height: 40,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
-                    child: peerIcon,
+                    child: WCPeerIcon(connector: sessionController.connector),
                   ),
                 ),
                 const SizedBox(width: 10,),

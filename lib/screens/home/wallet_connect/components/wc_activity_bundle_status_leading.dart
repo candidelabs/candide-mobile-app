@@ -1,4 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_peer_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:walletconnect_dart/walletconnect_dart.dart';
@@ -25,9 +26,7 @@ class WCBundleStatusLeading extends StatelessWidget {
             height: 20,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: Image.network(
-                connector.session.peerMeta!.icons![0]
-              ),
+              child: WCPeerIcon(connector: connector,)
             ),
           ),
           const SizedBox(width: 5,),

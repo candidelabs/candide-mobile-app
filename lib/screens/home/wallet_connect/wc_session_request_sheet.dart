@@ -1,6 +1,7 @@
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_peer_icon.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -20,18 +21,6 @@ class WCSessionRequestSheet extends StatefulWidget {
 class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
   @override
   Widget build(BuildContext context) {
-    Widget peerIcon;
-    if (widget.connector.session.peerMeta == null
-        || widget.connector.session.peerMeta!.icons == null
-        || widget.connector.session.peerMeta!.icons!.isEmpty){
-      peerIcon = SvgPicture.asset("assets/images/walletconnect.svg");
-    }else{
-      if (widget.connector.session.peerMeta!.icons![0].endsWith(".svg")){
-        peerIcon = SvgPicture.network(widget.connector.session.peerMeta!.icons![0]);
-      }else{
-        peerIcon = Image.network(widget.connector.session.peerMeta!.icons![0]);
-      }
-    }
     //
     String peerName = widget.connector.session.peerMeta?.name ?? "Unknown";
     String peerUrl = widget.connector.session.peerMeta?.url ?? "";
@@ -49,7 +38,7 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
               height: 60,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(60),
-                child: peerIcon,
+                child: WCPeerIcon(connector: widget.connector),
               ),
             ),
             const SizedBox(width: 20,),

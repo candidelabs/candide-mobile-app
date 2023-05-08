@@ -4,6 +4,7 @@ import 'package:candide_mobile_app/screens/home/wallet_connect/components/transa
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/transaction_decode_components/default_mc_decode_component.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/transaction_decode_components/known_params_component.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/transaction_decode_components/wc_approve_component.dart';
+import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_peer_icon.dart';
 import 'package:candide_mobile_app/services/transaction_decoder.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -71,9 +72,7 @@ class _WCReviewLeadingState extends State<WCReviewLeading> {
           height: 75,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(75),
-            child: Image.network(
-              widget.connector.session.peerMeta!.icons![0]
-            ),
+            child: WCPeerIcon(connector: widget.connector,)
           ),
         ),
         const SizedBox(height: 25,),
