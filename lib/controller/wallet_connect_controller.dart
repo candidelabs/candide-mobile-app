@@ -5,8 +5,8 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
+import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/components/send_review_leading.dart';
@@ -213,7 +213,7 @@ class WalletConnectController {
   void _ethSendTransaction(JsonRpcRequest? payload) async {
     if (payload == null) return;
     var cancelLoad = Utils.showLoading();
-    Batch wcBatch = Batch();
+    Batch wcBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
     String hexValue = "0x00";
     String gasLimit = "0x00";
     String data = "0x";
@@ -244,13 +244,7 @@ class WalletConnectController {
     );
     wcBatch.transactions.add(transaction);
     //
-    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
-    if (feeCurrencies == null){
-      // todo handle network errors
-      return;
-    }else{
-      await wcBatch.changeFeeCurrencies(feeCurrencies);
-    }
+    await wcBatch.fetchPaymasterResponse();
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
@@ -308,7 +302,7 @@ class WalletConnectController {
     if (payload.params == null) return;
     //print(payload.toJson());
     var cancelLoad = Utils.showLoading();
-    Batch wcBatch = Batch();
+    Batch wcBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
     BigInt totalValue = BigInt.zero;
     for (Map call in payload.params![0]["calls"]){
       String hexValue = "0x00";
@@ -341,12 +335,12 @@ class WalletConnectController {
       wcBatch.transactions.add(transaction);
     }
     //
-    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
-    if (feeCurrencies == null){
+    PaymasterResponse? paymasterResponse = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
+    if (paymasterResponse == null){
       // todo handle network errors
       return;
     }else{
-      await wcBatch.changeFeeCurrencies(feeCurrencies);
+      await wcBatch.setPaymasterResponse(paymasterResponse);
     }
     //
     cancelLoad();

@@ -1,15 +1,12 @@
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
-import 'package:web3dart/credentials.dart';
 
 class FeeToken {
-  EthereumAddress paymaster;
-  String? paymasterEventTopic;
   TokenInfo token;
   BigInt fee;
   BigInt exchangeRate;
 
-  FeeToken({required this.paymaster, this.paymasterEventTopic, required this.token, required this.fee, required this.exchangeRate});
+  FeeToken({required this.token, required this.fee, required this.exchangeRate});
 }
 
 class FeeCurrencyUtils {

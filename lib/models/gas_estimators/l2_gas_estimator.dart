@@ -22,7 +22,7 @@ class L2GasEstimator extends GasEstimator {
   }
 
   @override
-  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {EthereumAddress? paymasterAddress}) async {
+  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {bool includesPaymaster = false}) async {
     UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
     //
     /*if (paymasterAddress != null){
@@ -52,7 +52,7 @@ class L2GasEstimator extends GasEstimator {
       gasOracle.getL1GasUsed(callData).then((value) => l1GasUsed = value),
       gasOracle.l1BaseFee().then((value) => l1BaseFee = value),
     ]);
-    if (paymasterAddress != null){
+    if (includesPaymaster){
       l1GasUsed += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
       l1GasUsed += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
     }

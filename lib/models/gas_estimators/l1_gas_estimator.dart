@@ -31,7 +31,7 @@ class L1GasEstimator extends GasEstimator {
   }
 
   @override
-  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {EthereumAddress? paymasterAddress}) async {
+  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {bool includesPaymaster = false}) async {
     List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
     UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
     /*if (paymasterAddress != null){
@@ -45,7 +45,7 @@ class L1GasEstimator extends GasEstimator {
     dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)), include0x: true);
     GasEstimate? gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
     if (gasEstimate == null) return null;
-    if (paymasterAddress != null){
+    if (includesPaymaster){
       gasEstimate.preVerificationGas += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
       gasEstimate.preVerificationGas += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
     }

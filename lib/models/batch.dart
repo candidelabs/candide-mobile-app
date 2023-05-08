@@ -3,9 +3,10 @@ import 'dart:typed_data';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
+import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
+import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
 import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/extensions/bigint_extensions.dart';
@@ -16,28 +17,42 @@ import 'package:wallet_dart/wallet/account_helpers.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
 import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
+import 'package:web3dart/web3dart.dart';
 
 class Batch {
-  BigInt baseGas = BigInt.zero;
+  Account account;
+  Network network;
+  //
   FeeToken? _feeToken;
-  EthereumAddress refundReceiver = Constants.addressZero;
-  List<FeeToken> _feeTokens = [];
+  late PaymasterResponse _paymasterResponse;
   List<GnosisTransaction> transactions = [];
 
-  bool get includesPaymaster => _feeToken != null && _feeToken?.token.symbol != Networks.selected().nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
+  bool get includesPaymaster => _feeToken != null && _feeToken?.token.symbol != network.nativeCurrency && _feeToken?.token.address != Constants.addressZeroHex;
   FeeToken? get feeCurrency => _feeToken;
-  List<FeeToken> get feeCurrencies => _feeTokens;
+  PaymasterResponse get paymasterResponse => _paymasterResponse;
+  //
+  Batch({required this.account, required this.network});
 
   GnosisTransaction? getById(String id){
     return transactions.firstWhereOrNull((e) => e.id == id);
   }
 
-  void changeFeeCurrency(FeeToken? feeCurrency) => _feeToken = feeCurrency;
+  void setSelectedFeeToken(FeeToken? feeCurrency) => _feeToken = feeCurrency;
 
-  Future<void> changeFeeCurrencies(List<FeeToken> feeCurrencies) async {
-    _feeTokens = feeCurrencies;
+  Future<bool> fetchPaymasterResponse() async {
+    PaymasterResponse? paymasterResponse = await Paymaster.fetchPaymasterFees(network.chainId.toInt());
+    if (paymasterResponse == null){
+      // todo handle network errors
+      return false;
+    }else{
+      await setPaymasterResponse(paymasterResponse);
+    }
+    return true;
+  }
+
+  Future<void> setPaymasterResponse(PaymasterResponse paymasterResponse) async {
+    _paymasterResponse = paymasterResponse;
     await _adjustFeeCurrencyCosts();
   }
 
@@ -45,11 +60,10 @@ class Batch {
   Future<void> _adjustFeeCurrencyCosts() async{
     List<Future<UserOperation>> _userOpsTemp = [];
     Map<FeeToken, UserOperation> _userOps = {};
-    for (FeeToken feeCurrency in _feeTokens){
-      bool isEther = feeCurrency.token.symbol == Networks.selected().nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
+    for (FeeToken feeCurrency in _paymasterResponse.tokens){
+      bool isEther = feeCurrency.token.symbol == network.nativeCurrency && feeCurrency.token.address == Constants.addressZeroHex;
       _userOpsTemp.add(
         toUserOperation(
-          PersistentData.selectedAccount,
           BigInt.from(PersistentData.accountStatus.nonce),
           proxyDeployed: PersistentData.accountStatus.proxyDeployed,
           skipPaymasterData: true,
@@ -81,7 +95,7 @@ class Batch {
     if (paymasterData == null){ // todo network: handle fetching errors
       userOp.paymasterAndData = "0x";
     }else{
-      List<int> paymasterAndData = feeCurrency!.paymaster.addressBytes + hexToBytes(paymasterData);
+      List<int> paymasterAndData = _paymasterResponse.paymasterData.paymaster.addressBytes + hexToBytes(paymasterData);
       userOp.paymasterAndData = bytesToHex(paymasterAndData, include0x: true);
     }
   }
@@ -89,7 +103,7 @@ class Batch {
   void _addPaymasterToTransaction(GnosisTransaction transaction, [FeeToken? feeToken]){
     feeToken ??= feeCurrency;
     if (feeToken == null) return;
-    transaction.paymaster = feeToken.paymaster;
+    transaction.paymaster = _paymasterResponse.paymasterData.paymaster;
     transaction.approveToken = EthereumAddress.fromHex(feeToken.token.address);
     transaction.approveAmount = feeToken.fee;
   }
@@ -115,7 +129,7 @@ class Batch {
     Uint8List multiSendCallData = hexToBytes(EncodeFunctionData.multiSend(sink.asBytes()));
     GnosisTransaction transaction = GnosisTransaction(
       id: "multi-send",
-      to: Networks.selected().multiSendCall,
+      to: network.multiSendCall,
       value: BigInt.zero,
       data: multiSendCallData,
       operation: BigInt.one,
@@ -125,7 +139,7 @@ class Batch {
     return transaction;
   }
 
-  Future<UserOperation> toUserOperation(Account account, BigInt nonce, {bool proxyDeployed=true, bool skipPaymasterData=false, FeeToken? overrideFee}) async {
+  Future<UserOperation> toUserOperation(BigInt nonce, {bool proxyDeployed=true, bool skipPaymasterData=false, FeeToken? overrideFee}) async {
     //
     String initCode = "0x";
     if (!proxyDeployed){
@@ -153,8 +167,7 @@ class Batch {
       callData: callData,
     );
     //
-    Network network = Networks.getByChainId(account.chainId)!;
-    GasEstimate? gasEstimates = await network.gasEstimator.getGasEstimates(userOp, paymasterAddress: includesPaymaster ? feeCurrency!.paymaster : overrideFee?.paymaster); // todo enable, // todo handle null gas estimates (calldata error, or network error)
+    GasEstimate? gasEstimates = await network.gasEstimator.getGasEstimates(userOp, includesPaymaster: includesPaymaster || overrideFee != null); // todo enable, // todo handle null gas estimates (calldata error, or network error)
     //
     userOp.callGasLimit = gasEstimates!.callGasLimit.scale(1.25);
     userOp.preVerificationGas = gasEstimates.preVerificationGas;

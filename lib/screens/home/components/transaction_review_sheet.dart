@@ -4,7 +4,7 @@ import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/controller/transaction_confirm_controller.dart';
 import 'package:candide_mobile_app/models/batch.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
+import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/components/token_fee_selector.dart';
 import 'package:flutter/material.dart';
@@ -100,9 +100,9 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
 
   @override
   void initState() {
-    FeeToken? feeCurrency = selectDefaultFeeCurrency(widget.batch.feeCurrencies);
+    FeeToken? feeCurrency = selectDefaultFeeCurrency(widget.batch.paymasterResponse.tokens);
     if (feeCurrency != null){
-      widget.batch.changeFeeCurrency(feeCurrency);
+      widget.batch.setSelectedFeeToken(feeCurrency);
       validateFeeBalance();
     }else{
       errorMessage = _errors["fee"]!;

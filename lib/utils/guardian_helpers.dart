@@ -3,19 +3,17 @@ import 'dart:typed_data';
 import 'package:biometric_storage/biometric_storage.dart';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/controller/guardian_controller.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/models/batch.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
-import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
-import 'package:candide_mobile_app/controller/guardian_controller.dart';
-import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
-import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/services/security.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/events.dart';
@@ -57,7 +55,7 @@ class GuardianOperationsHelper {
 
   static Future<bool> grantGuardian(Account account, EthereumAddress guardian, String? nickname, String type, {Map? magicLinkData}) async {
     CancelFunc? cancelLoad = Utils.showLoading();
-    Batch grantBatch = Batch();
+    Batch grantBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
     int friendsCount = 0;
     int threshold = 1;
     bool moduleEnabled = await isSocialRecoveryModuleEnabled(account);
@@ -73,13 +71,7 @@ class GuardianOperationsHelper {
     );
     grantBatch.transactions.addAll(transactions);
     //
-    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
-    if (feeCurrencies == null){
-      // todo handle network errors
-      return false;
-    }else{
-      await grantBatch.changeFeeCurrencies(feeCurrencies);
-    }
+    await grantBatch.fetchPaymasterResponse();
     //
     cancelLoad();
     cancelLoad = null;
@@ -143,7 +135,7 @@ class GuardianOperationsHelper {
 
   static Future<bool> revokeGuardian(Account account, EthereumAddress guardian) async {
     CancelFunc? cancelLoad = Utils.showLoading();
-    Batch revokeBatch = Batch();
+    Batch revokeBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
     List<EthereumAddress> _prevGuardians = await ISocialModule.interface(address: account.socialRecoveryModule!, client: Networks.selected().client).getGuardians(account.address);
     int friendsCount = _prevGuardians.length;
     EthereumAddress previousGuardian = Constants.addressOne;
@@ -163,13 +155,7 @@ class GuardianOperationsHelper {
     );
     revokeBatch.transactions.addAll(transactions);
     //
-    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
-    if (feeCurrencies == null){
-      // todo handle network errors
-      return false;
-    }else{
-      await revokeBatch.changeFeeCurrencies(feeCurrencies);
-    }
+    await revokeBatch.fetchPaymasterResponse();
     //
     cancelLoad();
     cancelLoad = null;

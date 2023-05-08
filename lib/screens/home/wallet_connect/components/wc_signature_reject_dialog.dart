@@ -2,11 +2,9 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
-import 'package:candide_mobile_app/models/fee_currency.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wallet_deployment_leading.dart';
-import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -22,14 +20,8 @@ class WCSignatureRejectDialog extends StatelessWidget {
 
   void createEmptyTransaction() async {
     var cancelLoad = Utils.showLoading();
-    Batch emptyBatch = Batch();
-    List<FeeToken>? feeCurrencies = await Paymaster.fetchPaymasterFees(PersistentData.selectedAccount.chainId);
-    if (feeCurrencies == null){
-      // todo handle network errors
-      return;
-    }else{
-      await emptyBatch.changeFeeCurrencies(feeCurrencies);
-    }
+    Batch emptyBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    await emptyBatch.fetchPaymasterResponse();
     emptyBatch.transactions.add(GnosisTransaction(
       id: "empty-deploy",
       to: Constants.addressZero,
