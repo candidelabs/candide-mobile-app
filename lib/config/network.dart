@@ -6,9 +6,9 @@ import 'package:candide_mobile_app/models/gas_estimators/l2_gas_estimator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart';
 import 'package:magic_sdk/magic_sdk.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart';
 
 class Networks {
   static const List<int> DEFAULT_HIDDEN_NETWORKS = [5, 420];

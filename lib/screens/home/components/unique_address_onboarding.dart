@@ -1,7 +1,6 @@
-import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/config/network.dart';
+import 'package:candide_mobile_app/config/theme.dart';
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:onboarding/onboarding.dart';

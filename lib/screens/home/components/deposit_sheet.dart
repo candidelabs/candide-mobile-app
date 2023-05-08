@@ -1,11 +1,11 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/screens/home/components/unique_address_onboarding.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:get/get.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/screens/home/components/unique_address_onboarding.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:wallet_dart/wallet/account.dart';

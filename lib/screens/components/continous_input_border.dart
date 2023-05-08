@@ -1,7 +1,7 @@
+import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 class ContinousInputBorder extends OutlineInputBorder {
 

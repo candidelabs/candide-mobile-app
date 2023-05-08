@@ -5,7 +5,6 @@ import 'package:candide_mobile_app/screens/components/custom_switch.dart';
 import 'package:candide_mobile_app/screens/home/components/token_add_page.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
