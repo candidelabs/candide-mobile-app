@@ -169,14 +169,6 @@ class _OverviewScreenState extends State<OverviewScreen> {
         isRecovery = false;
         recoveryRequest = null;
         _refreshController.requestRefresh();
-        if (account.name.trim().isEmpty){
-          showDialog(
-              context: context,
-              useRootNavigator: false,
-              barrierDismissible: false,
-              builder: (_) => AccountNameEditDialog(account: account)
-          );
-        }
       }
       setState(() {});
     });
