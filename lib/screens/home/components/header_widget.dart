@@ -119,10 +119,10 @@ class _HeaderWidgetState extends State<HeaderWidget> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: network.color.withOpacity(0.35),
+                color: network.color.withOpacity(0.6),
                 borderRadius: BorderRadius.circular(15)
               ),
-              child: Text(Utils.truncate(widget.account.address.hex, leadingDigits: 4, trailingDigits: 4), textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12)),
+              child: Text(Utils.truncate(widget.account.address.hex, leadingDigits: 4, trailingDigits: 4), textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12, color: AppThemes.getContrastColor(network.color))),
             ),
           )
         ],

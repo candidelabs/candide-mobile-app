@@ -21,7 +21,7 @@ class ChainSelector extends StatelessWidget {
                 onSelect(network.chainId.toInt());
               },
               style: ButtonStyle(
-                backgroundColor: MaterialStatePropertyAll(network.color.withOpacity(0.25)),
+                backgroundColor: MaterialStatePropertyAll(network.color.withOpacity(0.15)),
                 elevation: const MaterialStatePropertyAll(0),
                 shape: MaterialStatePropertyAll(RoundedRectangleBorder(
                   side: BorderSide(color: selectedChainId == network.chainId.toInt() ? network.color : Colors.transparent),

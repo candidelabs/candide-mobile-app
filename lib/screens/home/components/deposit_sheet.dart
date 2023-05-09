@@ -136,10 +136,11 @@ class DepositAlertFundsLoss extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var networkColor = network.color.withOpacity(0.8);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 5),
       decoration: BoxDecoration(
-        color: network.color.withOpacity(0.3),
+        color: networkColor,
         borderRadius: BorderRadius.circular(5),
       ),
       child: SizedBox(
@@ -148,14 +149,14 @@ class DepositAlertFundsLoss extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const  SizedBox(width: 10,),
-            Icon(PhosphorIcons.info, color: network.color,),
+            Icon(PhosphorIcons.info, color: AppThemes.getContrastColor(networkColor),),
             const SizedBox(width: 5,),
             Flexible(
               child: RichText(
                 textAlign: TextAlign.start,
                 text: TextSpan(
                   text: "This address is unique to ",
-                  style: TextStyle(fontSize: 13, fontFamily: AppThemes.fonts.gilroy, color: network.color),
+                  style: TextStyle(fontSize: 13, fontFamily: AppThemes.fonts.gilroy, color: AppThemes.getContrastColor(networkColor)),
                   children: [
                     TextSpan(
                         text: network.name,

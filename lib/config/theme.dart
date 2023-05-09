@@ -13,6 +13,12 @@ class AppThemes {
     fontFamily: "Gilroy",
   );
 
+  static Color getContrastColor(Color color){
+    if (ThemeData.estimateBrightnessForColor(color) == Brightness.dark) {
+      return Colors.white;
+    }
+    return Colors.black;
+  }
 }
 
 class _Fonts{

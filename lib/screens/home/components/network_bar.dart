@@ -11,7 +11,7 @@ class NetworkBar extends StatelessWidget {
     return network.extendedLogo == null ? Container(
       padding: const EdgeInsets.symmetric(vertical: 3),
       decoration: BoxDecoration(
-        color: network.color.withOpacity(0.35),
+        color: network.color.withOpacity(0.6),
         borderRadius: const BorderRadius.all(Radius.circular(25)),
       ),
       child: Row(
@@ -19,11 +19,6 @@ class NetworkBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const SizedBox(width: 5,),
-          /*SizedBox(
-            height: 25,
-            width: 25,
-            child: network.logo,
-          ),*/
           Container(
             width: 8,
             height: 8,

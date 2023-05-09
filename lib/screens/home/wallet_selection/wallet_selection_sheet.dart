@@ -117,14 +117,14 @@ class _AccountSelectionSheetState extends State<AccountSelectionSheet> {
                     const SizedBox(height: 5,),
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 2),
-                      margin: const EdgeInsets.symmetric(horizontal: 10),
+                      margin: const EdgeInsets.symmetric(horizontal: 15),
                       width: Get.width,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: network.color.withOpacity(0.35),
-                        borderRadius: BorderRadius.circular(8)
+                        color: network.color.withOpacity(0.75),
+                        borderRadius: BorderRadius.circular(3)
                       ),
-                      child: Text(network.name),
+                      child: Text(network.name, style: TextStyle(color: AppThemes.getContrastColor(network.color))),
                     ),
                     const SizedBox(height: 5,),
                     for (Account account in PersistentData.accounts.where((element) => element.chainId == chainId))

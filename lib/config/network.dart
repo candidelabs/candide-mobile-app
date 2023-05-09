@@ -33,7 +33,7 @@ class Networks {
           name: "Optimism",
           testnetData: null,
           visible: true,
-          color: const Color(0xfff01a37),
+          color: const Color.fromARGB(255, 255, 4, 32),
           logo: SvgPicture.asset("assets/images/optimism.svg"),
           extendedLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
           chainId: BigInt.from(10),
@@ -77,7 +77,7 @@ class Networks {
           name: "Optimism Goerli",
           testnetData: _TestnetData(testnetForChainId: 10),
           visible: false,
-          color: const Color.fromARGB(255, 255, 137, 225),
+          color: const Color.fromARGB(255, 206, 115, 181),
           chainId: BigInt.from(420),
           explorerUrl: "https://goerli-optimism.etherscan.io",
           //
@@ -119,7 +119,7 @@ class Networks {
           name: "Görli",
           testnetData: _TestnetData(testnetForChainId: 1),
           visible: false,
-          color: const Color(0xff4d99eb),
+          color: const Color.fromARGB(255, 70, 127, 188),
           chainId: BigInt.from(5),
           explorerUrl: "https://goerli.etherscan.io",
           //
