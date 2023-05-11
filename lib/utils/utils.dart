@@ -3,11 +3,12 @@ import 'dart:math';
 
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/screens/components/error_alert_dialog.dart';
 import 'package:eth_sig_util/util/keccak.dart';
 import 'package:eth_sig_util/util/utils.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_awesome_alert_box/flutter_awesome_alert_box.dart';
 import 'package:get/get.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
 import 'package:logger/logger.dart';
@@ -123,12 +124,44 @@ class Utils {
     }
   }
 
-  static void showError({String? title, required String message}){
-    DangerAlertBox(
-        context: Get.context,
-        title: title ?? "",
-        titleTextColor: Get.theme.colorScheme.primary,
-        messageText: message
+  static void showError({required String title, required String message, List<String> urls = const []}){
+    Map<String, String?> tokens = {}; // key = message, value = link url (if value is empty or null then key is normal text)
+    //
+    RegExp regex = RegExp(r"\[(.*?)\]\((.*?)\)");
+    Iterable<Match> matches = regex.allMatches(message);
+
+    int lastIndex = 0;
+    for (Match match in matches) {
+      String prefix = message.substring(lastIndex, match.start);
+      String label = match.group(1)!;
+      String url = match.group(2)!;
+      tokens[prefix] = null;
+      tokens[label] = url;
+      lastIndex = match.end;
+    }
+    String suffix = message.substring(lastIndex);
+    tokens[suffix] = null;
+    //
+    ErrorAlertDialog(
+      context: Get.context,
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: Get.theme.colorScheme.primary)),
+      iconColor: Get.theme.colorScheme.primary,
+      content: RichText(
+        text: TextSpan(
+          //text: message,
+          children: [
+            for (MapEntry<String, String?> entry in tokens.entries)
+              entry.value != null && entry.value!.trim().isNotEmpty ? TextSpan(
+                text: entry.key,
+                style: const TextStyle(color: Colors.blue),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () => Utils.launchUri(entry.value!, mode: LaunchMode.externalApplication),
+              ) : TextSpan(
+                text: entry.key,
+              )
+          ]
+        ),
+      ),
     );
   }
 

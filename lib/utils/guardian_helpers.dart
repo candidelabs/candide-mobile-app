@@ -273,13 +273,19 @@ class GuardianRecoveryHelper{
     EthereumAddress? socialModuleAddress = await getSocialRecoveryModule(EthereumAddress.fromHex(address), chainId, modulesPaginated);
     if (socialModuleAddress == null){
       cancelLoad();
-      Utils.showError(title: "Error", message: "This account does not have any recovery contacts, unfortunately this means this account cannot be recovered, contact us to learn more");
+      Utils.showError(
+        title: "Error",
+        message: "This account does not have any recovery contacts, unfortunately this means this account cannot be recovered, [learn more](https://docs.candidewallet.com/getting-started/guides/recover-your-account/)",
+      );
       return;
     }
     BigInt threshold = await ISocialModule.interface(address: socialModuleAddress, client: network.client).threshold(EthereumAddress.fromHex(address));
     if (threshold == BigInt.zero){
       cancelLoad();
-      Utils.showError(title: "Error", message: "This account does not have any recovery contacts, unfortunately this means this account cannot be recovered, contact us to learn more");
+      Utils.showError(
+        title: "Error",
+        message: "This account does not have any recovery contacts, unfortunately this means this account cannot be recovered, [learn more](https://docs.candidewallet.com/getting-started/guides/recover-your-account/)",
+      );
       return;
     }
     //
