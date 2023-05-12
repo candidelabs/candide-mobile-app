@@ -28,7 +28,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
         controller: ModalScrollController.of(context),
         child: FeeCurrenciesSelectionSheet(
           currencies: widget.batch.paymasterResponse.tokens,
-          initialSelection: widget.batch.feeCurrency?.token,
+          initialSelection: widget.batch.selectedFeeToken?.token,
           onSelected: (feeCurrency){
             setState(() {
               widget.batch.setSelectedFeeToken(feeCurrency);
@@ -78,8 +78,8 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
               const Spacer(),
               Column(
                 children: [
-                  Text(widget.batch.feeCurrency != null ? CurrencyUtils.formatCurrency(widget.batch.feeCurrency!.fee, widget.batch.feeCurrency!.token, formatSmallDecimals: true) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
-                  Text(widget.batch.feeCurrency != null ? "\$${CurrencyUtils.convertToQuote(widget.batch.feeCurrency!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, widget.batch.feeCurrency!.fee).toPrecision(3)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
+                  Text(widget.batch.selectedFeeToken != null ? CurrencyUtils.formatCurrency(widget.batch.selectedFeeToken!.fee, widget.batch.selectedFeeToken!.token, formatSmallDecimals: true) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
+                  Text(widget.batch.selectedFeeToken != null ? "\$${CurrencyUtils.convertToQuote(widget.batch.selectedFeeToken!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, widget.batch.selectedFeeToken!.fee).toPrecision(3)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
                 ],
               ),
               const SizedBox(width: 5,),

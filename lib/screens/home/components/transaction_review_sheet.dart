@@ -70,7 +70,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     errorMessage = "";
     BigInt fee = widget.batch.getFee();
     if (widget.currency != null){
-      if (widget.currency?.address.toLowerCase() == widget.batch.feeCurrency!.token.address.toLowerCase()){
+      if (widget.currency?.address.toLowerCase() == widget.batch.selectedFeeToken!.token.address.toLowerCase()){
         if ((widget.value ?? BigInt.zero) + fee > PersistentData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
           errorMessage = _errors["fee"]!;
         }
@@ -78,13 +78,13 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
         if ((widget.value ?? BigInt.zero) > PersistentData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
           errorMessage = _errors["balance"]!;
         }else{
-          if (PersistentData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
+          if (PersistentData.getCurrencyBalance(widget.batch.selectedFeeToken!.token.address.toLowerCase()) < fee){
             errorMessage = _errors["fee"]!;
           }
         }
       }
     }else{
-      if (PersistentData.getCurrencyBalance(widget.batch.feeCurrency!.token.address.toLowerCase()) < fee){
+      if (PersistentData.getCurrencyBalance(widget.batch.selectedFeeToken!.token.address.toLowerCase()) < fee){
         errorMessage = _errors["fee"]!;
       }
     }
