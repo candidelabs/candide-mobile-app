@@ -4,11 +4,18 @@ class GasEstimate {
   BigInt verificationGasLimit;
   BigInt maxPriorityFeePerGas;
   BigInt maxFeePerGas;
+  late BigInt l1GasUsed; //specific for L2s
+  late BigInt l1BaseFee; //specific for L2s
 
   GasEstimate(
       {required this.callGasLimit,
       required this.preVerificationGas,
       required this.verificationGasLimit,
       required this.maxPriorityFeePerGas,
-      required this.maxFeePerGas});
+      required this.maxFeePerGas,
+      BigInt? l1GasUsed,
+      BigInt? l1BaseFee}) {
+    this.l1GasUsed = l1GasUsed ?? BigInt.zero;
+    this.l1BaseFee = l1BaseFee ?? BigInt.zero;
+  }
 }

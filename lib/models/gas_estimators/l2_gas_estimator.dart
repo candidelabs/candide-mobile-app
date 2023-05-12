@@ -22,12 +22,10 @@ class L2GasEstimator extends GasEstimator {
   }
 
   @override
-  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {bool includesPaymaster = false}) async {
+  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {GasEstimate? prevEstimate, bool includesPaymaster = false}) async {
+    GasEstimate? gasEstimate;
     UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
     //
-    /*if (paymasterAddress != null){
-      dummyOp.paymasterAndData = bytesToHex(paymasterAddress.addressBytes + Uint8List.fromList(List<int>.filled(156, 1)), include0x: true);
-    }*/
     dummyOp.callGasLimit = BigInt.parse("fffffff", radix: 16);
     dummyOp.preVerificationGas = BigInt.parse("0", radix: 16);
     dummyOp.verificationGasLimit = BigInt.parse("fffffff", radix: 16);
@@ -35,35 +33,44 @@ class L2GasEstimator extends GasEstimator {
     dummyOp.maxPriorityFeePerGas = BigInt.zero;
     dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)), include0x: true);
     //
-    List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
-    GasEstimate? gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
-    if (gasEstimate == null) return null;
-    //
-    Web3Client client = Networks.getByChainId(chainId)!.client;
-    OVMGasOracle gasOracle = OVMGasOracle(address: ovmGasOracle, client: client);
-    late BigInt l1GasUsed;
-    late BigInt l1BaseFee;
-    EntryPoint entryPoint = EntryPoint(address: Constants.addressZero, client: client);
-    var callData = entryPoint.self.function("handleOps").encodeCall([
-      [dummyOp.toList()],
-      dummyOp.sender
-    ]);
-    await Future.wait([
-      gasOracle.getL1GasUsed(callData).then((value) => l1GasUsed = value),
-      gasOracle.l1BaseFee().then((value) => l1BaseFee = value),
-    ]);
-    if (includesPaymaster){
-      l1GasUsed += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
-      l1GasUsed += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
+    if (prevEstimate == null){
+      List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
+      gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
+      if (gasEstimate == null) return null;
+      gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
+      gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
+    }else{
+      gasEstimate = prevEstimate;
     }
-    BigInt scale = l1BaseFee ~/ BigInt.from(networkFees[0]);
+    //
+    if (gasEstimate.l1GasUsed == BigInt.zero){
+      Web3Client client = Networks.getByChainId(chainId)!.client;
+      OVMGasOracle gasOracle = OVMGasOracle(address: ovmGasOracle, client: client);
+      late BigInt l1GasUsed;
+      late BigInt l1BaseFee;
+      EntryPoint entryPoint = EntryPoint(address: Constants.addressZero, client: client);
+      var callData = entryPoint.self.function("handleOps").encodeCall([
+        [dummyOp.toList()],
+        dummyOp.sender
+      ]);
+      await Future.wait([
+        gasOracle.getL1GasUsed(callData).then((value) => l1GasUsed = value),
+        gasOracle.l1BaseFee().then((value) => l1BaseFee = value),
+      ]);
+      gasEstimate.l1BaseFee = l1BaseFee;
+      gasEstimate.l1GasUsed = l1GasUsed;
+    }
+
+    if (includesPaymaster){
+      gasEstimate.l1GasUsed += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
+      gasEstimate.l1GasUsed += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
+    }
+    BigInt scale = gasEstimate.l1BaseFee ~/ gasEstimate.maxFeePerGas;
     if (scale == BigInt.zero){
       scale = BigInt.one;
     }
-    gasEstimate.preVerificationGas += l1GasUsed * (scale);
+    gasEstimate.preVerificationGas += gasEstimate.l1GasUsed * (scale);
     //
-    gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
-    gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
     return gasEstimate;
   }
 }

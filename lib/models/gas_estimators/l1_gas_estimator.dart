@@ -31,27 +31,31 @@ class L1GasEstimator extends GasEstimator {
   }
 
   @override
-  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {bool includesPaymaster = false}) async {
-    List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
+  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {GasEstimate? prevEstimate, bool includesPaymaster = false}) async {
+    GasEstimate? gasEstimate;
     UserOperation dummyOp = UserOperation.fromJson(userOp.toJson()); // copy userOp to a dummy one for any modifications related to estimates
-    /*if (paymasterAddress != null){
-      dummyOp.paymasterAndData = bytesToHex(paymasterAddress.addressBytes + Uint8List.fromList(List<int>.filled(340, 1)), include0x: true);
-    }*/
+    //
     dummyOp.callGasLimit = BigInt.parse("ffffffffffffff", radix: 16);
     dummyOp.preVerificationGas = BigInt.parse("0", radix: 16);
     dummyOp.verificationGasLimit = BigInt.parse("ffffffffffff", radix: 16);
     dummyOp.maxFeePerGas = BigInt.zero;
     dummyOp.maxPriorityFeePerGas = BigInt.zero;
     dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)), include0x: true);
-    GasEstimate? gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
-    if (gasEstimate == null) return null;
+    //
+    if (prevEstimate == null){
+      List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
+      gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
+      if (gasEstimate == null) return null;
+      gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
+      gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
+    }else{
+      gasEstimate = prevEstimate;
+    }
     if (includesPaymaster){
       gasEstimate.preVerificationGas += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
       gasEstimate.preVerificationGas += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
     }
     gasEstimate.preVerificationGas += BigInt.from(1260);
-    gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
-    gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
     return gasEstimate;
   }
 }

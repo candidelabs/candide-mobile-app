@@ -7,5 +7,5 @@ abstract class GasEstimator {
   GasEstimator({required this.chainId});
 
   Future<List<int>?> getNetworkGasFees();
-  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {bool includesPaymaster = false});
+  Future<GasEstimate?> getGasEstimates(UserOperation userOp, {GasEstimate? prevEstimate, bool includesPaymaster = false});
 }
