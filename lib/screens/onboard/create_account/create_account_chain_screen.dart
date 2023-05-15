@@ -151,21 +151,21 @@ class _AccountChainAlert extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 5),
       margin: const EdgeInsets.symmetric(horizontal: 25),
       decoration: BoxDecoration(
-        color: network.color.withOpacity(0.3),
+        color: network.color.withOpacity(0.4),
         borderRadius: BorderRadius.circular(5),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const  SizedBox(width: 5,),
-          Icon(PhosphorIcons.info, color: network.color,),
+          Icon(PhosphorIcons.info, color: AppThemes.getContrastColor(network.color),),
           const SizedBox(width: 5,),
           Flexible(
             child: RichText(
               textAlign: TextAlign.start,
               text: TextSpan(
                   text: "This account is unique and will",
-                  style: TextStyle(fontSize: 12, fontFamily: AppThemes.fonts.gilroy, color: network.color),
+                  style: TextStyle(fontSize: 12, fontFamily: AppThemes.fonts.gilroy, color: AppThemes.getContrastColor(network.color)),
                   children: [
                     TextSpan(
                       text: " only ",

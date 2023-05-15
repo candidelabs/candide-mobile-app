@@ -77,7 +77,7 @@ class Networks {
           name: "Optimism Goerli",
           testnetData: _TestnetData(testnetForChainId: 10),
           visible: false,
-          color: const Color.fromARGB(255, 206, 115, 181),
+          color: const Color.fromARGB(255, 34, 115, 113),
           chainId: BigInt.from(420),
           explorerUrl: "https://goerli-optimism.etherscan.io",
           //
@@ -165,6 +165,7 @@ class Networks {
           visible: true,
           color: Colors.green,
           nativeCurrency: 'ETH',
+          nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           chainId: BigInt.from(11155111),
           explorerUrl: "https://sepolia.etherscan.io",
           //
