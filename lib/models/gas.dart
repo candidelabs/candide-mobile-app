@@ -18,4 +18,16 @@ class GasEstimate {
     this.l1GasUsed = l1GasUsed ?? BigInt.zero;
     this.l1BaseFee = l1BaseFee ?? BigInt.zero;
   }
+
+  GasEstimate copy() {
+    return GasEstimate(
+      callGasLimit: callGasLimit,
+      preVerificationGas: preVerificationGas,
+      verificationGasLimit: verificationGasLimit,
+      maxPriorityFeePerGas: maxPriorityFeePerGas,
+      maxFeePerGas: maxFeePerGas,
+      l1GasUsed: l1GasUsed,
+      l1BaseFee: l1BaseFee,
+    );
+  }
 }

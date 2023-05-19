@@ -40,7 +40,7 @@ class L2GasEstimator extends GasEstimator {
       gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
       gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
     }else{
-      gasEstimate = prevEstimate;
+      gasEstimate = prevEstimate.copy();
     }
     //
     if (gasEstimate.l1GasUsed == BigInt.zero){
