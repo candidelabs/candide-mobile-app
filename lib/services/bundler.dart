@@ -70,7 +70,8 @@ class Bundler {
       return GasEstimate(
         callGasLimit: _decodeBigInt(response.data["result"]["callGasLimit"]).scale(1.2),
         verificationGasLimit: _decodeBigInt(response.data["result"]["verificationGas"]),
-        preVerificationGas: _decodeBigInt(response.data["result"]["preVerificationGas"]),
+        basePreVerificationGas: _decodeBigInt(response.data["result"]["preVerificationGas"]),
+        preVerificationGas: BigInt.zero,
         maxFeePerGas: BigInt.zero,
         maxPriorityFeePerGas: BigInt.zero,
       );

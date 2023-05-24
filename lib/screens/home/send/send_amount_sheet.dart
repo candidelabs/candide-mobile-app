@@ -1,7 +1,7 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
-import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/currency_selection_sheet.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/extensions/decimal_extensions.dart';

@@ -51,6 +51,7 @@ class L1GasEstimator extends GasEstimator {
     }else{
       gasEstimate = prevEstimate.copy();
     }
+    gasEstimate.preVerificationGas = gasEstimate.basePreVerificationGas;
     if (includesPaymaster){
       gasEstimate.preVerificationGas += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
       gasEstimate.preVerificationGas += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)

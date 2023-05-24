@@ -6,6 +6,7 @@ import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
+import 'package:candide_mobile_app/models/paymaster/gas_back_data.dart';
 import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
 import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
@@ -25,6 +26,7 @@ class Batch {
   Network network;
   //
   GasEstimate? gasEstimate;
+  GasBackData? gasBack;
   FeeToken? _selectedFeeToken;
   late PaymasterResponse _paymasterResponse;
   List<GnosisTransaction> transactions = [];
@@ -61,7 +63,7 @@ class Batch {
 
 
   Future<void> _adjustFeeCurrencyCosts() async{
-    for (FeeToken feeToken in _paymasterResponse.tokens){
+    for (FeeToken feeToken in _paymasterResponse.tokens.reversed){
       bool isEther = feeToken.token.symbol == network.nativeCurrency && feeToken.token.address == Constants.addressZeroHex;
       UserOperation op = await toUserOperation(
         BigInt.from(PersistentData.accountStatus.nonce),
@@ -69,7 +71,7 @@ class Batch {
         skipPaymasterData: true,
         feeToken: feeToken,
       );
-      BigInt maxCost = FeeCurrencyUtils.calculateFee(op, feeToken.exchangeRate, isEther);
+      BigInt maxCost = feeToken.calculateFee(op, network);
       if (!isEther){
         maxCost = maxCost.scale(1.05); // todo check
       }
@@ -86,6 +88,10 @@ class Batch {
   }
 
   Future<void> _addPaymasterToUserOp(UserOperation userOp, int chainId) async {
+    if (gasBack?.gasBackApplied ?? false){
+      userOp.paymasterAndData = gasBack!.paymasterAndData;
+      return;
+    }
     String? paymasterData = await Paymaster.getPaymasterData(userOp, selectedFeeToken!.token.address, chainId);
     if (paymasterData == null){ // todo network: handle fetching errors
       userOp.paymasterAndData = "0x";
@@ -169,6 +175,11 @@ class Batch {
     userOp.verificationGasLimit = _gasEstimate.verificationGasLimit.scale(2);
     userOp.maxFeePerGas = _gasEstimate.maxFeePerGas;
     userOp.maxPriorityFeePerGas = _gasEstimate.maxPriorityFeePerGas;
+    if (gasBack == null){
+      FeeToken _tempGasToken = feeToken ?? paymasterResponse.tokens.first;
+      BigInt maxETHCost = _tempGasToken.calculateETHFee(userOp, network);
+      gasBack = await GasBackData.getGasBackData(account, paymasterResponse.paymasterData.paymaster, network, maxETHCost);
+    }
     if (userOp.initCode != "0x"){
       userOp.verificationGasLimit += BigInt.from(350000); // higher than normal for deployment
       userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit ?? userOp.callGasLimit; // todo remove when first simulateHandleOp is implemented
@@ -177,7 +188,7 @@ class Batch {
     if (_includesPaymaster(feeToken)){
       userOp.verificationGasLimit += BigInt.from(35000);
     }
-    if (_includesPaymaster(feeToken) && !skipPaymasterData){
+    if ((_includesPaymaster(feeToken) || gasBack!.gasBackApplied) && !skipPaymasterData){
       await _addPaymasterToUserOp(userOp, account.chainId);
     }
     //

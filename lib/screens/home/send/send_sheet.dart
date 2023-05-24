@@ -6,7 +6,7 @@ import 'package:candide_mobile_app/controller/send_controller.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
-import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/components/send_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/send/send_amount_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/send_to_sheet.dart';

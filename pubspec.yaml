@@ -35,7 +35,7 @@ dependencies:
       ref: 247af6f807c259ff85e09803250e9ccb0889d8cd
   ens_dart: ^1.0.0
   magic_sdk: ^2.0.2
-  dio: ^4.0.6
+  dio: ^5.1.2
   eth_sig_util: ^0.0.9
   walletconnect_dart: ^0.0.11
   # Auth
@@ -48,12 +48,12 @@ dependencies:
   flutter_secure_storage: ^8.0.0
   # UI
   animations: ^2.0.3
-  pinput: ^2.2.23
+  pinput: ^2.2.31
   flutter_awesome_alert_box: ^2.1.1
   bot_toast: ^4.0.2
   modal_bottom_sheet: ^3.0.0-pre
   qr_flutter: ^4.0.0
-  lottie: ^1.4.1
+  lottie: ^2.0.0
   salomon_bottom_bar: ^3.3.1
   pull_to_refresh_flutter3: ^2.0.1
   blockies: ^0.1.2
@@ -62,6 +62,7 @@ dependencies:
   cached_network_image: ^3.2.3
   expandable: ^5.0.1
   info_popup: ^2.4.6
+  animated_emoji: ^1.0.1+2
   # Typography
   phosphor_flutter: ^1.4.0
   font_awesome_flutter: ^10.1.0

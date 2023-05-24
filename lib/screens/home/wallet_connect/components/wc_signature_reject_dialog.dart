@@ -3,7 +3,7 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
-import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wallet_deployment_leading.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';

@@ -8,7 +8,7 @@ import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
-import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/send/components/send_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_activity_bundle_status_leading.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_review_leading.dart';

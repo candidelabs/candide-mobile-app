@@ -60,16 +60,16 @@ class L2GasEstimator extends GasEstimator {
       gasEstimate.l1BaseFee = l1BaseFee;
       gasEstimate.l1GasUsed = l1GasUsed;
     }
-
+    BigInt l1GasUsed = gasEstimate.l1GasUsed;
     if (includesPaymaster){
-      gasEstimate.l1GasUsed += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
-      gasEstimate.l1GasUsed += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
+      l1GasUsed += BigInt.from(84); // To accommodate for GnosisTransaction.approveAmount which would be 0 before estimation
+      l1GasUsed += BigInt.from(2496); // to accommodate for paymasterAndData (156 bytes * 16)
     }
     BigInt scale = gasEstimate.l1BaseFee ~/ gasEstimate.maxFeePerGas;
     if (scale == BigInt.zero){
       scale = BigInt.one;
     }
-    gasEstimate.preVerificationGas += gasEstimate.l1GasUsed * (scale);
+    gasEstimate.preVerificationGas = gasEstimate.basePreVerificationGas + (l1GasUsed * (scale));
     //
     return gasEstimate;
   }

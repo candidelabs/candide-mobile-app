@@ -11,7 +11,7 @@ import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
-import 'package:candide_mobile_app/screens/home/components/transaction_review_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/transaction_review_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
 import 'package:candide_mobile_app/services/security.dart';

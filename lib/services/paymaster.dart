@@ -20,6 +20,7 @@ class Paymaster {
     result.add(FeeToken(
         token: _ethereum!,
         fee: BigInt.zero,
+        paymasterFee: BigInt.zero,
         exchangeRate: BigInt.parse("1000000000000000000")
     ));
     //
@@ -46,9 +47,6 @@ class Paymaster {
           })
       );
       //
-      //
-
-      //
       EthereumAddress paymasterAddress = Constants.addressZero;
       for (Map tokenData in response.data['result']){
         paymasterAddress = EthereumAddress.fromHex(tokenData["paymaster"]);
@@ -58,6 +56,7 @@ class Paymaster {
             FeeToken(
               token: _token,
               fee: BigInt.zero,
+              paymasterFee: tokenData["fee"].runtimeType == String ? BigInt.parse(tokenData["fee"]) : BigInt.from(tokenData["fee"]),
               exchangeRate: tokenData["exchangeRate"].runtimeType == String ? BigInt.parse(tokenData["exchangeRate"]) : BigInt.from(tokenData["exchangeRate"])
             )
         );

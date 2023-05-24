@@ -2,7 +2,8 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
-import 'package:candide_mobile_app/screens/home/components/fee_currency_selection_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/fee_currency_selection_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/gas_back_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,6 +41,17 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
     );
   }
 
+  showGasBackSheet(){
+    showBarModalBottomSheet(
+      context: context,
+      backgroundColor: Get.theme.canvasColor,
+      builder: (context) => SingleChildScrollView(
+        controller: ModalScrollController.of(context),
+        child: const GasBackSheet(),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -58,7 +70,11 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
       ),
       child: InkWell(
         onTap: (){
-          showFeeCurrencySelectionModal();
+          if (widget.batch.gasBack?.gasBackApplied ?? false){
+            showGasBackSheet();
+          }else{
+            showFeeCurrencySelectionModal();
+          }
         },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
@@ -71,22 +87,63 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
                   Text("Transaction fee", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey),),
                   SizedBox(
                       width: Get.width*0.5,
-                      child: Text("pay transaction fees with one of the supported tokens", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, color: Colors.grey, fontSize: 11),)
+                      child: Text("choose preferred token for transaction fees", style: TextStyle(fontFamily: AppThemes.fonts.gilroy, color: Colors.grey, fontSize: 11),)
                   ),
                 ],
               ),
               const Spacer(),
-              Column(
-                children: [
-                  Text(widget.batch.selectedFeeToken != null ? CurrencyUtils.formatCurrency(widget.batch.selectedFeeToken!.fee, widget.batch.selectedFeeToken!.token, formatSmallDecimals: true) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
-                  Text(widget.batch.selectedFeeToken != null ? "\$${CurrencyUtils.convertToQuote(widget.batch.selectedFeeToken!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, widget.batch.selectedFeeToken!.fee).toPrecision(3)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
-                ],
-              ),
+              !widget.batch.gasBack!.gasBackApplied ? _TokenFeeDisplay(batch: widget.batch,) : const _FreeCardIndicator(),
               const SizedBox(width: 5,),
               const Icon(PhosphorIcons.caretRightBold, size: 15, color: Colors.white,),
               const SizedBox(width: 5,),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TokenFeeDisplay extends StatelessWidget {
+  final Batch batch;
+  const _TokenFeeDisplay({Key? key, required this.batch}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(batch.selectedFeeToken != null ? CurrencyUtils.formatCurrency(batch.selectedFeeToken!.fee, batch.selectedFeeToken!.token, formatSmallDecimals: true) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
+        Text(batch.selectedFeeToken != null ? "\$${CurrencyUtils.convertToQuote(batch.selectedFeeToken!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, batch.selectedFeeToken!.fee).toPrecision(3)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
+      ],
+    );
+  }
+}
+
+class _FreeCardIndicator extends StatelessWidget {
+  const _FreeCardIndicator({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shadowColor: Colors.green.withOpacity(0.2),
+      color: Colors.green.withOpacity(0.2),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(
+              color: Colors.green,
+              width: 1.2
+          )
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(PhosphorIcons.lightningBold, size: 15,),
+            const SizedBox(width: 5,),
+            Text("FREE", textAlign: TextAlign.center, style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
+          ],
         ),
       ),
     );

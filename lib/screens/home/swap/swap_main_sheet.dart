@@ -5,7 +5,7 @@ import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
-import 'package:candide_mobile_app/screens/home/components/currency_selection_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/currency_selection_sheet.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:candide_mobile_app/utils/extensions/decimal_extensions.dart';
