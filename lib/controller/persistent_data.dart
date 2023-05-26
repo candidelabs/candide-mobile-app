@@ -417,7 +417,6 @@ class TransactionActivity {
   String action;
   String title;
   String status;
-  String? paymasterEventTopic; // used to extract gas cost from paymaster emitted event
   String? hash;
   String? txHash;
   Map<String, String> data;
@@ -433,7 +432,6 @@ class TransactionActivity {
     required this.action,
     required this.title,
     required this.status,
-    this.paymasterEventTopic,
     this.hash,
     this.txHash,
     required this.data});
@@ -444,7 +442,6 @@ class TransactionActivity {
         action = json['action'],
         title = json['title'],
         status = json['status'],
-        paymasterEventTopic = json['paymasterEventTopic'],
         hash = json['hash'],
         txHash = json['txHash'],
         data = Map<String, String>.from(json['data']),
@@ -456,7 +453,6 @@ class TransactionActivity {
     'action': action,
     'title': title,
     'status': status,
-    'paymasterEventTopic': paymasterEventTopic,
     'hash': hash,
     'txHash': txHash,
     'data': data,
@@ -466,22 +462,32 @@ class TransactionActivity {
 
 class TransactionFeeActivityData {
   String paymasterAddress;
+  String? sponsoredEventTopic; // used to extract gas cost from paymaster emitted event
   /// Currency Address
   String currencyAddress;
-  BigInt fee;
+  BigInt fee; // estimated fee
+  BigInt? actualFee; // actual fee, fetched from UO's receipt
 
-  TransactionFeeActivityData({required this.paymasterAddress,
+  TransactionFeeActivityData({
+    required this.paymasterAddress,
+    this.sponsoredEventTopic,
     required this.currencyAddress,
-    required this.fee});
+    required this.fee,
+    this.actualFee,
+  });
 
   TransactionFeeActivityData.fromJson(Map json)
       : paymasterAddress = json['paymasterAddress'],
+        sponsoredEventTopic = json['sponsoredEventTopic'],
         currencyAddress = json['currency'],
-        fee = BigInt.parse(json['fee']);
+        fee = BigInt.parse(json['fee']),
+        actualFee = json['actualFee'] != null ? BigInt.parse(json['actualFee']) : null;
 
   Map<String, dynamic> toJson() => {
     'paymasterAddress': paymasterAddress,
+    'sponsoredEventTopic': sponsoredEventTopic,
     'currency': currencyAddress,
     'fee': fee.toString(),
+    'actualFee': actualFee?.toString(),
   };
 }

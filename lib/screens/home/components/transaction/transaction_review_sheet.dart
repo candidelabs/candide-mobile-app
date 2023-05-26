@@ -6,7 +6,7 @@ import 'package:candide_mobile_app/controller/transaction_confirm_controller.dar
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
-import 'package:candide_mobile_app/screens/components/token_fee_selector.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/token_fee_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:info_popup/info_popup.dart';

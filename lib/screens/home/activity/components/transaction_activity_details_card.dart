@@ -6,6 +6,7 @@ import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/guardian_operation.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/free_card_indicator.dart';
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/send/components/send_review_leading.dart';
 import 'package:candide_mobile_app/screens/home/swap/components/swap_review_leading.dart';
@@ -77,13 +78,22 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
       });
     }
     entries["Status"] = widget.transaction.status.replaceAll("-", " ").capitalizeFirst;
-    entries["Transaction fee"] = "< ${CurrencyUtils.formatCurrency(
+    entries["Estimated fee"] = "< ${CurrencyUtils.formatCurrency(
         widget.transaction.fee.fee,
         TokenInfoStorage.getTokenByAddress(widget.transaction.fee.currencyAddress)!,
         includeSymbol: true,
-        formatSmallDecimals: true)}";
+        formatSmallDecimals: true).replaceAll("<", "")}";
     if (widget.transaction.status == "failed-to-submit"){
       entries["Transaction fee"] = CurrencyUtils.formatCurrency(BigInt.zero, TokenInfoStorage.getTokenByAddress(widget.transaction.fee.currencyAddress)!, includeSymbol: true, formatSmallDecimals: true);
+      entries.remove("Estimated fee");
+    }
+    if (widget.transaction.fee.actualFee != null){
+      entries["Transaction fee"] = CurrencyUtils.formatCurrency(
+          widget.transaction.fee.actualFee!,
+          TokenInfoStorage.getTokenByAddress(widget.transaction.fee.currencyAddress)!,
+          includeSymbol: true,
+          formatSmallDecimals: true);
+      entries.remove("Estimated fee");
     }
     entries["Network"] = Networks.selected().chainId.toString();
     return entries;
@@ -110,6 +120,12 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
 
   @override
   Widget build(BuildContext context) {
+    var tableEntries = getTableEntries();
+    bool userOperationFullSponsored = widget.transaction.status == "success" && (widget.transaction.fee.fee == BigInt.zero || widget.transaction.fee.actualFee == BigInt.zero);
+    if (userOperationFullSponsored){
+      tableEntries["Transaction fee"] = "";
+      tableEntries.remove("Estimated fee");
+    }
     return LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
@@ -133,10 +149,11 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
                       margin: EdgeInsets.symmetric(horizontal: Get.width * 0.03),
                       child: SummaryTable(
                         entries: [
-                          for (MapEntry entry in getTableEntries().entries)
+                          for (MapEntry entry in tableEntries.entries)
                             SummaryTableEntry(
                               title: entry.key,
                               titleStyle: null,
+                              trailing: entry.key == "Transaction fee" && userOperationFullSponsored ? const FreeCardIndicator() : null,
                               value: entry.key == "Network" ? Networks.getByChainId(int.parse(entry.value))!.name : entry.value,
                               valueStyle: entry.key == "Network" || entry.key == "Status" ? TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: entry.key == "Status" ? getStatusColor(widget.transaction.status) : Networks.getByChainId(PersistentData.selectedAccount.chainId)!.color) : null,
                             )

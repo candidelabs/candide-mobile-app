@@ -8,7 +8,6 @@ import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
 import 'package:candide_mobile_app/models/paymaster/sponsor_data.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:dio/dio.dart';
-import 'package:eth_sig_util/util/utils.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -30,7 +29,7 @@ class Paymaster {
         tokens: result,
         paymasterData: PaymasterData(
           paymaster: Constants.addressZero,
-          eventTopic: hexToBytes("0x"),
+          eventTopic: "0x",
         ),
         sponsorData: SponsorData(
           sponsored: false,
@@ -48,8 +47,12 @@ class Paymaster {
       );
       //
       EthereumAddress paymasterAddress = Constants.addressZero;
+      String eventTopic = "0x";
       for (Map tokenData in response.data['result']){
         paymasterAddress = EthereumAddress.fromHex(tokenData["paymaster"]);
+        if (tokenData.containsKey("sponsoredEventTopic")){
+          eventTopic = tokenData["sponsoredEventTopic"];
+        }
         TokenInfo? _token = TokenInfoStorage.getTokenByAddress(tokenData["address"]);
         if (_token == null) continue;
         result.add(
@@ -63,6 +66,7 @@ class Paymaster {
       }
       paymasterResponse.tokens = result;
       paymasterResponse.paymasterData.paymaster = paymasterAddress;
+      paymasterResponse.paymasterData.eventTopic = eventTopic;
       return paymasterResponse;
     } on DioError catch(e){
       print("Error occurred ${e.type.toString()}");

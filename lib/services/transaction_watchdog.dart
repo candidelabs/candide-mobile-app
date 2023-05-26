@@ -5,6 +5,7 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:eth_sig_util/util/utils.dart';
@@ -55,15 +56,19 @@ class TransactionWatchdog {
     }
   }
 
-  static Future<String> getUserOperationStatus(String hash) async {
-    try {
-      var receipt = await Bundler.getUserOperationReceipt(hash, Networks.selected().chainId.toInt());
-      if (receipt == null) return "pending";
-      String transactionHash = receipt["receipt"]["transactionHash"];
-      return (receipt["success"] ?? false) ? "success:$transactionHash" : "failed:$transactionHash";
-    } catch (e) {
-      return "failed";
+  static String getUserOperationStatus(Map<String, dynamic>? receipt) {
+    if (receipt == null) return "pending";
+    return (receipt["success"] ?? false) ? "success" : "failed";
+  }
+
+  static BigInt? getPaymasterFeeFromReceipt(Map<String, dynamic> receipt, String sponsoredEventTopic){
+    for (Map<String, dynamic> log in receipt["receipt"]["logs"]){
+      if (log["topics"][0].toString().toLowerCase() == sponsoredEventTopic.toLowerCase()){
+        String value = log["data"].toString().toLowerCase().replaceAll("0x", "");
+        return BigInt.parse(value, radix: 16);
+      }
     }
+    return null;
   }
 
   static addTransactionActivity(TransactionActivity transactionActivity){
@@ -101,12 +106,27 @@ class TransactionWatchdog {
       }
       entry.value.checkCount++;
       if (!_performCheck(entry.value.checkCount.toInt())) continue;
-      futures.add(getUserOperationStatus(entry.key).then((status) async {
+      futures.add(Bundler.getUserOperationReceipt(entry.key, Networks.selected().chainId.toInt()).then((receipt) async {
+        if (receipt == null) return;
+        var status = getUserOperationStatus(receipt);
         if (status == "pending") return;
-        String txHash = status.split(":")[1];
-        status = status.split(":")[0];
+        String txHash = receipt["receipt"]["transactionHash"];
         entry.value.status = status;
         entry.value.txHash = txHash;
+        if (entry.value.fee.paymasterAddress != Constants.addressZeroHex){
+          if (status == "failed"){
+            entry.value.fee.actualFee = BigInt.zero;
+          }else{
+            if (entry.value.fee.sponsoredEventTopic != null && entry.value.fee.sponsoredEventTopic != "0x"){
+              BigInt? actualFee = getPaymasterFeeFromReceipt(receipt, entry.value.fee.sponsoredEventTopic!);
+              entry.value.fee.actualFee = actualFee;
+            }
+          }
+        }else{
+          if (receipt["actualGasCost"] != null){
+            entry.value.fee.actualFee = BigInt.from(receipt["actualGasCost"]);
+          }
+        }
         removedActivities.add(entry.value);
         await PersistentData.updateTransactionActivityStorage(PersistentData.selectedAccount, entry.value);
       }));

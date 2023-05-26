@@ -35,7 +35,10 @@ class Batch {
   //
   PaymasterResponse get paymasterResponse => _paymasterResponse;
   FeeToken? get selectedFeeToken => _selectedFeeToken;
-  bool get includesPaymaster => _selectedFeeToken != null && _selectedFeeToken?.token.symbol != network.nativeCurrency && _selectedFeeToken?.token.address != Constants.addressZeroHex;
+  bool get includesPaymaster {
+    if (gasBack?.gasBackApplied ?? false) return true;
+    return _selectedFeeToken != null && _selectedFeeToken?.token.symbol != network.nativeCurrency && _selectedFeeToken?.token.address != Constants.addressZeroHex;
+  }
 
   bool _includesPaymaster(FeeToken? feeToken) => feeToken != null && feeToken.token.symbol != network.nativeCurrency && feeToken.token.address != Constants.addressZeroHex;
 
@@ -84,6 +87,9 @@ class Batch {
   }
 
   BigInt getFee(){
+    if (gasBack?.gasBackApplied ?? false){
+      return BigInt.zero;
+    }
     return selectedFeeToken?.fee ?? BigInt.zero;
   }
 
@@ -184,7 +190,6 @@ class Batch {
       userOp.verificationGasLimit += BigInt.from(350000); // higher than normal for deployment
       userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit ?? userOp.callGasLimit; // todo remove when first simulateHandleOp is implemented
     }
-    // userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit.toInt() ?? 0; // todo check
     if (_includesPaymaster(feeToken)){
       userOp.verificationGasLimit += BigInt.from(35000);
     }

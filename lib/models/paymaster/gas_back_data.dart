@@ -12,6 +12,7 @@ class GasBackData {
   GasBackData({required this.paymaster, required this.paymasterAndData, required this.gasBackApplied});
 
   static Future<GasBackData> getGasBackData(Account account, EthereumAddress _paymaster, Network network, BigInt maxETHCost) async {
+    if (_paymaster == Constants.addressZero) return GasBackData(paymaster: _paymaster, paymasterAndData: "0x", gasBackApplied: false);
     PaymasterContract paymasterContract = PaymasterContract(address: _paymaster, client: network.client);
     BigInt accountGasBack = await paymasterContract.gasBackBalances(account.address);
     bool gasBackApplied = accountGasBack >= maxETHCost;
