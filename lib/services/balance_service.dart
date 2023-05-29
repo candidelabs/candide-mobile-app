@@ -100,7 +100,7 @@ class BalanceService {
       var response = await Dio().get("https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD");
       return response.data["USD"].toDouble();
     } catch (e) {
-      // todo handle network errors
+      // todo handle network errors (note: return of 0 is used in debug_verify_endpoints_dialog.dart)
       return 0;
     }
   }

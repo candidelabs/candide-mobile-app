@@ -22,6 +22,21 @@ class Utils {
     pattern.allMatches(text).forEach((match) => print(match.group(0)));
   }
 
+  static BigInt decodeBigInt(dynamic value){
+    if (value == null) return BigInt.zero;
+    if (value is String){
+      if (value.startsWith("0x") || !value.isNumericOnly){
+        if (value == "0x") return BigInt.zero;
+        return BigInt.parse(value.replaceAll("0x", ""), radix: 16);
+      }else{
+        return BigInt.parse(value);
+      }
+    }else if (value is num){
+      return BigInt.from(value);
+    }
+    return BigInt.from(value);
+  }
+
   static String truncateIfAddress(String input, {int? leadingDigits, int? trailingDigits}){
     var regex = RegExp('^(0x[a-zA-Z0-9]{${trailingDigits ?? 6}})[a-zA-Z0-9]+([a-zA-Z0-9]{${trailingDigits ?? 6}})\$');
     var matches = regex.allMatches(input);

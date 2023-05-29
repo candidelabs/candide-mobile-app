@@ -5,8 +5,8 @@ import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/utils/extensions/bigint_extensions.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:dio/dio.dart';
-import 'package:get/get.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -68,9 +68,9 @@ class Bundler {
         return null;
       }
       return GasEstimate(
-        callGasLimit: _decodeBigInt(response.data["result"]["callGasLimit"]).scale(1.2),
-        verificationGasLimit: _decodeBigInt(response.data["result"]["verificationGas"]),
-        basePreVerificationGas: _decodeBigInt(response.data["result"]["preVerificationGas"]),
+        callGasLimit: Utils.decodeBigInt(response.data["result"]["callGasLimit"]).scale(1.2),
+        verificationGasLimit: Utils.decodeBigInt(response.data["result"]["verificationGas"]),
+        basePreVerificationGas: Utils.decodeBigInt(response.data["result"]["preVerificationGas"]),
         preVerificationGas: BigInt.zero,
         maxFeePerGas: BigInt.zero,
         maxPriorityFeePerGas: BigInt.zero,
@@ -104,21 +104,6 @@ class Bundler {
       print("Error occurred ${e.type.toString()}");
       return null;
     }
-  }
-
-  static BigInt _decodeBigInt(dynamic value){
-    if (value == null) return BigInt.zero;
-    if (value is String){
-      if (value.startsWith("0x") || !value.isNumericOnly){
-        if (value == "0x") return BigInt.zero;
-        return BigInt.parse(value.replaceAll("0x", ""), radix: 16);
-      }else{
-        return BigInt.parse(value);
-      }
-    }else if (value is num){
-      return BigInt.from(value);
-    }
-    return BigInt.from(value);
   }
 
 }

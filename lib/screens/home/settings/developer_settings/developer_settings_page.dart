@@ -2,6 +2,7 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/screens/home/settings/components/setting_menu_item.dart';
 import 'package:candide_mobile_app/screens/home/settings/components/test_token_account_selection.dart';
+import 'package:candide_mobile_app/screens/home/settings/developer_settings/developer_debug_page.dart';
 import 'package:candide_mobile_app/screens/home/settings/developer_settings/manage_networks_page.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -61,14 +62,14 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
               Get.to(const ManageNetworksPage(), transition: Transition.rightToLeft);
             },
             leading: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
                     Colors.deepOrange,
-                    Colors.deepOrangeAccent,
+                    Colors.deepOrange[300]!,
                   ],
                 ),
               ),
@@ -81,6 +82,9 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
             trailing: const Icon(PhosphorIcons.arrowRightBold),
           ),
           SettingMenuItem(
+            onPress: (){
+              Get.to(const DeveloperDebugPage(), transition: Transition.rightToLeft);
+            },
             leading: Container(
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
@@ -88,8 +92,29 @@ class _DeveloperSettingsPageState extends State<DeveloperSettingsPage> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.yellow,
+                    Colors.indigo,
+                    Colors.indigoAccent,
+                  ],
+                ),
+              ),
+              child: const CircleAvatar(
+                backgroundColor: Colors.transparent,
+                child: Icon(PhosphorIcons.bugBeetleLight, color: Colors.white,),
+              ),
+            ),
+            label: Text("Developer Debug", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17)),
+            trailing: const Icon(PhosphorIcons.arrowRightBold),
+          ),
+          SettingMenuItem(
+            leading: Container(
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
                     Colors.green,
+                    Colors.greenAccent,
                   ],
                 ),
               ),
