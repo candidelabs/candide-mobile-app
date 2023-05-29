@@ -1,4 +1,3 @@
-import 'package:animated_emoji/animated_emoji.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:flutter/material.dart';
 
@@ -12,15 +11,13 @@ class GasBackSheet extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 20,),
-          const AnimatedEmoji(
-            AnimatedEmojis.partyingFace,
-            size: 85,
-          ),
+          Text("You got a Reward!", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),),
+          const SizedBox(height: 20,),          
+          Image.asset("assets/images/zerofee_pass.png" , height: 300),
           const SizedBox(height: 10,),
-          Text("Congratulations!", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 22),),
           const SizedBox(height: 5,),
           const Text(
-            "You're quite the explorer!\nYou just earned a special gift, a FREE transaction.\nEnjoy fee-free transactions and keep exploring!",
+            "Your sense of exploration unlocked a valuable ZeroFee Pass, granting you a feeless transaction. Enjoy the freedom to transact without worrying about gas fees!",
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey),
           ),
