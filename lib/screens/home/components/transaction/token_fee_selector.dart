@@ -43,13 +43,10 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
   }
 
   showGasBackSheet(){
-    showBarModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: Get.theme.canvasColor,
-      builder: (context) => SingleChildScrollView(
-        controller: ModalScrollController.of(context),
-        child: const GasBackSheet(),
-      ),
+      useRootNavigator: false,
+      builder: (context) => const GasBackSheet(),
     );
   }
 

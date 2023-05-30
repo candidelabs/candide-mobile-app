@@ -63,6 +63,7 @@ dependencies:
   expandable: ^5.0.1
   info_popup: ^2.4.6
   animated_emoji: ^1.0.1+2
+  confetti: ^0.7.0
   # Typography
   phosphor_flutter: ^1.4.0
   font_awesome_flutter: ^10.1.0
