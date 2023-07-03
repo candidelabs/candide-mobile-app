@@ -5,9 +5,8 @@ class GasEstimate {
   BigInt verificationGasLimit;
   BigInt maxPriorityFeePerGas;
   BigInt maxFeePerGas;
-  late BigInt extraPreVerificationGas; //specific for L2s
-  late BigInt l1GasUsed; //specific for L2s
-  late BigInt l1BaseFee; //specific for L2s
+  late BigInt l1Fee; //specific for L2s
+  late BigInt l1FeeWithPaymaster; //specific for L2s
 
   GasEstimate(
       {required this.callGasLimit, // set by bundler
@@ -16,10 +15,10 @@ class GasEstimate {
       required this.verificationGasLimit, // set by bundler
       required this.maxPriorityFeePerGas,
       required this.maxFeePerGas,
-      BigInt? l1GasUsed,
-      BigInt? l1BaseFee}) {
-    this.l1GasUsed = l1GasUsed ?? BigInt.zero;
-    this.l1BaseFee = l1BaseFee ?? BigInt.zero;
+      BigInt? l1Fee,
+      BigInt? l1FeeWithPaymaster}) {
+    this.l1Fee = l1Fee ?? BigInt.zero;
+    this.l1FeeWithPaymaster = l1FeeWithPaymaster ?? BigInt.zero;
   }
 
   GasEstimate copy() {
@@ -30,8 +29,8 @@ class GasEstimate {
       verificationGasLimit: verificationGasLimit,
       maxPriorityFeePerGas: maxPriorityFeePerGas,
       maxFeePerGas: maxFeePerGas,
-      l1GasUsed: l1GasUsed,
-      l1BaseFee: l1BaseFee,
+      l1Fee: l1Fee,
+      l1FeeWithPaymaster: l1FeeWithPaymaster,
     );
   }
 }
