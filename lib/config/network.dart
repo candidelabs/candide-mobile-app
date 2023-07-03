@@ -37,7 +37,7 @@ class Networks {
           logo: SvgPicture.asset("assets/images/optimism.svg"),
           extendedLogo: SvgPicture.asset("assets/images/optimism-wordmark-red.svg"),
           chainId: BigInt.from(10),
-          explorerUrl: "https://optimistic.etherscan.io",
+          explorers: {"etherscan":"https://optimistic.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism"},
           //
           coinGeckoAssetPlatform: "optimistic-ethereum",
           nativeCurrency: 'ETH',
@@ -79,7 +79,7 @@ class Networks {
           visible: false,
           color: const Color.fromARGB(255, 34, 115, 113),
           chainId: BigInt.from(420),
-          explorerUrl: "https://goerli-optimism.etherscan.io",
+          explorers: {"etherscan":"https://goerli-optimism.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism-goerli"},
           //
           coinGeckoAssetPlatform: "optimistic-ethereum",
           nativeCurrency: 'ETH',
@@ -121,7 +121,7 @@ class Networks {
           visible: false,
           color: const Color.fromARGB(255, 70, 127, 188),
           chainId: BigInt.from(5),
-          explorerUrl: "https://goerli.etherscan.io",
+          explorers: {"etherscan":"https://goerli.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism"},
           //
           coinGeckoAssetPlatform: "ethereum",
           nativeCurrency: 'ETH',
@@ -220,7 +220,7 @@ class Network{
   Widget? logo;
   Widget? extendedLogo;
   BigInt chainId;
-  String explorerUrl;
+  Map<String, String> explorers;
   String coinGeckoAssetPlatform;
   String nativeCurrency;
   EthereumAddress nativeCurrencyAddress;
@@ -248,7 +248,7 @@ class Network{
       this.logo,
       this.extendedLogo,
       required this.chainId,
-      required this.explorerUrl,
+      required this.explorers,
       required this.coinGeckoAssetPlatform,
       required this.nativeCurrency,
       required this.nativeCurrencyAddress,

@@ -165,7 +165,13 @@ class _TransactionActivityDetailsCardState extends State<TransactionActivityDeta
                       textDirection: TextDirection.rtl,
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          Utils.launchUri("${Networks.selected().explorerUrl}/tx/${widget.transaction.txHash}", mode: LaunchMode.externalApplication);
+                          String url = "";
+                          if (widget.transaction.hash != null && widget.transaction.hash!.isNotEmpty && Networks.selected().explorers.containsKey("jiffyscan")){
+                            url = Networks.selected().explorers["jiffyscan"]!.replaceAll("{data}", "userOpHash/${widget.transaction.hash}");
+                          }else{
+                            url = Networks.selected().explorers["etherscan"]!.replaceAll("{data}", "tx/${widget.transaction.txHash}");
+                          }
+                          Utils.launchUri(url, mode: LaunchMode.externalApplication);
                         },
                         style: ButtonStyle(
                           minimumSize: MaterialStateProperty.all(Size(Get.width * 0.9, 40)),
