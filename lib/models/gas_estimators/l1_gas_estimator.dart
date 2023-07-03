@@ -3,25 +3,23 @@ import 'dart:typed_data';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/gas_estimators/gas_estimator.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:decimal/decimal.dart';
 import 'package:dio/dio.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:web3dart/web3dart.dart';
 
 class L1GasEstimator extends GasEstimator {
 
   L1GasEstimator({required super.chainId});
 
   @override
-  Future<List<int>?> getNetworkGasFees() async {
-    if (chainId == 11155111) return [1510000000, 1500000000];
+  Future<List<BigInt>?> getNetworkGasFees() async {
+    if (chainId == 11155111) return [BigInt.from(1510000000), BigInt.from(1500000000)];
     try{
       var response = await Dio().get("https://gas-api.metaswap.codefi.network/networks/$chainId/suggestedGasFees");
       //
-      int suggestedMaxFeePerGas = (double.parse(response.data["medium"]["suggestedMaxFeePerGas"]) * 1000).ceil();
-      int suggestedMaxPriorityFeePerGas = (double.parse(response.data["medium"]["suggestedMaxPriorityFeePerGas"]) * 1000).ceil();
-      suggestedMaxFeePerGas = EtherAmount.fromUnitAndValue(EtherUnit.mwei, suggestedMaxFeePerGas).getInWei.toInt();
-      suggestedMaxPriorityFeePerGas = EtherAmount.fromUnitAndValue(EtherUnit.mwei, suggestedMaxPriorityFeePerGas).getInWei.toInt();
+      BigInt suggestedMaxFeePerGas = Decimal.parse(response.data["medium"]["suggestedMaxFeePerGas"]).shift(9).toBigInt();
+      BigInt suggestedMaxPriorityFeePerGas = Decimal.parse(response.data["medium"]["suggestedMaxPriorityFeePerGas"]).shift(9).toBigInt();
       //
       return [suggestedMaxFeePerGas, suggestedMaxPriorityFeePerGas];
     } on DioError catch(e){
@@ -43,11 +41,11 @@ class L1GasEstimator extends GasEstimator {
     dummyOp.signature = bytesToHex(Uint8List.fromList(List<int>.filled(65, 1)), include0x: true);
     //
     if (prevEstimate == null){
-      List<int> networkFees = await getNetworkGasFees() ?? [0, 0];
+      List<BigInt> networkFees = await getNetworkGasFees() ?? [BigInt.zero, BigInt.zero];
       gasEstimate = await Bundler.getUserOperationGasEstimates(dummyOp, chainId);
       if (gasEstimate == null) return null;
-      gasEstimate.maxFeePerGas = BigInt.from(networkFees[0]);
-      gasEstimate.maxPriorityFeePerGas = BigInt.from(networkFees[1]);
+      gasEstimate.maxFeePerGas = networkFees[0];
+      gasEstimate.maxPriorityFeePerGas = networkFees[1];
     }else{
       gasEstimate = prevEstimate.copy();
     }

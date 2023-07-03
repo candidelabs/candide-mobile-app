@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:candide_mobile_app/config/env.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/models/paymaster/paymaster_data.dart';
@@ -15,9 +16,9 @@ class Paymaster {
 
   static Future<PaymasterResponse?> fetchPaymasterFees(int chainId) async {
     List<FeeToken> result = [];
-    TokenInfo? _ethereum = TokenInfoStorage.getTokenByAddress(Constants.addressZeroHex);
+    TokenInfo? _nativeToken = TokenInfoStorage.getTokenByAddress(Networks.getByChainId(chainId)!.nativeCurrencyAddress.hex);
     result.add(FeeToken(
-        token: _ethereum!,
+        token: _nativeToken!,
         fee: BigInt.zero,
         paymasterFee: BigInt.zero,
         exchangeRate: BigInt.parse("1000000000000000000")

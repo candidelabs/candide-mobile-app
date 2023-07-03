@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
@@ -25,7 +26,7 @@ class SendAmountSheet extends StatefulWidget {
 class _SendAmountSheetState extends State<SendAmountSheet> {
   final FocusNode _amountFocus = FocusNode();
   final TextEditingController _amountController = TextEditingController();
-  TokenInfo selectedToken = TokenInfoStorage.getTokenBySymbol("ETH")!;
+  TokenInfo selectedToken = TokenInfoStorage.getTokenBySymbol(Networks.selected().nativeCurrency)!;
   String errorMessage = "Sending amount must be greater than zero";
   final _errors = {
     "balance": "Insufficient Balance",
