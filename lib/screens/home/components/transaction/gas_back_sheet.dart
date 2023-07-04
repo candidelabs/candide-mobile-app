@@ -79,7 +79,7 @@ class _GasBackSheetState extends State<GasBackSheet> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 50,),
-                Image.asset("assets/images/zerofee_pass.png" , height: 300),
+                Image.asset("assets/images/zerofee_pass.png" , height: 400),
                 const SizedBox(height: 25,),
                 const Text(
                   "Your sense of exploration unlocked a valuable ZeroFee Pass, granting you a feeless transaction. Enjoy the freedom to transact without worrying about gas fees!",
@@ -93,7 +93,7 @@ class _GasBackSheetState extends State<GasBackSheet> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          Color.fromRGBO(181, 150, 77, 1),
+                          Color.fromRGBO(47,49,147, 1),
                           Color.fromRGBO(232, 223, 200, 1),
                         ],
                         stops: [0.4, 1]
@@ -111,7 +111,7 @@ class _GasBackSheetState extends State<GasBackSheet> {
                       shadowColor: Colors.transparent,
                       minimumSize: const Size(200, 0),
                     ),
-                    child: Text('Continue', style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.black, fontSize: 16),),
+                    child: Text('Continue', style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white, fontSize: 16),),
                   ),
                 ),
               ],
