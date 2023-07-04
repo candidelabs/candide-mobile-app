@@ -54,10 +54,6 @@ class _SendSheetState extends State<SendSheet> {
       Container(),
     ];
     setState(() {});
-    Future.delayed(Duration(seconds: 1), (){
-      toAddress = PersistentData.selectedAccount.address.hexEip55;
-      onPressReview(TokenInfoStorage.getTokenBySymbol("ETH")!, BigInt.one);
-    });
   }
 
   @override
