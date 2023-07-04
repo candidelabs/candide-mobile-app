@@ -1,6 +1,5 @@
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_peer_icon.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -8,11 +7,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:walletconnect_dart/walletconnect_dart.dart';
 
 class WCSessionRequestSheet extends StatefulWidget {
-  final WalletConnect connector;
-  const WCSessionRequestSheet({Key? key, required this.connector}) : super(key: key);
+  final WCPeerMeta peerMeta;
+  final bool isConforming;
+  final VoidCallback onApprove;
+  final VoidCallback onReject;
+  const WCSessionRequestSheet({Key? key, required this.peerMeta, required this.isConforming, required this.onApprove, required this.onReject}) : super(key: key);
 
   @override
   State<WCSessionRequestSheet> createState() => _WCSessionRequestSheetState();
@@ -22,8 +23,8 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
   @override
   Widget build(BuildContext context) {
     //
-    String peerName = widget.connector.session.peerMeta?.name ?? "Unknown";
-    String peerUrl = widget.connector.session.peerMeta?.url ?? "";
+    String peerName = widget.peerMeta.name;
+    String peerUrl = widget.peerMeta.url;
     //
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
@@ -38,7 +39,7 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
               height: 60,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(60),
-                child: WCPeerIcon(connector: widget.connector),
+                child: WCPeerIcon(icons: widget.peerMeta.icons),
               ),
             ),
             const SizedBox(width: 20,),
@@ -132,14 +133,23 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
           ),
         ),
         const SizedBox(height: 25,),
-        Row(
+        !widget.isConforming ? Container(
+          margin: const EdgeInsets.only(left: 20, right: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 7.5, vertical: 7.5),
+          decoration: BoxDecoration(
+            color: Colors.red[900]!.withOpacity(0.35),
+            borderRadius: BorderRadius.circular(6)
+          ),
+          child: Text(
+            "Incompatible connection\nPlease change chain on the dApp to be able connect.",
+            style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
+          ),
+        ) : const SizedBox.shrink(),
+        widget.isConforming ? Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: (){
-                widget.connector.rejectSession();
-                Get.back();
-              },
+              onPressed: () => widget.onReject.call(),
               style: ButtonStyle(
                 minimumSize: MaterialStateProperty.all(Size(Get.width * 0.30, 40)),
                 backgroundColor: MaterialStateProperty.all(Colors.transparent),
@@ -153,28 +163,19 @@ class _WCSessionRequestSheetState extends State<WCSessionRequestSheet> {
             ),
             const SizedBox(width: 15,),
             ElevatedButton(
-              onPressed: (){
-                widget.connector.approveSession(accounts: [PersistentData.selectedAccount.address.hexEip55], chainId: Networks.selected().chainId.toInt());
-                Get.back();
-                Utils.showBottomStatus(
-                  "Connected to ${widget.connector.session.peerMeta!.name}",
-                  "Please check the application",
-                  loading: false,
-                  success: true,
-                );
-              },
+              onPressed: () => widget.onApprove.call(),
               style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(Size(Get.width * 0.30, 40)),
                   elevation: MaterialStateProperty.all(0),
                   shape: MaterialStateProperty.all(RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
-                      side: BorderSide(color: Get.theme.colorScheme.primary)
+                      side: BorderSide(color: widget.isConforming ? Get.theme.colorScheme.primary : Colors.grey.withOpacity(0.5))
                   ))
               ),
               child: Text("Connect", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
             ),
           ],
-        ),
+        ) : const SizedBox.shrink(),
         const SizedBox(height: 25,),
       ],
     );

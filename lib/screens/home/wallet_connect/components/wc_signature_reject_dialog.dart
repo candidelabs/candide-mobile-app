@@ -1,6 +1,7 @@
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction/transaction_review_sheet.dart';
@@ -11,16 +12,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:walletconnect_dart/walletconnect_dart.dart';
 import 'package:web3dart/crypto.dart';
 
 class WCSignatureRejectDialog extends StatelessWidget {
-  final WalletConnect connector;
-  const WCSignatureRejectDialog({Key? key, required this.connector}) : super(key: key);
+  final WCPeerMeta peerMeta;
+  const WCSignatureRejectDialog({Key? key, required this.peerMeta}) : super(key: key);
 
   void createEmptyTransaction() async {
     var cancelLoad = Utils.showLoading();
-    Batch emptyBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    Batch emptyBatch = await Batch.create(account: PersistentData.selectedAccount);
     await emptyBatch.fetchPaymasterResponse();
     emptyBatch.transactions.add(GnosisTransaction(
       id: "empty-deploy",
@@ -67,7 +67,7 @@ class WCSignatureRejectDialog extends StatelessWidget {
       title: RichText(
         textAlign: TextAlign.center,
         text: TextSpan(
-            text: connector.session.peerMeta!.name,
+            text: peerMeta.name,
             style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 22, color: Get.theme.colorScheme.primary),
             children: const [
               TextSpan(

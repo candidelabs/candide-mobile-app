@@ -1,17 +1,17 @@
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/screens/home/components/token_logo.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:walletconnect_dart/walletconnect_dart.dart';
 
 class SendReviewLeadingWidget extends StatelessWidget {
   final TokenInfo token;
   final BigInt value;
-  final WalletConnect? connector;
-  const SendReviewLeadingWidget({Key? key, required this.token, required this.value, this.connector}) : super(key: key);
+  final WCPeerMeta? peerMeta;
+  const SendReviewLeadingWidget({Key? key, required this.token, required this.value, this.peerMeta}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,12 +53,12 @@ class SendReviewLeadingWidget extends StatelessWidget {
           CurrencyUtils.formatCurrency(value, token, formatSmallDecimals: true),
           style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 28),
         ),
-        connector != null ? Container(
+        peerMeta != null ? Container(
           margin: const EdgeInsets.only(right: 15, left: 15, top: 20),
           child: RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
-                text: connector!.session.peerMeta!.name,
+                text: peerMeta!.name,
                 style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 22, color: Get.theme.colorScheme.primary),
                 children: const [
                   TextSpan(

@@ -5,7 +5,8 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
-import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_v2_controller.dart';
 import 'package:candide_mobile_app/models/recovery_request.dart';
 import 'package:candide_mobile_app/screens/home/components/balance_card.dart';
 import 'package:candide_mobile_app/screens/home/components/currency_balance_card.dart';
@@ -280,12 +281,18 @@ class _OverviewScreenState extends State<OverviewScreen> {
                   backgroundColor: Get.theme.canvasColor,
                   builder: (context) {
                     return WCMainSheet(
-                      onScanResult: (String uri){
-                        var wcController = WalletConnectController();
-                        wcController.connect(
-                          uri,
-                          const ShortUuid().generate(),
-                        );
+                      onScanResult: (String uri) async {
+                        bool isV1 = uri.contains("bridge=");
+                        if (isV1){
+                          var wcController = WalletConnectController();
+                          wcController.connect(
+                            uri,
+                            const ShortUuid().generate(),
+                          );
+                        }else{
+                          var wcController = await WalletConnectV2Controller.instance();
+                          wcController.connect(uri);
+                        }
                       },
                     );
                   },

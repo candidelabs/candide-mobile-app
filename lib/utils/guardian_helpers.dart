@@ -55,7 +55,7 @@ class GuardianOperationsHelper {
 
   static Future<bool> grantGuardian(Account account, EthereumAddress guardian, String? nickname, String type, {Map? magicLinkData}) async {
     CancelFunc? cancelLoad = Utils.showLoading();
-    Batch grantBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    Batch grantBatch = await Batch.create(account: PersistentData.selectedAccount);
     int friendsCount = 0;
     int threshold = 1;
     bool moduleEnabled = await isSocialRecoveryModuleEnabled(account);
@@ -135,7 +135,7 @@ class GuardianOperationsHelper {
 
   static Future<bool> revokeGuardian(Account account, EthereumAddress guardian) async {
     CancelFunc? cancelLoad = Utils.showLoading();
-    Batch revokeBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    Batch revokeBatch = await Batch.create(account: PersistentData.selectedAccount);
     List<EthereumAddress> _prevGuardians = await ISocialModule.interface(address: account.socialRecoveryModule!, client: Networks.selected().client).getGuardians(account.address);
     int friendsCount = _prevGuardians.length;
     EthereumAddress previousGuardian = Constants.addressOne;

@@ -38,6 +38,7 @@ dependencies:
   dio: ^5.1.2
   eth_sig_util: ^0.0.9
   walletconnect_dart: ^0.0.11
+  walletconnect_flutter_v2: ^2.0.12
   # Auth
   biometric_storage: ^5.0.0
   # State

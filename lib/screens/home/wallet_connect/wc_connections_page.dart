@@ -1,30 +1,47 @@
 import 'dart:async';
 
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_v2_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_peer_icon.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:wallet_dart/wallet/account.dart';
+import 'package:walletconnect_flutter_v2/walletconnect_flutter_v2.dart';
 
 class WCConnectionsPage extends StatefulWidget {
+  final Account account;
   final VoidCallback onBack;
-  const WCConnectionsPage({Key? key, required this.onBack}) : super(key: key);
+  const WCConnectionsPage({Key? key, required this.account, required this.onBack}) : super(key: key);
 
   @override
   State<WCConnectionsPage> createState() => _WCConnectionsPageState();
 }
 
 class _WCConnectionsPageState extends State<WCConnectionsPage> {
+  late WalletConnectV2Controller v2Controller;
+  List<SessionData> v2Sessions = [];
   late StreamSubscription disconnectListener;
+
+  Future<void> loadV2Sessions() async {
+    setState(() => v2Sessions.clear());
+    v2Controller = await WalletConnectV2Controller.instance();
+    setState(() {
+      v2Sessions.addAll(v2Controller.getAccountSessions(widget.account));
+    });
+  }
 
   @override
   void initState() {
-    disconnectListener = eventBus.on<OnWalletConnectDisconnect>().listen((event) {
+    disconnectListener = eventBus.on<OnWalletConnectDisconnect>().listen((event) async {
       if (!mounted) return;
+      await loadV2Sessions();
       setState(() {});
     });
+    loadV2Sessions();
     super.initState();
   }
 
@@ -36,6 +53,9 @@ class _WCConnectionsPageState extends State<WCConnectionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isEmpty = true;
+    if (WalletConnectController.instances.isNotEmpty) isEmpty = false;
+    if (v2Sessions.isNotEmpty) isEmpty = false;
     return Scaffold(
       appBar: AppBar(
         title: Text("Connected dApps", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
@@ -61,7 +81,7 @@ class _WCConnectionsPageState extends State<WCConnectionsPage> {
           ),
         ),
       ),
-      body: WalletConnectController.instances.isEmpty ? Center(
+      body: isEmpty ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -82,9 +102,19 @@ class _WCConnectionsPageState extends State<WCConnectionsPage> {
               Text("Active connections", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),),
               for (final WalletConnectController controller in WalletConnectController.instances)
                 _SessionCard(
-                  sessionController: controller,
+                  peerMeta: WCPeerMeta.fromPeerMeta(controller.connector.session.peerMeta),
                   onPressDisconnect: () async {
                     controller.disconnect();
+                  },
+                ),
+              for (final SessionData session in v2Sessions)
+                _SessionCard(
+                  peerMeta: WCPeerMeta.fromPairingMetadata(session.peer.metadata),
+                  onPressDisconnect: () async {
+                    v2Controller.wcClient.disconnectSession(
+                      topic: session.topic,
+                      reason: Errors.getSdkError(Errors.USER_DISCONNECTED)
+                    );
                   },
                 ),
               const SizedBox(height: 15,),
@@ -97,9 +127,9 @@ class _WCConnectionsPageState extends State<WCConnectionsPage> {
 }
 
 class _SessionCard extends StatelessWidget {
-  final WalletConnectController sessionController;
+  final WCPeerMeta peerMeta;
   final VoidCallback onPressDisconnect;
-  const _SessionCard({Key? key, required this.sessionController, required this.onPressDisconnect}) : super(key: key);
+  const _SessionCard({Key? key, required this.peerMeta, required this.onPressDisconnect}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +145,7 @@ class _SessionCard extends StatelessWidget {
                   height: 40,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
-                    child: WCPeerIcon(connector: sessionController.connector),
+                    child: WCPeerIcon(icons: peerMeta.icons),
                   ),
                 ),
                 const SizedBox(width: 10,),
@@ -124,11 +154,11 @@ class _SessionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        Utils.truncate(sessionController.connector.session.peerMeta?.name ?? "Unknown", leadingDigits: 35, trailingDigits: 0),
+                        Utils.truncate(peerMeta.name, leadingDigits: 35, trailingDigits: 0),
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                       ),
                       Text(
-                        Utils.truncate(sessionController.connector.session.peerMeta?.url ?? "", leadingDigits: 50, trailingDigits: 0),
+                        Utils.truncate(peerMeta.url, leadingDigits: 50, trailingDigits: 0),
                         style: const TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                     ],
@@ -155,4 +185,3 @@ class _SessionCard extends StatelessWidget {
     );
   }
 }
-

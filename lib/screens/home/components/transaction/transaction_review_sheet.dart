@@ -36,6 +36,8 @@ class TransactionReviewSheet extends StatefulWidget {
     this.confirmCheckboxes = const []
   }) : super(key: key);
 
+  static int active = 0;
+
   @override
   State<TransactionReviewSheet> createState() => _TransactionReviewSheetState();
 }
@@ -100,6 +102,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
 
   @override
   void initState() {
+    TransactionReviewSheet.active++;
     FeeToken? feeCurrency = selectDefaultFeeCurrency(widget.batch.paymasterResponse.tokens);
     if (feeCurrency != null){
       widget.batch.setSelectedFeeToken(feeCurrency);
@@ -109,6 +112,12 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     }
     confirmedCheckBoxes = List.generate(widget.confirmCheckboxes.length, (index) => widget.confirmCheckboxes[index] == null || widget.confirmCheckboxes[index]!.isEmpty ? true : false);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    TransactionReviewSheet.active--;
+    super.dispose();
   }
 
   @override

@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -14,16 +15,16 @@ import 'package:wallet_dart/utils/abi_utils.dart';
 import 'package:wallet_dart/wallet/account_helpers.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/message.dart';
-import 'package:walletconnect_dart/walletconnect_dart.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
 
 class SignatureRequestSheet extends StatefulWidget {
-  final WalletConnect connector;
-  final int requestId;
+  final WCPeerMeta peerMeta;
   final String signatureType;
   final String payload;
-  const SignatureRequestSheet({Key? key, required this.signatureType, required this.payload, required this.connector, required this.requestId}) : super(key: key);
+  final VoidCallback onReject;
+  final Function(String) onSign;
+  const SignatureRequestSheet({Key? key, required this.peerMeta, required this.signatureType, required this.payload, required this.onReject, required this.onSign}) : super(key: key);
 
   @override
   State<SignatureRequestSheet> createState() => _SignatureRequestSheetState();
@@ -90,7 +91,7 @@ class _SignatureRequestSheetState extends State<SignatureRequestSheet> {
                     child: RichText(
                       textAlign: TextAlign.center,
                       text: TextSpan(
-                        text: widget.connector.session.peerMeta?.name ?? "Unknown",
+                        text: widget.peerMeta.name,
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 18),
                         children: [
                           TextSpan(
@@ -112,8 +113,9 @@ class _SignatureRequestSheetState extends State<SignatureRequestSheet> {
                     children: [
                       ElevatedButton(
                         onPressed: () async {
-                          await widget.connector.rejectRequest(id: widget.requestId);
-                          Get.back();
+                          widget.onReject.call();
+                          /*await widget.connector.rejectRequest(id: widget.requestId);
+                          Get.back();*/
                         },
                         style: ButtonStyle(
                             minimumSize: MaterialStateProperty.all(Size(Get.width * 0.30, 40)),
@@ -145,8 +147,9 @@ class _SignatureRequestSheetState extends State<SignatureRequestSheet> {
                             }
                           }
                           //
-                          widget.connector.approveRequest(id: widget.requestId, result: signature);
-                          Get.back();
+                          widget.onSign.call(signature);
+                          /*widget.connector.approveRequest(id: widget.requestId, result: signature);
+                          Get.back();*/
                         },
                         style: ButtonStyle(
                             minimumSize: MaterialStateProperty.all(Size(Get.width * 0.30, 40)),

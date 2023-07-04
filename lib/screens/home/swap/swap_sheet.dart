@@ -1,6 +1,5 @@
 // ignore_for_file: no_leading_underscores_for_local_identifiers
 import 'package:animations/animations.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/swap.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/swap_controller.dart';
@@ -60,7 +59,7 @@ class _SwapSheetState extends State<SwapSheet> {
     quote = _quote;
     var cancelLoad = Utils.showLoading();
     //
-    swapBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    swapBatch = await Batch.create(account: PersistentData.selectedAccount);
     //
     List<GnosisTransaction> transactions = SwapController.buildTransactions(
         baseCurrency: baseCurrency,

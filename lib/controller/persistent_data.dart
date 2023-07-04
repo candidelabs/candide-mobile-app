@@ -276,9 +276,10 @@ class PersistentData {
     }
   }
 
-  static Account? getAccount({required EthereumAddress address, required int chainId}){
+  static Account? getAccount({required EthereumAddress address, int? chainId}){
     for (Account account in accounts){
-      if (account.address == address && account.chainId == chainId){
+      if (account.address == address){
+        if (chainId != null && account.chainId != chainId) continue;
         return account;
       }
     }

@@ -20,6 +20,7 @@ class Env {
   static late String optimismGoerliRpcEndpoint;
   static late String sepoliaRpcEndpoint;
   //
+  static late String walletConnectProjectId;
   static late String magicApiKey;
 
   static String getNodeUrlByChainId(int chainId){
@@ -79,5 +80,6 @@ class Env {
     mainnetRpcEndpoint = dotenv.get('MAINNET_NODE_RPC_ENDPOINT', fallback: '-');
     //
     magicApiKey = dotenv.get('MAGIC_API_KEY', fallback: '-');
+    walletConnectProjectId = dotenv.get('WALLET_CONNECT_PROJECT_ID', fallback: '-');
   }
 }

@@ -1,12 +1,12 @@
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/screens/home/wallet_connect/components/wc_peer_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:walletconnect_dart/walletconnect_dart.dart';
 
 class WCBundleStatusLeading extends StatelessWidget {
-  final WalletConnect connector;
-  const WCBundleStatusLeading({Key? key, required this.connector}) : super(key: key);
+  final WCPeerMeta peerMeta;
+  const WCBundleStatusLeading({Key? key, required this.peerMeta}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -26,13 +26,13 @@ class WCBundleStatusLeading extends StatelessWidget {
             height: 20,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
-              child: WCPeerIcon(connector: connector,)
+              child: WCPeerIcon(icons: peerMeta.icons,)
             ),
           ),
           const SizedBox(width: 5,),
           RichText(
             text: TextSpan(
-              text: connector.session.peerMeta!.name,
+              text: peerMeta.name,
               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13, color: Get.theme.colorScheme.primary),
               children: [
                 TextSpan(

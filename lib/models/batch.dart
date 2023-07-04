@@ -3,11 +3,13 @@ import 'dart:typed_data';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/models/paymaster/gas_back_data.dart';
 import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
+import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/extensions/bigint_extensions.dart';
@@ -32,6 +34,18 @@ class Batch {
   List<GnosisTransaction> transactions = [];
   //
   Batch({required this.account, required this.network});
+
+  static Future<Batch> create({required Account account, bool refreshAccountData=false}) async {
+    Network network = Networks.getByChainId(account.chainId)!;
+    var batch = Batch(account: account, network: network);
+    if (refreshAccountData){
+      await Explorer.fetchAddressOverview(
+        account: account,
+        additionalCurrencies: TokenInfoStorage.tokens,
+      );
+    }
+    return batch;
+  }
   //
   PaymasterResponse get paymasterResponse => _paymasterResponse;
   FeeToken? get selectedFeeToken => _selectedFeeToken;

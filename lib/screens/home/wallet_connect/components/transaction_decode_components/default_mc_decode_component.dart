@@ -8,11 +8,10 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:walletconnect_dart/walletconnect_dart.dart';
 
 class DefaultMultiCallDecodeComponent extends StatefulWidget {
-  final JsonRpcRequest request;
-  const DefaultMultiCallDecodeComponent({Key? key, required this.request}) : super(key: key);
+  final List<dynamic> params;
+  const DefaultMultiCallDecodeComponent({Key? key, required this.params}) : super(key: key);
 
   @override
   State<DefaultMultiCallDecodeComponent> createState() => _DefaultMultiCallDecodeComponentState();
@@ -23,7 +22,7 @@ class _DefaultMultiCallDecodeComponentState extends State<DefaultMultiCallDecode
 
   void decodeRequestData() async {
     List<Widget> leadings = [];
-    for (var call in widget.request.params![0]["calls"]){
+    for (var call in widget.params[0]["calls"]){
       HexTransactionDetails? transactionDetails = await TransactionDecoder.decodeHexData(call["data"]);
       bool showKnownParamsComponent = false;
       if (transactionDetails != null){
@@ -69,7 +68,7 @@ class _DefaultMultiCallDecodeComponentState extends State<DefaultMultiCallDecode
 
   @override
   void initState() {
-    for (var call in widget.request.params![0]["calls"]){
+    for (var call in widget.params[0]["calls"]){
       decodedDataLeadings.add(DefaultDecodedLeading(
         data: call["data"],
         margin: EdgeInsets.zero,
@@ -89,10 +88,10 @@ class _DefaultMultiCallDecodeComponentState extends State<DefaultMultiCallDecode
           padding: const EdgeInsets.all(5),
           child: Column(
             children: [
-              for (int i=0; i < widget.request.params![0]["calls"].length; i++)
+              for (int i=0; i < widget.params[0]["calls"].length; i++)
                 Builder(
                   builder: (context) {
-                    var call = widget.request.params![0]["calls"][i];
+                    var call = widget.params[0]["calls"][i];
                     if (decodedDataLeadings.length-1 < i) return const SizedBox.shrink();
                     return ExpandablePanel(
                       header: Row(

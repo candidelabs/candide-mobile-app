@@ -63,7 +63,7 @@ class _DepositSheetState extends State<DepositSheet> {
           const SizedBox(height: 5,),
           const Text("Account", style: TextStyle(fontSize: 20, color: Colors.black),),
           const SizedBox(height: 15,),
-          QrImage(
+          QrImageView(
             data: widget.account.address.hexEip55,
             size: 250,
             errorCorrectionLevel: QrErrorCorrectLevel.Q,

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:animations/animations.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
-import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_controller.dart';
 import 'package:candide_mobile_app/screens/home/activity/activity_screen.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardians_page.dart';
 import 'package:candide_mobile_app/screens/home/overview_screen.dart';

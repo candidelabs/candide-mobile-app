@@ -1,11 +1,14 @@
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/persistent_data.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_v2_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dart';
 
 class WCScanSheet extends StatefulWidget {
   final Function(String) onScanResult;
@@ -20,6 +23,7 @@ class _WCScanSheetState extends State<WCScanSheet> with WidgetsBindingObserver {
   Barcode? result;
   QRViewController? controller;
   bool? cameraPermissionDenied;
+  int connectionsCount = 0;
 
   _permissionRequest() async {
     var permissionResult = await Permission.camera.request();
@@ -64,6 +68,13 @@ class _WCScanSheetState extends State<WCScanSheet> with WidgetsBindingObserver {
   @override
   void initState() {
     _permissionRequest();
+    connectionsCount += WalletConnectController.instances.length;
+    WalletConnectV2Controller.instance().then((instance){
+      List<SessionData> v2Sessions = instance.getAccountSessions(PersistentData.selectedAccount);
+      setState(() {
+        connectionsCount += v2Sessions.length;
+      });
+    });
     super.initState();
     WidgetsBinding.instance.addObserver(this);
   }

@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
@@ -196,7 +197,22 @@ class WalletConnectController {
       builder: (context) => SingleChildScrollView(
         controller: ModalScrollController.of(context),
         child: WCSessionRequestSheet(
-          connector: connector,
+          onApprove: (){
+            connector.approveSession(accounts: [PersistentData.selectedAccount.address.hexEip55], chainId: Networks.selected().chainId.toInt());
+            Get.back();
+            Utils.showBottomStatus(
+              "Connected to ${connector.session.peerMeta!.name}",
+              "Please check the application",
+              loading: false,
+              success: true,
+            );
+          },
+          onReject: (){
+            connector.rejectSession();
+            Get.back();
+          },
+          isConforming: true,
+          peerMeta: WCPeerMeta.fromPeerMeta(connector.session.peerMeta),
         ),
       ),
     );
@@ -210,8 +226,9 @@ class WalletConnectController {
 
   void _ethSendTransaction(JsonRpcRequest? payload) async {
     if (payload == null) return;
+    WCPeerMeta peerMeta = WCPeerMeta.fromPeerMeta(connector.session.peerMeta);
     var cancelLoad = Utils.showLoading();
-    Batch wcBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    Batch wcBatch = await Batch.create(account: PersistentData.selectedAccount, refreshAccountData: true);
     String hexValue = "0x00";
     String gasLimit = "0x00";
     String data = "0x";
@@ -271,10 +288,10 @@ class WalletConnectController {
           leading: isTransfer ? SendReviewLeadingWidget(
             token: TokenInfoStorage.getTokenBySymbol("ETH")!,
             value: value,
-            connector: connector,
+            peerMeta: peerMeta,
           ) : WCReviewLeading(
-            connector: connector,
-            request: payload,
+            peerMeta: peerMeta,
+            params: payload.params!,
             isMultiCall: false,
           ),
           tableEntriesData: tableEntriesData,
@@ -298,9 +315,10 @@ class WalletConnectController {
   void walletSendFunctionCallBundle(JsonRpcRequest? payload) async {
     if (payload == null) return;
     if (payload.params == null) return;
+    WCPeerMeta peerMeta = WCPeerMeta.fromPeerMeta(connector.session.peerMeta);
     //print(payload.toJson());
     var cancelLoad = Utils.showLoading();
-    Batch wcBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    Batch wcBatch = await Batch.create(account: PersistentData.selectedAccount, refreshAccountData: true);
     BigInt totalValue = BigInt.zero;
     for (Map call in payload.params![0]["calls"]){
       String hexValue = "0x00";
@@ -358,8 +376,8 @@ class WalletConnectController {
         return TransactionReviewSheet(
           modalId: "wc_transaction_review_modal",
           leading: WCReviewLeading(
-            connector: connector,
-            request: payload,
+            peerMeta: peerMeta,
+            params: payload.params!,
             isMultiCall: true,
           ),
           tableEntriesData: tableEntriesData,
@@ -407,7 +425,7 @@ class WalletConnectController {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "transaction_details_modal");
         return TransactionActivityDetailsCard(
           leading: WCBundleStatusLeading(
-            connector: connector,
+            peerMeta: WCPeerMeta.fromPeerMeta(connector.session.peerMeta),
           ),
           transaction: activity,
         );
@@ -438,10 +456,11 @@ class WalletConnectController {
   }
 
   void _showSignatureRequest(int requestId, String type, String payload) async {
+    WCPeerMeta peerMeta = WCPeerMeta.fromPeerMeta(connector.session.peerMeta);
     if (!PersistentData.accountStatus.proxyDeployed){
       await showDialog(
         context: Get.context!,
-        builder: (_) => WCSignatureRejectDialog(connector: connector,),
+        builder: (_) => WCSignatureRejectDialog(peerMeta: peerMeta,),
         useRootNavigator: false,
       );
       connector.rejectRequest(id: requestId);
@@ -453,10 +472,17 @@ class WalletConnectController {
       builder: (context) {
         Get.put<ScrollController>(ModalScrollController.of(context)!, tag: "wc_signature_modal");
         return SignatureRequestSheet(
-          requestId: requestId,
-          connector: connector,
+          peerMeta: peerMeta,
           signatureType: type,
           payload: payload,
+          onReject: () async {
+            await connector.rejectRequest(id: requestId);
+            Get.back();
+          },
+          onSign: (signature) async {
+            await connector.approveRequest(id: requestId, result: signature);
+            Get.back();
+          },
         );
       },
     );

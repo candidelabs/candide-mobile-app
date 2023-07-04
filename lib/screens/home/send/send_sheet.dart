@@ -54,6 +54,10 @@ class _SendSheetState extends State<SendSheet> {
       Container(),
     ];
     setState(() {});
+    Future.delayed(Duration(seconds: 1), (){
+      toAddress = PersistentData.selectedAccount.address.hexEip55;
+      onPressReview(TokenInfoStorage.getTokenBySymbol("ETH")!, BigInt.one);
+    });
   }
 
   @override
@@ -67,7 +71,7 @@ class _SendSheetState extends State<SendSheet> {
     currency = _currency;
     var cancelLoad = Utils.showLoading();
     //
-    sendBatch = Batch(account: PersistentData.selectedAccount, network: Networks.selected());
+    sendBatch = await Batch.create(account: PersistentData.selectedAccount);
     //
     GnosisTransaction transaction = SendController.buildTransaction(
       sendToken: _currency,

@@ -3,7 +3,8 @@ import 'package:candide_mobile_app/controller/box_controller.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/settings_persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
-import 'package:candide_mobile_app/controller/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_controller.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_v2_controller.dart';
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
 import 'package:candide_mobile_app/screens/onboard/components/wallet_onboarding.dart';
 import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
@@ -72,6 +73,7 @@ class _SplashScreenState extends State<SplashScreen> {
     await PersistentData.loadAccounts();
     SettingsData.loadFromJson(null);
     WalletConnectController.initUserOpListener();
+    await WalletConnectV2Controller.initialize();
     //
     if (PersistentData.accounts.isEmpty){
       Get.off(const WalletOnboarding());

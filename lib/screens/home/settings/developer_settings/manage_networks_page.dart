@@ -2,6 +2,7 @@ import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/custom_switch.dart';
+import 'package:candide_mobile_app/screens/components/painters/outlined_circle_painter.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -121,7 +122,7 @@ class _NetworkCard extends StatelessWidget {
         child: Row(
           children: [
             CustomPaint(
-              painter: _OutlinedCirclePainter(color: network.color),
+              painter: OutlinedCirclePainter(color: network.color),
               child: CircleAvatar(
                 backgroundColor: network.color,
                 child: network.logo ?? SvgPicture.asset("assets/images/ethereum.svg", width: 20, color: Colors.white,),
@@ -171,27 +172,4 @@ class _NetworkCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _OutlinedCirclePainter extends CustomPainter {
-  Color color;
-
-  _OutlinedCirclePainter({required this.color});
-
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-
-    canvas.drawOval(
-      Rect.fromLTWH(0 - (size.width * 0.05), 0 - (size.height * 0.05), size.width * 1.1, size.height * 1.1),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
