@@ -1,16 +1,18 @@
 <!-- logo -->
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/7014833/203773780-04a0c8c0-93a6-43a4-bb75-570cb951dfa0.png">
+  <img src="https://github.com/candidelabs/candide-mobile-app/assets/7014833/94823afb-da40-4026-81b9-d467c704a225">
 </p>
 
-<h3 align='center' style='margin: 1em;'> Join the <b>Beta Testnet</b> on Android and IOS</h3>
+<h1 align='center' style='margin: 1em;'> <b>CANDIDE Wallet</b> </h1>
+<h2 align='center' style='margin: 1em;'> <b>The Golden Standard for ERC-4337 smart contract wallets </b> </h2>
+<h3 align='center' style='margin: 1em;'> <b>Try the IOS and Android app today on our discord </b> </h3>
+
 
 <p align="center">
   <a href="https://discord.gg/NM5HakA9nC">
     <img width="70" height="70"src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a69f118df70ad7828d4_icon_clyde_blurple_RGB.svg">
   </a>
 </p>
-
 
 ## Development
 ### Getting Started
@@ -25,9 +27,22 @@
 - Make a copy of `.env.example` to `.env` and fill all variables
 - Run `flutter run --debug` (if you encounter problems with device detection run with `-d <DEVICE_NAME>` flag)
 
+### ENV variables
+
+- **Bundler**: We host [FREE endpoints](https://docs.candidewallet.com/bundler/rpc-endpoints) based on our compliant ERC-4337 python bundler Voltaire . 
+- **Paymasters**: Run your own open source [verifying paymaster](https://github.com/candidelabs/Candide-Paymaster-RPC)
+- **Node**: Get your node endpoints on [ChainList](https://chainlist.org/)
+
+### Troubleshooting
+- If you are getting `compileSdkVersion errors`. Go to `android/local.properties` and add those lines
+```
+flutter.minSdkVersion=23
+flutter.compileSdkVersion=33
+```
+
 ## Acknowledgement
 
 We would like to thank [Optimism Community Governance](https://community.optimism.io/docs/governance) for giving the intial support for this projet.
 
 ## License
-GNU General Public License v3.0
+Candide Wallet is available under the GNU General Public License v3.0 license. 
