@@ -42,7 +42,7 @@ flutter.compileSdkVersion=33
 
 ## Acknowledgement
 
-We would like to thank [Optimism Community Governance](https://community.optimism.io/docs/governance) for giving the intial support for this projet.
+We would like to thank [Optimism Community Governance](https://community.optimism.io/docs/governance) providing the intial support for this project.
 
 ## License
 Candide Wallet is available under the GNU General Public License v3.0 license. 
