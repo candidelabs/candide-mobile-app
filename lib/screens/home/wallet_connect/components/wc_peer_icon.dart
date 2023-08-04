@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -12,8 +14,11 @@ class WCPeerIcon extends StatelessWidget {
         || icons!.isEmpty){
       peerIcon = SvgPicture.asset("assets/images/walletconnect.svg");
     }else{
+      RegExp rawData = RegExp("^data:image\/[a-z]+;base64,");
       if (icons![0].endsWith(".svg")){
         peerIcon = SvgPicture.network(icons![0]);
+      }else if (icons![0].startsWith(rawData)){
+        peerIcon = Image.memory(base64Decode(icons![0].replaceFirst(rawData, "")));
       }else{
         peerIcon = Image.network(icons![0]);
       }
