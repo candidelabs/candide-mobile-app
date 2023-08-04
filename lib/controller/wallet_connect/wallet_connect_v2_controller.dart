@@ -451,9 +451,10 @@ class WalletConnectV2Controller {
       return Errors.getSdkError(Errors.USER_REJECTED_SIGN).message;
     }else{
       if (transactionActivity.txHash != null){
-        return transactionActivity.txHash!;
+        return transactionActivity.hash!;
       }else{
-        return await waitForTxHash(transactionActivity.hash!);
+        await waitForTxHash(transactionActivity.hash!);
+        return transactionActivity.hash!;
       }
     }
   }
