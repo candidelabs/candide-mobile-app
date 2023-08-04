@@ -196,7 +196,9 @@ class WalletConnectV2Controller {
     }else {
       SessionData? sessionData = wcClient.getActiveSessions()[topic];
       if (sessionData == null) return Errors.getSdkError(Errors.USER_REJECTED).message;
-      targetAddress = EthereumAddress.fromHex(sessionData.namespaces["eip155"]!.accounts[0]);
+      RegExp regex = RegExp(r'.*:(.*$)');
+      String address = regex.firstMatch(sessionData.namespaces["eip155"]!.accounts[0])!.group(1)!;
+      targetAddress = EthereumAddress.fromHex(address);
     }
     if (targetAddress != PersistentData.selectedAccount.address){
       Account? targetAccount = PersistentData.getAccount(address: targetAddress);
