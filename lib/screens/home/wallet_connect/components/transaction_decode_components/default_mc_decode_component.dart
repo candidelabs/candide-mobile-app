@@ -7,7 +7,6 @@ import 'package:candide_mobile_app/services/transaction_decoder.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class DefaultMultiCallDecodeComponent extends StatefulWidget {
   final List<dynamic> params;
@@ -18,10 +17,10 @@ class DefaultMultiCallDecodeComponent extends StatefulWidget {
 }
 
 class _DefaultMultiCallDecodeComponentState extends State<DefaultMultiCallDecodeComponent> {
-  List<Widget> decodedDataLeadings = [];
+  List<dynamic> decodedDataLeadings = [];
 
   void decodeRequestData() async {
-    List<Widget> leadings = [];
+    List<dynamic> leadings = [];
     for (var call in widget.params[0]["calls"]){
       HexTransactionDetails? transactionDetails = await TransactionDecoder.decodeHexData(call["data"]);
       bool showKnownParamsComponent = false;
@@ -34,30 +33,30 @@ class _DefaultMultiCallDecodeComponentState extends State<DefaultMultiCallDecode
                 showKnownParamsComponent = true;
                 break check;
               }
-              leadings.add(WCApproveComponent(
+              leadings.add([transactionDetails.functionName, WCApproveComponent(
                 transactionDetails: transactionDetails,
                 token: token,
                 margin: EdgeInsets.zero,
                 elevation: 0,
-              ));
+              )]);
             }
           }else{
             showKnownParamsComponent = true;
           }
         }
         if (showKnownParamsComponent){
-          leadings.add(KnownParamsComponent(
+          leadings.add([transactionDetails.functionName, KnownParamsComponent(
             transactionDetails: transactionDetails,
             margin: EdgeInsets.zero,
             elevation: 0,
-          ));
+          )]);
         }
       }else{
-        leadings.add(DefaultDecodedLeading(
+        leadings.add(["Unknown call", DefaultDecodedLeading(
           data: call["data"],
           margin: EdgeInsets.zero,
           elevation: 0,
-        ));
+        )]);
       }
     }
     setState(() {
@@ -69,10 +68,10 @@ class _DefaultMultiCallDecodeComponentState extends State<DefaultMultiCallDecode
   @override
   void initState() {
     for (var call in widget.params[0]["calls"]){
-      decodedDataLeadings.add(DefaultDecodedLeading(
+      decodedDataLeadings.add(["...", DefaultDecodedLeading(
         data: call["data"],
         margin: EdgeInsets.zero,
-      ));
+      )]);
     }
     decodeRequestData();
     super.initState();
@@ -98,23 +97,23 @@ class _DefaultMultiCallDecodeComponentState extends State<DefaultMultiCallDecode
                         children: [
                           RichText(
                             text: TextSpan(
-                              text: "Call ",
-                              style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17),
+                              text: "#${i+1} ",
+                              style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 8, color: Colors.grey),
                               children: [
                                 TextSpan(
-                                  text: (i+1).toString(),
-                                  style: TextStyle(color: Get.theme.colorScheme.primary)
+                                  text: Utils.truncate(decodedDataLeadings[i][0].toString(), leadingDigits: 20, trailingDigits: 0),
+                                  style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 17, color: Colors.white),
                                 )
                               ]
                             ),
                           ),
                           const Spacer(),
-                          Text(Utils.truncate(call["to"]), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 12, color: Colors.grey),),
+                          Text(Utils.truncate(call["to"], leadingDigits: 4, trailingDigits: 3), style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 10, color: Colors.grey),),
                         ],
                       ),
                       collapsed: const SizedBox.shrink(),
                       //expanded: const SizedBox.shrink(),
-                      expanded: decodedDataLeadings[i],
+                      expanded: decodedDataLeadings[i][1],
                       theme: const ExpandableThemeData(
                         hasIcon: true,
                         iconColor: Colors.white,
