@@ -22,12 +22,12 @@
 - Open your emulator through cli or through AVD Device manager
 - Make sure flutter sees your emulator (`flutter devices`)
 - Run `flutter pub get`
-- Make a copy of `.env.example` to `.env` and fill all variables
+- Make a copy of `.env.example` to `.env` and fill in all variables
 - Run `flutter run --debug` (if you encounter problems with device detection run with `-d <DEVICE_NAME>` flag)
 
 ## Acknowledgement
 
-We would like to thank [Optimism Community Governance](https://community.optimism.io/docs/governance) providing the intial support for this project.
+We would like to thank [Optimism Community Governance](https://community.optimism.io/docs/governance) for providing the initial support for this project.
 
 ## License
 GNU General Public License v3.0
