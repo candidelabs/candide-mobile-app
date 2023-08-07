@@ -31,19 +31,19 @@ class TransactionWatchdog {
         }
         return null;
       }
-      if (!receipt["status"]!) return null;
+      if (!receipt["success"]!) return null;
       return {
         "calls": [
           {
             "status": "CONFIRMED",
             "receipt": {
               "logs": receipt["receipt"]["logs"].map((e) => {
-                "address": e.address?.hexEip55,
-                "topics": e.topics,
-                "data": e.data,
+                "address": e["address"],
+                "topics": e["topics"],
+                "data": e["data"],
               }).toList(),
-              "success": receipt["status"],
-              "blockHash": bytesToHex(receipt["receipt"]["blockHash"], include0x: true),
+              "success": receipt["success"],
+              "blockHash": receipt["receipt"]["blockHash"],
               "blockNumber": receipt["receipt"]["blockNumber"],
               "gasUsed": receipt["receipt"]["gasUsed"],
               "transactionHash": receipt["receipt"]["transactionHash"],
