@@ -1,4 +1,5 @@
 import 'package:bot_toast/bot_toast.dart';
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
@@ -7,7 +8,6 @@ import 'package:candide_mobile_app/models/relay_response.dart';
 import 'package:candide_mobile_app/screens/home/activity/components/transaction_activity_details_card.dart';
 import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
 import 'package:candide_mobile_app/services/bundler.dart';
-import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
@@ -59,11 +59,9 @@ class TransactionConfirmController {
       }
     }
     //
-    await Explorer.fetchAddressOverview(account: PersistentData.selectedAccount, skipBalances: true);
-    UserOperation unsignedUserOperation = await batch.toUserOperation(
-      BigInt.from(PersistentData.accountStatus.nonce),
-      proxyDeployed: PersistentData.accountStatus.proxyDeployed,
-    );
+    Network network = Networks.selected();
+    await batch.finalize();
+    UserOperation unsignedUserOperation = batch.userOperation;
     //
     var signedUserOperation = await Bundler.signUserOperations(
       credentials,
@@ -79,7 +77,7 @@ class TransactionConfirmController {
       align: Alignment.topCenter,
     );
     //
-    RelayResponse? response = await Bundler.relayUserOperation(signedUserOperation, PersistentData.selectedAccount.chainId);
+    RelayResponse? response = await network.bundler.sendUserOperation(signedUserOperation);
     if (response?.status.toLowerCase() == "pending"){
       Utils.showBottomStatus(
         "Transaction still pending",
@@ -126,10 +124,11 @@ class TransactionConfirmController {
     }
     transactionActivity.hash = response?.hash;
     transactionActivity.status = response?.status ?? "failed-to-submit";
+    bool includesPaymaster = signedUserOperation.paymasterAndData.replaceAll("0x", "").isNotEmpty;
     transactionActivity.fee = TransactionFeeActivityData(
-      paymasterAddress: batch.includesPaymaster ? batch.paymasterResponse.paymasterData.paymaster.hexEip55 : Constants.addressZeroHex,
-      sponsoredEventTopic: batch.includesPaymaster ? batch.paymasterResponse.paymasterData.eventTopic : "0x",
-      currencyAddress: batch.getFeeToken(),
+      paymasterAddress: includesPaymaster ? batch.paymasterResponse.paymasterData.address.hexEip55 : Constants.addressZeroHex,
+      sponsoredEventTopic: includesPaymaster ? batch.paymasterResponse.paymasterData.sponsoredEventTopic : "0x",
+      currencyAddress: batch.selectedFeeToken?.token.address ?? network.nativeCurrencyAddress.hex,
       fee: batch.getFee(),
     );
     transactionActivity.date = DateTime.now();

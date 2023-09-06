@@ -103,7 +103,8 @@ class PersistentData {
       transactionsActivity.add(activity);
     }
     if (activity.status == "pending"){
-      TransactionWatchdog.addTransactionActivity(activity);
+      Network? network = Networks.getByChainId(account.chainId);
+      TransactionWatchdog.addTransactionActivity(activity, network!);
     }
   }
 
@@ -111,11 +112,13 @@ class PersistentData {
     _loadedChainId = account.chainId;
     transactionsActivity.clear();
     List transactionsAsJson = Hive.box("activity").get("transactions(${account.address.hex}-${account.chainId})") ?? []; // List<Json>
+    Network? network = Networks.getByChainId(account.chainId);
+    if (network == null) return;
     for (Map transactionJson in transactionsAsJson){
       var activity = TransactionActivity.fromJson(transactionJson);
       transactionsActivity.add(activity);
       if (activity.status == "pending"){
-        TransactionWatchdog.addTransactionActivity(activity);
+        TransactionWatchdog.addTransactionActivity(activity, network);
       }
     }
   }
@@ -414,6 +417,7 @@ class AccountGuardian {
 
 class TransactionActivity {
   String version;
+  int nonce;
   DateTime date;
   String action;
   String title;
@@ -425,10 +429,11 @@ class TransactionActivity {
   int checkCount = 0; // used for exponential check of user operation receipt in transaction watchdog
   late TransactionFeeActivityData fee;
 
-  static const String _version = "0.0.1";
+  static const String _version = "0.0.2";
 
   TransactionActivity({
     this.version = _version,
+    required this.nonce,
     required this.date,
     required this.action,
     required this.title,
@@ -439,6 +444,7 @@ class TransactionActivity {
 
   TransactionActivity.fromJson(Map json)
       : version = json['version'] ?? "0.0.0",
+        nonce = int.parse(json['nonce'] ?? "-1"),
         date = DateTime.fromMillisecondsSinceEpoch(int.parse(json['date'])),
         action = json['action'],
         title = json['title'],
@@ -450,6 +456,7 @@ class TransactionActivity {
 
   Map<String, dynamic> toJson() => {
     'version': version,
+    'nonce': nonce.toString(),
     'date': date.millisecondsSinceEpoch.toString(),
     'action': action,
     'title': title,

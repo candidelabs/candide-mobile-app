@@ -1,8 +1,8 @@
-import 'package:walletconnect_dart/walletconnect_dart.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 
 class SponsorData {
   bool sponsored;
-  PeerMeta? sponsorMeta;
+  WCPeerMeta? sponsorMeta;
 
   SponsorData({required this.sponsored, this.sponsorMeta});
 }

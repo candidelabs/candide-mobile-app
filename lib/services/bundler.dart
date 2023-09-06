@@ -1,16 +1,19 @@
-import 'dart:convert';
-
-import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/models/gas.dart';
 import 'package:candide_mobile_app/models/relay_response.dart';
-import 'package:candide_mobile_app/utils/extensions/bigint_extensions.dart';
+import 'package:candide_mobile_app/models/user_operation_receipt.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
-import 'package:dio/dio.dart';
+import 'package:http/http.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Bundler {
+  late JsonRPC jsonRpc;
+
+  Bundler(String endpoint, Client client){
+    jsonRpc = JsonRPC(endpoint, client);
+  }
 
   static Future<UserOperation> signUserOperations(EthPrivateKey privateKey, EthereumAddress entryPoint, int chainId, UserOperation operation) async{
     UserOperation signedOperation = UserOperation.fromJson(operation.toJson());
@@ -20,90 +23,65 @@ class Bundler {
       BigInt.from(chainId),
     );
     return signedOperation;
-  }
+  } // todo: doesn't belong to this file
 
-  static Future<RelayResponse?> relayUserOperation(UserOperation operation, int chainId) async{
-    var bundlerEndpoint = Env.getBundlerUrlByChainId(chainId);
+  Future<RelayResponse?> sendUserOperation(UserOperation userOp) async{
     try{
-      var response = await Dio().post(
-          bundlerEndpoint,
-          data: jsonEncode({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "eth_sendUserOperation",
-            "params": [
-              operation.toJson(),
-              PersistentData.selectedAccount.entrypoint!.hexEip55,
-            ]
-          })
+      var response = await jsonRpc.call(
+          "eth_sendUserOperation",
+          [
+            userOp.toJson(),
+            PersistentData.selectedAccount.entrypoint!.hexEip55,
+          ]
       );
-      //
-      if ((response.data as Map).containsKey("error")){
-        return RelayResponse(status: "failed-to-submit", reason: response.data["error"]["message"]);
-      }
-      return RelayResponse(status: "pending", hash: response.data["result"]);
-    } on DioError catch(e){
-      print("Error occurred ${e.type.toString()}");
+      return RelayResponse(status: "pending", hash: response.result);
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return RelayResponse(status: "failed-to-submit", reason: e.message, hash: null);
+    } on Exception catch(e){
+      print("Error occurred $e");
       return RelayResponse(status: "failed-to-submit", hash: null);
     }
   }
 
-  static Future<GasEstimate?> getUserOperationGasEstimates(UserOperation operation, int chainId) async {
-    var bundlerEndpoint = Env.getBundlerUrlByChainId(chainId);
+  Future<GasEstimate?> estimateUserOperationGas(UserOperation userOp) async {
     try{
-      var response = await Dio().post(
-          bundlerEndpoint,
-          data: jsonEncode({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "eth_estimateUserOperationGas",
-            "params": [
-              operation.toJson(),
-              PersistentData.selectedAccount.entrypoint!.hexEip55,
-            ]
-          })
+      var response = await jsonRpc.call(
+          "eth_estimateUserOperationGas",
+          [
+            userOp.toJson(),
+            PersistentData.selectedAccount.entrypoint!.hexEip55,
+          ]
       );
-      //
-      if ((response.data as Map).containsKey("error")){
-        return null;
-      }
       return GasEstimate(
-        callGasLimit: Utils.decodeBigInt(response.data["result"]["callGasLimit"]).scale(1.2),
-        verificationGasLimit: Utils.decodeBigInt(response.data["result"]["verificationGas"]),
-        basePreVerificationGas: Utils.decodeBigInt(response.data["result"]["preVerificationGas"]),
-        preVerificationGas: BigInt.zero,
+        callGasLimit: Utils.decodeBigInt(response.result["callGasLimit"], defaultsToZero: true)!,
+        verificationGasLimit: Utils.decodeBigInt(response.result["verificationGasLimit"], defaultsToZero: true)!,
+        preVerificationGas: Utils.decodeBigInt(response.result["preVerificationGas"], defaultsToZero: true)!,
         maxFeePerGas: BigInt.zero,
         maxPriorityFeePerGas: BigInt.zero,
       );
-    } on DioError catch(e){
-      print("Error occurred ${e.type.toString()}");
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return null;
+    } on Exception catch(e){
+      print("Error occurred $e");
       return null;
     }
   }
 
-  static Future<Map<String, dynamic>?> getUserOperationReceipt(String userOperationHash, int chainId) async {
-    var bundlerEndpoint = Env.getBundlerUrlByChainId(chainId);
+  Future<UserOperationReceipt?> getUserOperationReceipt(String userOperationHash) async {
     try{
-      var response = await Dio().post(
-          bundlerEndpoint,
-          data: jsonEncode({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "eth_getUserOperationReceipt",
-            "params": [
-              userOperationHash,
-            ]
-          })
+      var response = await jsonRpc.call(
+          "eth_getUserOperationReceipt",
+          [userOperationHash]
       );
-      //
-      if ((response.data as Map).containsKey("error")){
-        return null;
-      }
-      return response.data["result"];
-    } on DioError catch(e){
-      print("Error occurred ${e.type.toString()}");
+      return UserOperationReceipt.fromMap(response.result);
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return null;
+    } on Exception catch(e){
+      print("Error occurred $e");
       return null;
     }
   }
-
 }

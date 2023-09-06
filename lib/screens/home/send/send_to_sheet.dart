@@ -62,7 +62,7 @@ class _SendToSheetState extends State<SendToSheet> {
                   PersistentData.contacts.isEmpty ? Container(
                     margin: const EdgeInsets.only(top: 25),
                     child: const Text("No recent contacts", style: TextStyle(color: Colors.grey),)
-                  ) : Container(),*/ // todo
+                  ) : Container(),*/ // todo contacts feature
                   const Spacer(),
                   ElevatedButton(
                     onPressed: Utils.isValidAddress(address) || _ensResponse != null ? (){

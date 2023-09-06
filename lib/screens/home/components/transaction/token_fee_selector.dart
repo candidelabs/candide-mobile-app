@@ -5,6 +5,7 @@ import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction/fee_currency_selection_sheet.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction/free_card_indicator.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction/gas_back_sheet.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/sponsorship_sheet.dart';
 import 'package:candide_mobile_app/utils/currency.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -50,6 +51,16 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
     );
   }
 
+  showSponsorshipSheet(){
+    showDialog(
+      context: context,
+      useRootNavigator: false,
+      builder: (context) => SponsorshipSheet(
+        sponsorData: widget.batch.paymasterResponse.sponsorData,
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -57,6 +68,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
 
   @override
   Widget build(BuildContext context) {
+    bool txSponsored = widget.batch.isGasBackApplied || widget.batch.paymasterResponse.sponsorData.sponsored;
     return Card(
       elevation: 15,
       shape: RoundedRectangleBorder(
@@ -68,8 +80,10 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
       ),
       child: InkWell(
         onTap: (){
-          if (widget.batch.gasBack?.gasBackApplied ?? false){
+          if (widget.batch.isGasBackApplied){
             showGasBackSheet();
+          }else if (widget.batch.paymasterResponse.sponsorData.sponsored){
+            showSponsorshipSheet();
           }else{
             showFeeCurrencySelectionModal();
           }
@@ -90,7 +104,7 @@ class _TokenFeeSelectorState extends State<TokenFeeSelector> {
                 ],
               ),
               const Spacer(),
-              !widget.batch.gasBack!.gasBackApplied ? _TokenFeeDisplay(batch: widget.batch,) : const FreeCardIndicator(),
+              !txSponsored ? _TokenFeeDisplay(batch: widget.batch,) : const FreeCardIndicator(),
               const SizedBox(width: 5,),
               const Icon(PhosphorIcons.caretRightBold, size: 15, color: Colors.white,),
               const SizedBox(width: 5,),

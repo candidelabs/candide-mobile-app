@@ -21,7 +21,7 @@ class WCSignatureRejectDialog extends StatelessWidget {
   void createEmptyTransaction() async {
     var cancelLoad = Utils.showLoading();
     Batch emptyBatch = await Batch.create(account: PersistentData.selectedAccount);
-    await emptyBatch.fetchPaymasterResponse();
+    //
     emptyBatch.transactions.add(GnosisTransaction(
       id: "empty-deploy",
       to: Constants.addressZero,
@@ -31,7 +31,10 @@ class WCSignatureRejectDialog extends StatelessWidget {
       suggestedGasLimit: BigInt.from(21000),
     ));
     //
+    await emptyBatch.prepare();
+    //
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: emptyBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: "account-deployed",
       title: "Wallet deployed",

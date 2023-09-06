@@ -11,7 +11,7 @@ import 'package:wallet_dart/wallet/account.dart';
 
 class Explorer {
 
-  static fetchAddressOverview({
+  static Future<void> fetchAddressOverview({
     required Account account,
     List<TokenInfo>? additionalCurrencies,
     bool skipBalances = false,
@@ -43,7 +43,7 @@ class Explorer {
         proxyDeployed: proxyDeployed,
         nonce: nonce,
       );
-    } on DioError catch(e){
+    } on DioException catch(e){
       print("Error occured ${e.type.toString()}");
       print(e.response?.statusMessage);
     }
@@ -70,7 +70,7 @@ class Explorer {
       );
       //
       return optimalQuote;
-    } on DioError catch(e){
+    } on DioException catch(e){
       print("Error occured ${e.type.toString()}");
       return null;
     }

@@ -9,6 +9,11 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+analyzer:
+  enable-experiment:
+    - records
+    - patterns
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`
@@ -23,7 +28,7 @@ linter:
   # producing the lint.
   rules:
     library_private_types_in_public_api: false
-    lowercase_with_underscores: false
+    # lowercase_with_underscores: false
     no_leading_underscores_for_local_identifiers: false
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule

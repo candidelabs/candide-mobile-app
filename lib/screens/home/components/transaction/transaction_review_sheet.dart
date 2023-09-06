@@ -5,8 +5,10 @@ import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/controller/transaction_confirm_controller.dart';
 import 'package:candide_mobile_app/models/batch.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
+import 'package:candide_mobile_app/screens/components/custom_checkbox_list_tile.dart';
 import 'package:candide_mobile_app/screens/components/summary_table.dart';
 import 'package:candide_mobile_app/screens/home/components/transaction/token_fee_selector.dart';
+import 'package:candide_mobile_app/screens/home/components/transaction/transaction_error_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:info_popup/info_popup.dart';
@@ -47,6 +49,7 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
   final _errors = {
     "balance": "Insufficient balance",
     "fee": "Insufficient balance to cover network fee",
+    "revert": "We were not able to estimate gas.\nThis operation will likely fail",
   };
   List<bool> confirmedCheckBoxes = [];
   //
@@ -71,6 +74,10 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
   void validateFeeBalance(){
     errorMessage = "";
     BigInt fee = widget.batch.getFee();
+    if (widget.batch.isReverted){
+      errorMessage = _errors["revert"]!;
+      return;
+    }
     if (widget.currency != null){
       if (widget.currency?.address.toLowerCase() == widget.batch.selectedFeeToken!.token.address.toLowerCase()){
         if ((widget.value ?? BigInt.zero) + fee > PersistentData.getCurrencyBalance(widget.currency!.address.toLowerCase())){
@@ -108,7 +115,10 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
       widget.batch.setSelectedFeeToken(feeCurrency);
       validateFeeBalance();
     }else{
-      errorMessage = _errors["fee"]!;
+      BigInt fee = widget.batch.getFee();
+      if (fee > BigInt.zero){
+        errorMessage = _errors["fee"]!;
+      }
     }
     confirmedCheckBoxes = List.generate(widget.confirmCheckboxes.length, (index) => widget.confirmCheckboxes[index] == null || widget.confirmCheckboxes[index]!.isEmpty ? true : false);
     super.initState();
@@ -175,70 +185,21 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
+                  errorMessage.isEmpty ? Container(
                     margin: const EdgeInsets.symmetric(horizontal: 10),
                     child: Column(
                       children: [
                         for (int i=0; i < widget.confirmCheckboxes.length; i++)
-                          widget.confirmCheckboxes[i] != null && widget.confirmCheckboxes[i]!.isNotEmpty ? FittedBox(
-                            fit: BoxFit.fitWidth,
-                            child: Row(
-                              children: [
-                                SizedBox(
-                                  width: Get.width,
-                                  child: Directionality(
-                                    textDirection: TextDirection.rtl,
-                                    child: CheckboxListTile(
-                                      onChanged: (val) => setState(() => confirmedCheckBoxes[i] = val ?? false),
-                                      value: confirmedCheckBoxes[i],
-                                      activeColor: Colors.blue,
-                                      contentPadding: EdgeInsets.zero,
-                                      title: Text(
-                                        widget.confirmCheckboxes[i]![0],
-                                        textDirection: TextDirection.ltr,
-                                        style: const TextStyle(fontSize: 13, color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                widget.confirmCheckboxes[i]!.length > 1 ? InfoPopupWidget(
-                                  arrowTheme: InfoPopupArrowTheme(
-                                    color: Colors.black.withOpacity(0.8),
-                                  ),
-                                  customContent: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-                                    decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.8),
-                                        borderRadius: BorderRadius.circular(8)
-                                    ),
-                                    child: Text(widget.confirmCheckboxes[i]![1]),
-                                  ),
-                                  child: const Icon(
-                                    Icons.info,
-                                  ),
-                                ) : const SizedBox.shrink(),
-                              ],
-                            ),
+                          widget.confirmCheckboxes[i] != null ? _ConfirmCheckboxes(
+                            onChanged: (val) => setState(() => confirmedCheckBoxes[i] = val ?? false),
+                            value: confirmedCheckBoxes[i],
+                            title: widget.confirmCheckboxes[i]!.elementAtOrNull(0),
+                            extraInfo: widget.confirmCheckboxes[i]!.elementAtOrNull(1),
                           ) : const SizedBox.shrink(),
                       ],
                     ),
-                  ),
-                  errorMessage.isNotEmpty ? Container(
-                    margin: EdgeInsets.symmetric(horizontal: Get.width * 0.05),
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    width: double.maxFinite,
-                    height: 40,
-                    decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        border: Border.all(
-                          color: Colors.red,
-                        )
-                    ),
-                    child: Center(
-                        child: Text(errorMessage, textAlign: TextAlign.center, style: const TextStyle(color: Colors.red),)
-                    ),
                   ) : const SizedBox.shrink(),
-                  SizedBox(height: errorMessage.isNotEmpty ? 5 : 0,),
+                  errorMessage.isNotEmpty ? TransactionErrorCard(errorMessage: errorMessage) : const SizedBox.shrink(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -284,3 +245,52 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
     );
   }
 }
+
+class _ConfirmCheckboxes extends StatelessWidget {
+  final bool? value;
+  final String? title;
+  final String? extraInfo;
+  final ValueChanged<bool?> onChanged;
+  const _ConfirmCheckboxes({Key? key, required this.value, required this.title, this.extraInfo, required this.onChanged}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    if (value == null || title == null) return const SizedBox.shrink();
+    return FittedBox(
+      fit: BoxFit.fitWidth,
+      child: Row(
+        children: [
+          SizedBox(
+            width: Get.width,
+            child: CustomCheckboxListTile(
+              onChanged: onChanged,
+              value: value!,
+              title: Text(
+                title!,
+                textDirection: TextDirection.ltr,
+                style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, color: Colors.white.withOpacity(0.9)),
+              ),
+            ),
+          ),
+          extraInfo != null ? InfoPopupWidget(
+            arrowTheme: InfoPopupArrowTheme(
+              color: Colors.black.withOpacity(0.8),
+            ),
+            customContent: Container(
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+              decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(8)
+              ),
+              child: Text(extraInfo!),
+            ),
+            child: const Icon(
+              Icons.info,
+            ),
+          ) : const SizedBox.shrink(),
+        ],
+      ),
+    );
+  }
+}
+

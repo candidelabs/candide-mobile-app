@@ -22,8 +22,11 @@ class Utils {
     pattern.allMatches(text).forEach((match) => print(match.group(0)));
   }
 
-  static BigInt decodeBigInt(dynamic value){
-    if (value == null) return BigInt.zero;
+  static BigInt? decodeBigInt(dynamic value, {bool defaultsToZero = false}){
+    if (value == null) {
+      if (defaultsToZero) return BigInt.zero;
+      return null;
+    }
     if (value is String){
       if (value.startsWith("0x") || !value.isNumericOnly){
         if (value == "0x") return BigInt.zero;
