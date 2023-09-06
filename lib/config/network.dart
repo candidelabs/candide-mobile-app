@@ -1,14 +1,14 @@
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
-import 'package:candide_mobile_app/models/gas_estimators/gas_estimator.dart';
-import 'package:candide_mobile_app/models/gas_estimators/l1_gas_estimator.dart';
-import 'package:candide_mobile_app/models/gas_estimators/l2_gas_estimator.dart';
+import 'package:candide_mobile_app/services/bundler.dart';
+import 'package:candide_mobile_app/services/paymaster.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
 import 'package:magic_sdk/magic_sdk.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:web_socket_channel/io.dart';
 
 class Networks {
   static const List<int> DEFAULT_HIDDEN_NETWORKS = [5, 420];
@@ -24,6 +24,12 @@ class Networks {
         network.visible = true;
       }
     }
+  }
+
+  static bool _hasWebsocketsChannel(int chainId){
+    var wssEndpoint = Env.getWebsocketsNodeUrlByChainId(chainId).trim();
+    if (wssEndpoint == "-" || wssEndpoint == "") return false;
+    return true;
   }
 
   static void initialize(){
@@ -51,9 +57,15 @@ class Networks {
           entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
           multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
           //
-          gasEstimator: L2GasEstimator(chainId: 10, ovmGasOracle: EthereumAddress.fromHex("0x420000000000000000000000000000000000000F")),
-          //
-          client: Web3Client(Env.optimismRpcEndpoint, Client()),
+          client: Web3Client(
+            Env.optimismRpcEndpoint,
+            Client(),
+            socketConnector: _hasWebsocketsChannel(10) ? () {
+              return IOWebSocketChannel.connect(Env.optimismWebsocketsRpcEndpoint).cast<String>();
+            } : null,
+          ),
+          bundler: Bundler(Env.optimismBundlerEndpoint, Client()),
+          paymaster: Paymaster(Env.optimismPaymasterEndpoint, Client()),
           //
           features: {
             "deposit": {
@@ -93,9 +105,15 @@ class Networks {
           entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
           multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
           //
-          gasEstimator: L2GasEstimator(chainId: 420, ovmGasOracle: EthereumAddress.fromHex("0x420000000000000000000000000000000000000F")),
-          //
-          client: Web3Client(Env.optimismGoerliRpcEndpoint, Client()),
+          client: Web3Client(
+            Env.optimismGoerliRpcEndpoint,
+            Client(),
+            socketConnector: _hasWebsocketsChannel(420) ? () {
+              return IOWebSocketChannel.connect(Env.optimismGoerliWebsocketsRpcEndpoint).cast<String>();
+            } : null,
+          ),
+          bundler: Bundler(Env.optimismGoerliBundlerEndpoint, Client()),
+          paymaster: Paymaster(Env.optimismGoerliPaymasterEndpoint, Client()),
           //
           features: {
             "deposit": {
@@ -137,9 +155,15 @@ class Networks {
           //
           ensRegistryWithFallback: EthereumAddress.fromHex("0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
           //
-          gasEstimator: L1GasEstimator(chainId: 5),
-          //
-          client: Web3Client(Env.goerliRpcEndpoint, Client()),
+          client: Web3Client(
+            Env.goerliRpcEndpoint,
+            Client(),
+            socketConnector: _hasWebsocketsChannel(5) ? () {
+              return IOWebSocketChannel.connect(Env.goerliWebsocketsRpcEndpoint).cast<String>();
+            } : null,
+          ),
+          bundler: Bundler(Env.goerliBundlerEndpoint, Client()),
+          paymaster: Paymaster(Env.goerliPaymasterEndpoint, Client()),
           //
           features: {
             "deposit": {
@@ -232,8 +256,9 @@ class Network{
   EthereumAddress entrypoint;
   EthereumAddress multiSendCall;
   EthereumAddress? ensRegistryWithFallback;
-  GasEstimator gasEstimator;
   Web3Client client;
+  Bundler bundler;
+  Paymaster paymaster;
   Magic? magicInstance;
   Map<String, dynamic> features;
   //
@@ -260,8 +285,9 @@ class Network{
       required this.entrypoint,
       required this.multiSendCall,
       this.ensRegistryWithFallback,
-      required this.gasEstimator,
       required this.client,
+      required this.bundler,
+      required this.paymaster,
       required this.features,
       this.visible=true});
 

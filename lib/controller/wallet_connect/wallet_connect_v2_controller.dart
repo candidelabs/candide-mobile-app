@@ -324,10 +324,11 @@ class WalletConnectV2Controller {
     );
     wcBatch.transactions.add(transaction);
     //
-    await wcBatch.fetchPaymasterResponse();
+    await wcBatch.prepare();
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: wcBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: isTransfer ? "transfer" : "wc-transaction",
       title: isTransfer ? "Sent ETH" : "Contract Interaction",
@@ -413,10 +414,11 @@ class WalletConnectV2Controller {
       wcBatch.transactions.add(transaction);
     }
     //
-    await wcBatch.fetchPaymasterResponse();
+    await wcBatch.prepare(checkSponsorshipEligibility: true);
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: wcBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: "wc-transaction",
       title: "Contract Interaction",
@@ -462,7 +464,7 @@ class WalletConnectV2Controller {
   }
 
   Future<String> _walletGetBundleStatus(String topic, dynamic parameters, dynamic extraData) async {
-    Map? result = await TransactionWatchdog.getBundleStatus(parameters[0]);
+    Map? result = await TransactionWatchdog.getBundleStatus(parameters[0], Networks.selected());
     if (result == null){
       return Errors.getSdkError(Errors.USER_REJECTED_SIGN).message;
     }

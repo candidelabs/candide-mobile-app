@@ -71,11 +71,12 @@ class GuardianOperationsHelper {
     );
     grantBatch.transactions.addAll(transactions);
     //
-    await grantBatch.fetchPaymasterResponse();
+    await grantBatch.prepare();
     //
     cancelLoad();
     cancelLoad = null;
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: grantBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: "guardian-grant",
       title: "Added recovery contact",
@@ -155,11 +156,12 @@ class GuardianOperationsHelper {
     );
     revokeBatch.transactions.addAll(transactions);
     //
-    await revokeBatch.fetchPaymasterResponse();
+    await revokeBatch.prepare();
     //
     cancelLoad();
     cancelLoad = null;
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: revokeBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: "guardian-revoke",
       title: "Removed recovery contact",
@@ -328,9 +330,7 @@ class GuardianRecoveryHelper{
     account.fallback = fallback;
     account.socialRecoveryModule = socialModuleAddress;
     //
-    if (mainSigner != null){
-      await PersistentData.addSigner("main", mainSigner);
-    }
+    await PersistentData.addSigner("main", mainSigner);
     await PersistentData.insertAccount(account);
     PersistentData.selectAccount(address: account.address, chainId: account.chainId);
     cancelLoad();

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
@@ -74,7 +75,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
     transactions = PersistentData.transactionsActivity;
     for (TransactionActivity activity in transactions){
       if (activity.status == "pending"){
-        TransactionWatchdog.addTransactionActivity(activity);
+        TransactionWatchdog.addTransactionActivity(activity, Networks.selected());
       }
     }
     transactionStatusSubscription = eventBus.on<OnTransactionStatusChange>().listen((event) {

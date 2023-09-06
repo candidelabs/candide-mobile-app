@@ -1,4 +1,5 @@
 import 'package:candide_mobile_app/config/theme.dart';
+import 'package:candide_mobile_app/screens/components/custom_checkbox_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -51,39 +52,33 @@ class _OnboardDisclaimerScreenState extends State<OnboardDisclaimerScreen> {
             const SizedBox(height: 10,),
             const Text("CANDIDE Wallet is in alpha release and may experience technical issues or introduce breaking changes from time to time.\n\nBy using CANDIDE wallet, you accept the following:"),
             const SizedBox(height: 10,),
-            Directionality(
-              textDirection: TextDirection.rtl,
-              child: CheckboxListTile(
-                onChanged: (val) => setState(() => _acceptFirstCondition = (val ?? false)),
-                value: _acceptFirstCondition,
-                activeColor: Colors.blue,
-                shape: RoundedRectangleBorder(
+            CustomCheckboxListTile(
+              onChanged: (val) => setState(() => _acceptFirstCondition = (val ?? false)),
+              value: _acceptFirstCondition,
+              shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(7),
                   side: BorderSide(color: Get.theme.colorScheme.primary.withOpacity(0.5), width: 0.4)
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                title: const Text(
-                  "I understand that CANDIDE may introduce changes that make my existing account unsafe/unusable and force me to create/migrate to new ones",
-                  textDirection: TextDirection.ltr,
-                ),
+              ),
+              contentPadding: const EdgeInsets.only(right: 5, top: 10, bottom: 10),
+              title: Text(
+                "I understand that CANDIDE may introduce changes that make my existing account unsafe/unusable and force me to create/migrate to new ones",
+                textDirection: TextDirection.ltr,
+                style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, color: Colors.white.withOpacity(0.9)),
               ),
             ),
             const SizedBox(height: 10,),
-            Directionality(
-              textDirection: TextDirection.rtl,
-              child: CheckboxListTile(
-                onChanged: (val) => setState(() => _acceptSecondCondition = (val ?? false)),
-                value: _acceptSecondCondition,
-                activeColor: Colors.blue,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(7),
-                    side: BorderSide(color: Get.theme.colorScheme.primary.withOpacity(0.5), width: 0.4)
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
-                title: const Text(
-                  "I understand that CANDIDE may experience technical issues and my transactions may fail for various reasons.",
-                  textDirection: TextDirection.ltr,
-                ),
+            CustomCheckboxListTile(
+              onChanged: (val) => setState(() => _acceptSecondCondition = (val ?? false)),
+              value: _acceptSecondCondition,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7),
+                  side: BorderSide(color: Get.theme.colorScheme.primary.withOpacity(0.5), width: 0.4)
+              ),
+              contentPadding: const EdgeInsets.only(right: 5, top: 10, bottom: 10),
+              title: Text(
+                "I understand that CANDIDE may experience technical issues and my transactions may fail for various reasons.",
+                textDirection: TextDirection.ltr,
+                style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 15, color: Colors.white.withOpacity(0.9)),
               ),
             ),
             const SizedBox(height: 10,),

@@ -34,7 +34,7 @@ class _SwapSheetState extends State<SwapSheet> {
   List<UserOperation> userOperations = [];
   List<UserOperation>? unsignedUserOperations = [];
   //
-  Batch? swapBatch;
+  late Batch swapBatch;
   //
   initPages(){
     pagesList = [
@@ -66,12 +66,13 @@ class _SwapSheetState extends State<SwapSheet> {
         baseCurrencyValue: baseValue,
         optimalQuote: quote!
     );
-    swapBatch!.transactions.addAll(transactions);
+    swapBatch.transactions.addAll(transactions);
     //
-    await swapBatch!.fetchPaymasterResponse();
+    await swapBatch.prepare();
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: swapBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: "swap",
       title: "Swap",
@@ -92,7 +93,7 @@ class _SwapSheetState extends State<SwapSheet> {
       },
       currency: baseCurrency,
       value: baseValue,
-      batch: swapBatch!,
+      batch: swapBatch,
       transactionActivity: transactionActivity,
       onBack: (){
         gotoPage(0);

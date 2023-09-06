@@ -259,10 +259,11 @@ class WalletConnectController {
     );
     wcBatch.transactions.add(transaction);
     //
-    await wcBatch.fetchPaymasterResponse();
+    await wcBatch.prepare();
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: wcBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: isTransfer ? "transfer" : "wc-transaction",
       title: isTransfer ? "Sent ETH" : "Contract Interaction",
@@ -351,10 +352,11 @@ class WalletConnectController {
       wcBatch.transactions.add(transaction);
     }
     //
-    await wcBatch.fetchPaymasterResponse();
+    await wcBatch.prepare(checkSponsorshipEligibility: true);
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: wcBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: "wc-transaction",
       title: "Contract Interaction",
@@ -401,7 +403,7 @@ class WalletConnectController {
   void walletGetBundleStatus(JsonRpcRequest? payload) async {
     if (payload == null) return;
     if (payload.params == null) return;
-    Map? result = await TransactionWatchdog.getBundleStatus(payload.params![0]);
+    Map? result = await TransactionWatchdog.getBundleStatus(payload.params![0], Networks.selected());
     if (result == null){
       connector.rejectRequest(id: payload.id);
       return;

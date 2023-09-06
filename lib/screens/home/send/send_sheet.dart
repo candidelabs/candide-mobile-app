@@ -35,7 +35,7 @@ class _SendSheetState extends State<SendSheet> {
   List<UserOperation>? unsignedUserOperations = [];
   Map fee = {};
   //
-  Batch? sendBatch;
+  late Batch sendBatch;
   //
   initPages(){
     pagesList = [
@@ -74,13 +74,13 @@ class _SendSheetState extends State<SendSheet> {
       to: toAddress,
       value: value,
     );
+    sendBatch.transactions.add(transaction);
     //
-    sendBatch!.transactions.add(transaction);
-    //
-    await sendBatch!.fetchPaymasterResponse();
+    await sendBatch.prepare();
     //
     cancelLoad();
     TransactionActivity transactionActivity = TransactionActivity(
+      nonce: sendBatch.userOperation.nonce.toInt(),
       date: DateTime.now(),
       action: "transfer",
       title: "Sent ${currency.symbol}",
@@ -101,7 +101,7 @@ class _SendSheetState extends State<SendSheet> {
       },
       currency: currency,
       value: value,
-      batch: sendBatch!,
+      batch: sendBatch,
       transactionActivity: transactionActivity,
       onBack: (){
         gotoPage(1);

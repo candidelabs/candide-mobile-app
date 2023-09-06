@@ -5,39 +5,47 @@ import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/controller/signers_controller.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/models/gas.dart';
+import 'package:candide_mobile_app/models/gas_estimators/gas_estimator.dart';
 import 'package:candide_mobile_app/models/gnosis_transaction.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/models/paymaster/gas_back_data.dart';
 import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
+import 'package:candide_mobile_app/models/paymaster/sponsor_data.dart';
+import 'package:candide_mobile_app/models/paymaster/sponsor_result.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
-import 'package:candide_mobile_app/services/paymaster.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/extensions/bigint_extensions.dart';
 import 'package:eth_sig_util/eth_sig_util.dart';
-import 'package:get/get.dart';
+import 'package:wallet_dart/contracts/account.dart';
 import 'package:wallet_dart/wallet/account.dart';
 import 'package:wallet_dart/wallet/account_helpers.dart';
 import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
+import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
 import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
-import 'package:web3dart/web3dart.dart';
 
 class Batch {
   Account account;
-  Network network;
+  late Network network;
   //
+  late FeeToken? _selectedFeeToken;
   GasEstimate? gasEstimate;
+  GasEstimate? gasEstimateWithPaymaster;
+  late PaymasterResponse paymasterResponse;
   GasBackData? gasBack;
-  FeeToken? _selectedFeeToken;
-  late PaymasterResponse _paymasterResponse;
+  //
+  late BigInt? _suggestedCallGasLimit;
+  late UserOperation userOperation;
+  //
   List<GnosisTransaction> transactions = [];
   //
-  Batch({required this.account, required this.network});
+
+  Batch({required this.account}){
+    network = Networks.getByChainId(account.chainId)!;
+  }
 
   static Future<Batch> create({required Account account, bool refreshAccountData=false}) async {
-    Network network = Networks.getByChainId(account.chainId)!;
-    var batch = Batch(account: account, network: network);
+    var batch = Batch(account: account);
     if (refreshAccountData){
       await Explorer.fetchAddressOverview(
         account: account,
@@ -46,89 +54,8 @@ class Batch {
     }
     return batch;
   }
-  //
-  PaymasterResponse get paymasterResponse => _paymasterResponse;
-  FeeToken? get selectedFeeToken => _selectedFeeToken;
-  bool get includesPaymaster {
-    if (gasBack?.gasBackApplied ?? false) return true;
-    return _selectedFeeToken != null && _selectedFeeToken?.token.symbol != network.nativeCurrency && _selectedFeeToken?.token.address != Constants.addressZeroHex;
-  }
 
-  bool _includesPaymaster(FeeToken? feeToken) => feeToken != null && feeToken.token.symbol != network.nativeCurrency && feeToken.token.address != Constants.addressZeroHex;
-
-  GnosisTransaction? getById(String id){
-    return transactions.firstWhereOrNull((e) => e.id == id);
-  }
-
-  void setSelectedFeeToken(FeeToken? feeToken) => _selectedFeeToken = feeToken;
-
-  Future<bool> fetchPaymasterResponse() async {
-    PaymasterResponse? paymasterResponse = await Paymaster.fetchPaymasterFees(network.chainId.toInt());
-    if (paymasterResponse == null){
-      // todo handle network errors
-      return false;
-    }else{
-      await setPaymasterResponse(paymasterResponse);
-    }
-    return true;
-  }
-
-  Future<void> setPaymasterResponse(PaymasterResponse paymasterResponse) async {
-    _paymasterResponse = paymasterResponse;
-    await _adjustFeeCurrencyCosts();
-  }
-
-
-  Future<void> _adjustFeeCurrencyCosts() async{
-    for (FeeToken feeToken in _paymasterResponse.tokens.reversed){
-      bool isEther = feeToken.token.symbol == network.nativeCurrency && feeToken.token.address == Constants.addressZeroHex;
-      UserOperation op = await toUserOperation(
-        BigInt.from(PersistentData.accountStatus.nonce),
-        proxyDeployed: PersistentData.accountStatus.proxyDeployed,
-        skipPaymasterData: true,
-        feeToken: feeToken,
-      );
-      BigInt maxCost = feeToken.calculateFee(op, network);
-      if (!isEther){
-        maxCost = maxCost.scale(1.05); // todo check
-      }
-      feeToken.fee = maxCost;
-    }
-  }
-
-  String getFeeToken(){
-    return selectedFeeToken?.token.symbol ?? "ETH";
-  }
-
-  BigInt getFee(){
-    if (gasBack?.gasBackApplied ?? false){
-      return BigInt.zero;
-    }
-    return selectedFeeToken?.fee ?? BigInt.zero;
-  }
-
-  Future<void> _addPaymasterToUserOp(UserOperation userOp, int chainId) async {
-    if (gasBack?.gasBackApplied ?? false){
-      userOp.paymasterAndData = gasBack!.paymasterAndData;
-      return;
-    }
-    String? paymasterData = await Paymaster.getPaymasterData(userOp, selectedFeeToken!.token.address, chainId);
-    if (paymasterData == null){ // todo network: handle fetching errors
-      userOp.paymasterAndData = "0x";
-    }else{
-      List<int> paymasterAndData = _paymasterResponse.paymasterData.paymaster.addressBytes + hexToBytes(paymasterData);
-      userOp.paymasterAndData = bytesToHex(paymasterAndData, include0x: true);
-    }
-  }
-
-  void _addPaymasterToTransaction(GnosisTransaction transaction, FeeToken feeToken){
-    transaction.paymaster = _paymasterResponse.paymasterData.paymaster;
-    transaction.approveToken = EthereumAddress.fromHex(feeToken.token.address);
-    transaction.approveAmount = feeToken.fee;
-  }
-
-  GnosisTransaction? _getMultiSendTransaction(){
-    if (transactions.isEmpty) return null;
+  GnosisTransaction _getMultiSendTransaction(){
     if (transactions.length == 1){
       transactions.first.paymaster = null;
       transactions.first.approveToken = null;
@@ -158,10 +85,33 @@ class Batch {
     return transaction;
   }
 
-  Future<UserOperation> toUserOperation(BigInt nonce, {bool proxyDeployed=true, bool skipPaymasterData=false, FeeToken? feeToken}) async {
-    feeToken ??= _selectedFeeToken;
+  FeeToken? get selectedFeeToken => _selectedFeeToken;
+  bool get isGasBackApplied => gasBack?.gasBackApplied ?? false;
+  bool get isReverted => gasEstimate == null;
+
+  Future<bool> prepare({bool checkSponsorshipEligibility = false}) async {
+    bool userOpPreparationSuccess = await _prepareUserOperation();
+    bool paymasterResponseSuccess = await _fetchPaymasterResponse(checkSponsorshipEligibility: checkSponsorshipEligibility);
+    bool gasEstimationSuccess = await _estimateGas();
+    await _adjustPaymasterResponseAfterEstimation();
+    return userOpPreparationSuccess && paymasterResponseSuccess && gasEstimationSuccess;
+  }
+
+  Future<bool> _prepareUserOperation() async {
+    if (PersistentData.selectedAccount != account) return false;
     //
-    String initCode = "0x";
+    (BigInt, BigInt)? networkFees;
+    bool proxyDeployed = false;
+    BigInt nonce = BigInt.zero;
+    await Future.wait([
+      network.client.getCode(account.address).then((value) => proxyDeployed = value.isNotEmpty),
+      IAccount.interface(address: account.address, client: network.client).getNonce().then((value) => nonce = value).catchError((e, st){
+        return BigInt.zero;
+      }),
+      GasEstimator.instance().getNetworkGasFees(network).then((value) => networkFees = value)
+    ]);
+    //
+    var initCode = "0x";
     if (!proxyDeployed){
       initCode = bytesToHex(account.factory!.addressBytes + AccountHelpers.getInitCode(
         account.singleton!,
@@ -172,46 +122,190 @@ class Batch {
       ), include0x: true);
     }
     //
-    GnosisTransaction? multiSendTransaction = _getMultiSendTransaction();
-    String callData = "0x";
-    if (multiSendTransaction != null){
-      if (_includesPaymaster(feeToken)){
-        _addPaymasterToTransaction(multiSendTransaction, feeToken!);
-      }
-      callData = multiSendTransaction.toCallData();
-    }
-    UserOperation userOp = UserOperation.get(
+    GnosisTransaction multiSendTransaction = _getMultiSendTransaction();
+    _suggestedCallGasLimit = multiSendTransaction.suggestedGasLimit;
+    var callData = multiSendTransaction.toCallData();
+    userOperation = UserOperation.get(
       sender: account.address,
-      initCode: initCode,
       nonce: nonce,
+      initCode: initCode,
       callData: callData,
     );
     //
-    GasEstimate? _gasEstimate = await network.gasEstimator.getGasEstimates(userOp, prevEstimate: gasEstimate, includesPaymaster: _includesPaymaster(feeToken)); // todo enable, // todo handle null gas estimates (calldata error, or network error)
-    gasEstimate ??= _gasEstimate;
-    //
-    userOp.callGasLimit = _gasEstimate!.callGasLimit.scale(1.25);
-    userOp.preVerificationGas = _gasEstimate.preVerificationGas;
-    userOp.verificationGasLimit = _gasEstimate.verificationGasLimit.scale(2);
-    userOp.maxFeePerGas = _gasEstimate.maxFeePerGas;
-    userOp.maxPriorityFeePerGas = _gasEstimate.maxPriorityFeePerGas;
-    if (gasBack == null){
-      FeeToken _tempGasToken = feeToken ?? paymasterResponse.tokens.first;
-      BigInt maxETHCost = _tempGasToken.calculateETHFee(userOp, network);
-      gasBack = await GasBackData.getGasBackData(account, paymasterResponse.paymasterData.paymaster, network, maxETHCost);
-    }
-    if (userOp.initCode != "0x"){
-      userOp.verificationGasLimit += BigInt.from(350000); // higher than normal for deployment
-      userOp.callGasLimit += multiSendTransaction?.suggestedGasLimit ?? userOp.callGasLimit; // todo remove when first simulateHandleOp is implemented
-    }
-    if (_includesPaymaster(feeToken)){
-      userOp.verificationGasLimit += BigInt.from(35000);
-    }
-    if ((_includesPaymaster(feeToken) || gasBack!.gasBackApplied) && !skipPaymasterData){
-      await _addPaymasterToUserOp(userOp, account.chainId);
+    if (networkFees != null) {
+      var (maxFeePerGas, maxPriorityFeePerGas) = networkFees!;
+      if (network.chainId.toInt() == 10 || network.chainId.toInt() == 420){
+        maxFeePerGas = maxFeePerGas.scale(1.10);
+        maxPriorityFeePerGas = maxFeePerGas.scale(1.10);
+      }
+      userOperation.maxFeePerGas = maxFeePerGas;
+      userOperation.maxPriorityFeePerGas = maxPriorityFeePerGas;
+    }else{
+      return false;
     }
     //
-    return userOp;
+    return true;
   }
+
+  Future<bool> _fetchPaymasterResponse({bool checkSponsorshipEligibility = false}) async {
+    List<Future<dynamic>> futures = [];
+    futures.add(network.paymaster.supportedERC20Tokens(TokenInfoStorage.getNativeTokenForNetwork(network)));
+    if (checkSponsorshipEligibility){
+      futures.add(network.paymaster.checkSponsorshipEligibility(userOperation, network.entrypoint));
+    }
+    var returns = await Future.wait(futures);
+    PaymasterResponse _paymasterResponse = returns[0];
+    //
+    if (checkSponsorshipEligibility){
+      SponsorData? sponsorData = returns[1];
+      if (sponsorData != null){
+        _paymasterResponse.sponsorData = sponsorData;
+        if (sponsorData.sponsored){
+          if (_paymasterResponse.tokens.length > 1){
+            _paymasterResponse.tokens.removeRange(1, _paymasterResponse.tokens.length); // remove all tokens except native token which is always at index 0
+          }
+        }
+      }
+    }
+    paymasterResponse = _paymasterResponse;
+    //
+    _selectedFeeToken = paymasterResponse.tokens.first;
+    return true;
+  }
+
+  Future<void> _adjustPaymasterResponseAfterEstimation() async {
+    if (gasEstimateWithPaymaster == null){
+      paymasterResponse.tokens.removeRange(1, paymasterResponse.tokens.length);
+      setSelectedFeeToken(_selectedFeeToken);
+    }
+    if (gasEstimate == null) return;
+    for (int i = 0; i < paymasterResponse.tokens.length; i++){
+      var feeToken = paymasterResponse.tokens[i];
+      BigInt maxCost = feeToken.calculateFee(i == 0 ? gasEstimate! : gasEstimateWithPaymaster!, network, i > 0);
+      maxCost = maxCost.scale(1.05); // todo check
+      feeToken.fee = maxCost;
+    }
+    setSelectedFeeToken(_selectedFeeToken);
+    //
+    if (gasEstimateWithPaymaster != null){
+      BigInt maxETHCost = paymasterResponse.tokens.last.calculateETHFee(gasEstimateWithPaymaster!, network, true);
+      gasBack = await GasBackData.getGasBackData(account, paymasterResponse.paymasterData.address, network, maxETHCost);
+    }
+    //
+  }
+
+  void setSelectedFeeToken(FeeToken? feeToken){
+    if (gasEstimate == null) return;
+    _selectedFeeToken = feeToken;
+    _selectedFeeToken ??= paymasterResponse.tokens[0];
+    //
+    bool nativeToken = true;
+    GasEstimate _gasEstimate;
+    if (_selectedFeeToken!.token.address.toLowerCase() == TokenInfoStorage.getNativeTokenForNetwork(network).address.toLowerCase()){
+      _gasEstimate = gasEstimate!;
+    }else{
+      nativeToken = false;
+      _gasEstimate = gasEstimateWithPaymaster!;
+    }
+    //
+    userOperation.callGasLimit = _gasEstimate.callGasLimit;
+    userOperation.verificationGasLimit = _gasEstimate.verificationGasLimit;
+    userOperation.preVerificationGas = _gasEstimate.preVerificationGas;
+    //
+    GnosisTransaction multiSendTransaction = _getMultiSendTransaction();
+    if (!nativeToken){
+      multiSendTransaction.paymaster = paymasterResponse.paymasterData.address;
+      multiSendTransaction.approveToken = EthereumAddress.fromHex(_selectedFeeToken!.token.address);
+      multiSendTransaction.approveAmount = _selectedFeeToken!.fee;
+    }
+    var callData = multiSendTransaction.toCallData();
+    userOperation.callData = callData;
+  }
+
+  BigInt getFee(){
+    if (isGasBackApplied || paymasterResponse.sponsorData.sponsored){
+      return BigInt.zero;
+    }
+    return _selectedFeeToken?.fee ?? BigInt.zero;
+  }
+
+  Future<bool> _estimateGas() async {
+    GasEstimate? _gasEstimate;
+    GasEstimate? _gasEstimateWithPaymaster;
+    List<Future<dynamic>> futures = [];
+    futures.add(
+      GasEstimator.instance().getGasEstimates(
+        userOperation,
+        network.bundler,
+        null
+      )
+    );
+    if (network.paymaster.jsonRpc != null){
+      futures.add(
+        GasEstimator.instance().getGasEstimates(
+            userOperation,
+            network.bundler,
+            paymasterResponse
+        )
+      );
+    }
+    var returns = await Future.wait(futures);
+    _gasEstimate = returns[0];
+    _gasEstimateWithPaymaster = returns[1];
+    if (_gasEstimate == null) return false;
+    double callGasLimitScalar = 2;
+    double verificationGasLimitScalar = 2;
+    double preVerificationGasScalar = 1.15;
+    //
+    _gasEstimate.callGasLimit = _gasEstimate.callGasLimit.scale(callGasLimitScalar);
+    _gasEstimate.verificationGasLimit = _gasEstimate.verificationGasLimit.scale(verificationGasLimitScalar);
+    _gasEstimate.preVerificationGas = _gasEstimate.preVerificationGas.scale(preVerificationGasScalar);
+    if (userOperation.initCode != "0x"){
+      _gasEstimate.verificationGasLimit += BigInt.from(350000); // higher than normal for deployment
+      _gasEstimate.callGasLimit += _suggestedCallGasLimit ?? userOperation.callGasLimit; // todo remove when first simulateHandleOp is implemented
+    }
+    //
+    if (_gasEstimateWithPaymaster != null){
+      _gasEstimateWithPaymaster.callGasLimit = _gasEstimateWithPaymaster.callGasLimit.scale(callGasLimitScalar);
+      _gasEstimateWithPaymaster.verificationGasLimit = _gasEstimateWithPaymaster.verificationGasLimit.scale(verificationGasLimitScalar);
+      _gasEstimateWithPaymaster.preVerificationGas = _gasEstimateWithPaymaster.preVerificationGas.scale(preVerificationGasScalar);
+    }
+    //
+    gasEstimate = _gasEstimate;
+    gasEstimateWithPaymaster = _gasEstimateWithPaymaster;
+    return true;
+  }
+
+  Future<bool> finalize() async {
+    if (!paymasterResponse.sponsorData.sponsored){
+      if (isGasBackApplied){
+        userOperation.paymasterAndData = gasBack!.paymasterAndData;
+        return true;
+      }
+      if (selectedFeeToken?.token.address.toLowerCase() == network.nativeCurrencyAddress.hex.toLowerCase()) return true;
+    }
+    SponsorResult? sponsorResult = await network.paymaster.sponsorUserOperation(
+      userOperation,
+      network.entrypoint,
+      paymasterResponse.sponsorData.sponsored ? null : _selectedFeeToken,
+    );
+    if (sponsorResult == null){ // todo network: handle fetching errors
+      userOperation.paymasterAndData = "0x";
+      return false;
+    }else{
+      userOperation.paymasterAndData = sponsorResult.paymasterAndData;
+      if (paymasterResponse.sponsorData.sponsored){
+        userOperation.callGasLimit = sponsorResult.callGasLimit ?? userOperation.callGasLimit;
+        userOperation.verificationGasLimit = sponsorResult.verificationGasLimit ?? userOperation.verificationGasLimit;
+        userOperation.preVerificationGas = sponsorResult.preVerificationGas ?? userOperation.preVerificationGas;
+        userOperation.maxFeePerGas = sponsorResult.maxFeePerGas ?? userOperation.maxFeePerGas;
+        userOperation.maxPriorityFeePerGas = sponsorResult.maxPriorityFeePerGas ?? userOperation.maxPriorityFeePerGas;
+      }
+    }
+    return true;
+  }
+
+
+
 
 }

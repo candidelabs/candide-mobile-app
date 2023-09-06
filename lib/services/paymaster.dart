@@ -1,101 +1,136 @@
-import 'dart:convert';
-
-import 'package:candide_mobile_app/config/env.dart';
-import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
 import 'package:candide_mobile_app/models/paymaster/paymaster_data.dart';
 import 'package:candide_mobile_app/models/paymaster/paymaster_response.dart';
 import 'package:candide_mobile_app/models/paymaster/sponsor_data.dart';
+import 'package:candide_mobile_app/models/paymaster/sponsor_result.dart';
 import 'package:candide_mobile_app/utils/constants.dart';
-import 'package:dio/dio.dart';
+import 'package:candide_mobile_app/utils/utils.dart';
+import 'package:http/http.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Paymaster {
 
-  static Future<PaymasterResponse?> fetchPaymasterFees(int chainId) async {
+  JsonRPC? jsonRpc;
+
+  Paymaster(String endpoint, Client client){
+    if (endpoint.trim() == "-" || endpoint.trim().isEmpty) return;
+    jsonRpc = JsonRPC(endpoint, client);
+  }
+
+  Future<PaymasterResponse> supportedERC20Tokens(TokenInfo nativeToken) async {
     List<FeeToken> result = [];
-    TokenInfo? _nativeToken = TokenInfoStorage.getTokenByAddress(Networks.getByChainId(chainId)!.nativeCurrencyAddress.hex);
     result.add(FeeToken(
-        token: _nativeToken!,
+        token: nativeToken,
         fee: BigInt.zero,
         paymasterFee: BigInt.zero,
         exchangeRate: BigInt.parse("1000000000000000000")
     ));
-    //
-    var paymasterEndpoint = Env.getPaymasterUrlByChainId(chainId);
-    //
     PaymasterResponse paymasterResponse = PaymasterResponse(
         tokens: result,
-        paymasterData: PaymasterData(
-          paymaster: Constants.addressZero,
-          eventTopic: "0x",
+        paymasterData: PaymasterMetadata(
+          address: Constants.addressZero,
+          sponsoredEventTopic: "0x",
+          dummyPaymasterAndData: "0x"
         ),
         sponsorData: SponsorData(
           sponsored: false,
           sponsorMeta: null,
         )
     );
-    if (paymasterEndpoint.trim().isEmpty || paymasterEndpoint.trim() == "-") return paymasterResponse;
+    if (jsonRpc == null) return paymasterResponse;
     try{
-      var response = await Dio().post(paymasterEndpoint,
-          data: jsonEncode({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "pm_getApprovedTokens",
-          })
+      var response = await jsonRpc!.call(
+          "pm_supportedERC20Tokens",
+          []
       );
       //
-      EthereumAddress paymasterAddress = Constants.addressZero;
-      String eventTopic = "0x";
-      for (Map tokenData in response.data['result']){
-        paymasterAddress = EthereumAddress.fromHex(tokenData["paymaster"]);
-        if (tokenData.containsKey("sponsoredEventTopic")){
-          eventTopic = tokenData["sponsoredEventTopic"];
-        }
+      for (Map tokenData in response.result["tokens"]){
         TokenInfo? _token = TokenInfoStorage.getTokenByAddress(tokenData["address"]);
         if (_token == null) continue;
         result.add(
-            FeeToken(
-              token: _token,
-              fee: BigInt.zero,
-              paymasterFee: tokenData["fee"].runtimeType == String ? BigInt.parse(tokenData["fee"]) : BigInt.from(tokenData["fee"]),
-              exchangeRate: tokenData["exchangeRate"].runtimeType == String ? BigInt.parse(tokenData["exchangeRate"]) : BigInt.from(tokenData["exchangeRate"])
-            )
+          FeeToken(
+            token: _token,
+            fee: BigInt.zero,
+            paymasterFee: Utils.decodeBigInt(tokenData["fee"], defaultsToZero: true)!,
+            exchangeRate: Utils.decodeBigInt(tokenData["exchangeRate"], defaultsToZero: true)!,
+          )
         );
       }
       paymasterResponse.tokens = result;
-      paymasterResponse.paymasterData.paymaster = paymasterAddress;
-      paymasterResponse.paymasterData.eventTopic = eventTopic;
+      paymasterResponse.paymasterData.address = EthereumAddress.fromHex(response.result["paymasterMetadata"]["address"]);
+      paymasterResponse.paymasterData.dummyPaymasterAndData = response.result["paymasterMetadata"]["dummyPaymasterAndData"];
+      paymasterResponse.paymasterData.sponsoredEventTopic = response.result["paymasterMetadata"]["sponsoredEventTopic"];
       return paymasterResponse;
-    } on DioError catch(e){
-      print("Error occurred ${e.type.toString()}");
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return paymasterResponse;
+    } on Exception catch(e){
+      print("Error occurred $e");
+      return paymasterResponse;
+    }
+  }
+
+  Future<SponsorData?> checkSponsorshipEligibility(UserOperation userOperation, EthereumAddress entrypoint) async {
+    if (jsonRpc == null) return null;
+    try{
+      var response = await jsonRpc!.call(
+          "pm_checkSponsorshipEligibility",
+          [
+            userOperation.toJson(),
+            entrypoint.hex
+          ]
+      );
+      //
+      SponsorData sponsorData = SponsorData(
+        sponsored: response.result["sponsored"],
+      );
+      if (sponsorData.sponsored){
+        sponsorData.sponsorMeta = WCPeerMeta.fromJson(response.result["sponsorMeta"]);
+      }
+      return sponsorData;
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return null;
+    } on Exception catch(e){
+      print("Error occurred $e");
       return null;
     }
   }
 
-
-  static Future<String?> getPaymasterData(UserOperation userOperation, String tokenAddress, int chainId) async{
-    var paymasterEndpoint = Env.getPaymasterUrlByChainId(chainId);
+  Future<SponsorResult?> sponsorUserOperation(UserOperation userOperation, EthereumAddress entrypoint, FeeToken? feeToken) async{
+    if (jsonRpc == null) return null;
+    Map context = {};
+    if (feeToken != null){
+      context["token"] = feeToken.token.address;
+    }
     try{
-      var response = await Dio().post(
-          paymasterEndpoint,
-          data: jsonEncode({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "pm_sponsorUserOperation",
-            "params": {
-              "request": userOperation.toJson(),
-              "token_address": tokenAddress,
-            }
-          })
+      var response = await jsonRpc!.call(
+          "pm_sponsorUserOperation",
+          [
+            userOperation.toJson(),
+            entrypoint.hex,
+            context,
+          ]
       );
       //
-      return response.data["result"];
-    } on DioError catch(e){
-      print("${e.message}");
-      print("Error occurred ${e.type.toString()}");
+      SponsorResult sponsorResult = SponsorResult(
+        paymasterAndData: response.result["paymasterAndData"],
+        callGasLimit: Utils.decodeBigInt(response.result["callGasLimit"]),
+        verificationGasLimit: Utils.decodeBigInt(response.result["verificationGasLimit"]),
+        preVerificationGas: Utils.decodeBigInt(response.result["preVerificationGas"]),
+        maxFeePerGas: Utils.decodeBigInt(response.result["maxFeePerGas"]),
+        maxPriorityFeePerGas: Utils.decodeBigInt(response.result["maxPriorityFeePerGas"]),
+      );
+      return sponsorResult;
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return null;
+    } on Exception catch(e){
+      print("Error occurred $e");
       return null;
     }
   }

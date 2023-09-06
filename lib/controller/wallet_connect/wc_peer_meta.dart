@@ -25,6 +25,14 @@ class WCPeerMeta {
         icons: pairingMetadata?.icons,
       );
 
+  factory WCPeerMeta.fromJson(Map metadata) =>
+      WCPeerMeta(
+        name: metadata["name"] ?? "Unknown",
+        url: metadata["url"] ?? "",
+        description: metadata["description"] ?? "",
+        icons: (metadata["icons"] as List<dynamic>).cast<String>(),
+      );
+
   @override
   String toString() {
     return 'WCPeerMeta{url: $url, name: $name, description: $description, icons: $icons}';

@@ -8,6 +8,7 @@ import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_v2_c
 import 'package:candide_mobile_app/screens/home/home_screen.dart';
 import 'package:candide_mobile_app/screens/onboard/components/wallet_onboarding.dart';
 import 'package:candide_mobile_app/screens/onboard/create_account/pin_entry_screen.dart';
+import 'package:candide_mobile_app/services/transaction_watchdog.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -74,6 +75,12 @@ class _SplashScreenState extends State<SplashScreen> {
     SettingsData.loadFromJson(null);
     WalletConnectController.initUserOpListener();
     await WalletConnectV2Controller.initialize();
+    //
+    for (var account in PersistentData.accounts){
+      Network? network = Networks.getByChainId(account.chainId);
+      if (network == null) continue;
+      TransactionWatchdog.startListeningToUserOperations(network, account.address);
+    }
     //
     if (PersistentData.accounts.isEmpty){
       Get.off(const WalletOnboarding());

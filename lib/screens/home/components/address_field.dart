@@ -1,20 +1,13 @@
 import 'dart:async';
 
 import 'package:blockies/blockies.dart';
-import 'package:candide_mobile_app/config/env.dart';
-import 'package:candide_mobile_app/config/network.dart';
-import 'package:candide_mobile_app/controller/persistent_data.dart';
 import 'package:candide_mobile_app/screens/components/continous_input_border.dart';
 import 'package:candide_mobile_app/screens/home/components/address_qr_scanner.dart';
-import 'package:candide_mobile_app/utils/constants.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
-import 'package:ens_dart/ens_dart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:web3dart/web3dart.dart';
 
 class AddressField extends StatefulWidget {
   final String hint;
@@ -63,7 +56,7 @@ class _AddressFieldState extends State<AddressField> {
   }
 
   void retrieveENS() async {
-    if (_ensResponse != null){
+    /*if (_ensResponse != null){
       if (_ensResponse!["lastEns"] == address) return;
     }
     if (!ensRegex.hasMatch(address)) return;
@@ -102,7 +95,7 @@ class _AddressFieldState extends State<AddressField> {
         _correctAddress = true;
         ensTimerActive = false;
       });
-    }
+    }*/
   }
 
   @override
