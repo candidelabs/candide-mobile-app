@@ -199,7 +199,7 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                               controller: _baseController,
                               focusNode: _baseFocusNode,
                               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\.?\d*(?<!\.)\.?\d*'))],
+                              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^(\d+)?([.,](\d+)?)?'))],
                               style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
                               textAlign: TextAlign.center,
                               decoration: InputDecoration(
@@ -210,6 +210,15 @@ class _SwapMainSheetState extends State<SwapMainSheet> {
                                 )
                               ),
                               onChanged: (val){
+                                if (val.contains(",")){
+                                  val = val.replaceAll(",", ".");
+                                  _baseController.text = val;
+                                  _baseController.value = _baseController.value.copyWith(
+                                    selection:
+                                    TextSelection(baseOffset: val.length, extentOffset: val.length),
+                                    composing: TextRange.empty,
+                                  );
+                                }
                                 _validateAmountInput(val);
                               },
                             ),

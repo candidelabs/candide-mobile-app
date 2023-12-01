@@ -176,13 +176,22 @@ class _SendAmountSheetState extends State<SendAmountSheet> {
                         controller: _amountController,
                         focusNode: _amountFocus,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\.?\d*(?<!\.)\.?\d*'))],
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^(\d+)?([.,](\d+)?)?'))],
                         style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 25),
                         textAlign: TextAlign.center,
                         decoration: const InputDecoration(
                           border: InputBorder.none,
                         ),
                         onChanged: (val){
+                          if (val.contains(",")){
+                            val = val.replaceAll(",", ".");
+                            _amountController.text = val;
+                            _amountController.value = _amountController.value.copyWith(
+                              selection:
+                              TextSelection(baseOffset: val.length, extentOffset: val.length),
+                              composing: TextRange.empty,
+                            );
+                          }
                           _validateAmountInput(val);
                         },
                       ),
