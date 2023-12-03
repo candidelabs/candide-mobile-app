@@ -1,11 +1,8 @@
-import 'dart:convert';
-
-import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/config/top_tokens.dart';
+import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/services/balance_service.dart';
-import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -30,25 +27,17 @@ class _VerifyEndpointsDeialogState extends State<VerifyEndpointsDialog> {
   };
 
   Future<bool> verifyBundlerEndpoint() async {
-    var bundlerEndpoint = Env.getBundlerUrlByChainId(widget.network.chainId.toInt());
     try{
-      var response = await Dio().post(
-          bundlerEndpoint,
-          data: jsonEncode({"jsonrpc": "2.0", "id": 1, "method": "eth_chainId", "params": []})
-      );
+      var chainId = await widget.network.bundler.getChainId();
       //
-      if ((response.data as Map).containsKey("error")){
-        return false;
-      }
-      if (Utils.decodeBigInt(response.data["result"]) == widget.network.chainId){
-        response = await Dio().post(
-            bundlerEndpoint,
-            data: jsonEncode({"jsonrpc": "2.0", "id": 1, "method": "eth_supportedEntryPoints", "params": []})
-        );
-        if ((response.data["result"] as List<dynamic>).map((e) => e.toString().toLowerCase()).contains(widget.network.entrypoint.hex)) return true;
+      if (chainId == null) return false;
+      if (chainId == widget.network.chainId){
+        var supportedEntryPoints = await widget.network.bundler.getSupportedEntryPoints();
+        if (supportedEntryPoints == null) return false;
+        if (supportedEntryPoints.contains(widget.network.entrypoint)) return true;
       }
       return false;
-    } on DioError {
+    } on DioException {
       return false;
     }
   }
@@ -62,24 +51,18 @@ class _VerifyEndpointsDeialogState extends State<VerifyEndpointsDialog> {
       }
       //
       return false;
-    } on DioError {
+    } on DioException {
       return false;
     }
   }
 
   Future<bool> verifyPaymasterEndpoint() async {
-    var bundlerEndpoint = Env.getPaymasterUrlByChainId(widget.network.chainId.toInt());
     try{
-      var response = await Dio().post(
-          bundlerEndpoint,
-          data: jsonEncode({"jsonrpc": "2.0", "id": 1, "method": "pm_getApprovedTokens", "params": []})
-      );
+      var supportedTokens = await widget.network.paymaster.supportedERC20Tokens(TokenInfoStorage.getNativeTokenForNetwork(widget.network));
       //
-      if ((response.data as Map).containsKey("error")){
-        return false;
-      }
+      if (supportedTokens.tokens.length == 1) return false;
       return true;
-    } on DioError {
+    } on Exception {
       return false;
     }
   }
@@ -93,7 +76,7 @@ class _VerifyEndpointsDeialogState extends State<VerifyEndpointsDialog> {
       EthereumAddress tokenAddress = TopTokens.getChainTokens(chainId)[1];
       var response = await Dio().get("https://api.coingecko.com/api/v3/simple/token_price/${widget.network.coinGeckoAssetPlatform}?contract_addresses=$tokenAddress&vs_currencies=eth");
       return response.data.toString().toLowerCase().contains(tokenAddress.hex.toLowerCase());
-    } on DioError {
+    } on DioException {
       return false;
     }
   }

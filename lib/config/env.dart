@@ -28,47 +28,14 @@ class Env {
   static late String walletConnectProjectId;
   static late String magicApiKey;
 
-  static String getNodeUrlByChainId(int chainId){
-    switch (chainId){
-      case 5: return goerliRpcEndpoint;
-      case 10: return optimismRpcEndpoint;
-      case 420: return optimismGoerliRpcEndpoint;
-      case 11155111: return sepoliaRpcEndpoint;
-      //
-      default: return optimismRpcEndpoint;
-    }
-  }
-
   static String getWebsocketsNodeUrlByChainId(int chainId){
     switch (chainId){
       case 5: return goerliWebsocketsRpcEndpoint;
       case 10: return optimismWebsocketsRpcEndpoint;
       case 420: return optimismGoerliWebsocketsRpcEndpoint;
       case 11155111: return sepoliaWebsocketsRpcEndpoint;
-    //
-      default: return optimismWebsocketsRpcEndpoint;
-    }
-  }
-
-  static String getBundlerUrlByChainId(int chainId){
-    switch (chainId){
-      case 5: return goerliBundlerEndpoint;
-      case 10: return optimismBundlerEndpoint;
-      case 420: return optimismGoerliBundlerEndpoint;
-      case 11155111: return sepoliaBundlerEndpoint;
       //
-      default: return goerliBundlerEndpoint;
-    }
-  }
-
-  static String getPaymasterUrlByChainId(int chainId){
-    switch (chainId){
-      case 5: return goerliPaymasterEndpoint;
-      case 10: return optimismPaymasterEndpoint;
-      case 420: return optimismGoerliPaymasterEndpoint;
-      case 11155111: return sepoliaPaymasterEndpoint;
-    //
-      default: return goerliPaymasterEndpoint;
+      default: return optimismWebsocketsRpcEndpoint;
     }
   }
 
