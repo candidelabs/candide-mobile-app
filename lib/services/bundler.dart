@@ -25,6 +25,32 @@ class Bundler {
     return signedOperation;
   } // todo: doesn't belong to this file
 
+  Future<BigInt?> getChainId() async {
+    try{
+      var response = await jsonRpc.call("eth_chainId", []);
+      return Utils.decodeBigInt(response.result);
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return null;
+    } on Exception catch(e){
+      print("Error occurred $e");
+      return null;
+    }
+  }
+
+  Future<List<EthereumAddress>?> getSupportedEntryPoints() async {
+    try{
+      var response = await jsonRpc.call("eth_supportedEntryPoints", []);
+      return (response.result as List<dynamic>).map((e) => EthereumAddress.fromHex(e)).toList();
+    } on RPCError catch(e){
+      print("Error occurred (${e.errorCode}, ${e.message})");
+      return null;
+    } on Exception catch(e){
+      print("Error occurred $e");
+      return null;
+    }
+  }
+
   Future<RelayResponse?> sendUserOperation(UserOperation userOp) async{
     try{
       var response = await jsonRpc.call(
