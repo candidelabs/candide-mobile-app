@@ -38,8 +38,23 @@ class BalanceService {
     //
     List<dynamic> _balancesResult = [];
     double ethUsdPrice = 0;
-    late Response response;
+    List<Response> responses = [];
+    List<Future<dynamic>> futures = [];
     //
+    var _tokenAddresses = tokenAddresses.split(",");
+    List<String> _tempTokenAddresses = [];
+    for (int i=0; i<_tokenAddresses.length; i++){
+      _tempTokenAddresses.add(_tokenAddresses[i]);
+      if (_tempTokenAddresses.length == 10 || i == _tokenAddresses.length-1){
+        var _addresses = _tempTokenAddresses.join(",");
+        futures.add(Dio().get(
+          "https://api.coingecko.com/api/v3/simple/token_price/${network.coinGeckoAssetPlatform}?contract_addresses=$_addresses&vs_currencies=eth"
+        ).then((value) => responses.add(value)).catchError((_){
+          print("Fetching quotes failed!");
+        }));
+        _tempTokenAddresses.clear();
+      }
+    }
     await Future.wait([
       network.client.call(
         contract: candideBalancesContract,
@@ -47,13 +62,16 @@ class BalanceService {
         params: [account.address, tokens],
       ).then((value) => _balancesResult = value),
       getETHUSDPrice().then((value) => ethUsdPrice = value),
-      Dio().get(
-        "https://api.coingecko.com/api/v3/simple/token_price/${network.coinGeckoAssetPlatform}?contract_addresses=$tokenAddresses&vs_currencies=eth"
-      ).then((value) => response = value),
+      ...futures,
     ]);
     //
     List<BigInt> balances = (_balancesResult[0] as List<dynamic>).cast<BigInt>();
-    Map quotes = response.data;
+    Map quotes = {};
+    //
+    for (var response in responses){
+      quotes.addAll(response.data);
+    }
+    //
     Map result = {};
     double totalQuote = 0;
     result["currencies"] = [];
