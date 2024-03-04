@@ -41,7 +41,7 @@ class BalanceCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: Text(
-                  balanceVisible ? "\$${balance.currentBalance.toPrecision(2)}" : "••••••••••••",
+                  balanceVisible ? "\$${balance.currentBalance.toPrecision(3)}" : "••••••••••••",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 50),
                 ),
               ),
