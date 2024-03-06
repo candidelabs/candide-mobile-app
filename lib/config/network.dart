@@ -45,7 +45,6 @@ class Networks {
           chainId: BigInt.from(10),
           explorers: {"etherscan":"https://optimistic.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism"},
           //
-          coinGeckoAssetPlatform: "optimistic-ethereum",
           nativeCurrency: 'ETH',
           nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           candideBalances: EthereumAddress.fromHex("0x82998037a1C25D374c421A620db6D9ff26Fb50b5"),
@@ -93,7 +92,6 @@ class Networks {
           chainId: BigInt.from(420),
           explorers: {"etherscan":"https://goerli-optimism.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism-goerli"},
           //
-          coinGeckoAssetPlatform: "optimistic-ethereum",
           nativeCurrency: 'ETH',
           nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           candideBalances: EthereumAddress.fromHex("0x97A8c45e8Da6608bAbf09eb1222292d7B389B1a1"),
@@ -141,7 +139,6 @@ class Networks {
           chainId: BigInt.from(5),
           explorers: {"etherscan":"https://goerli.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism"},
           //
-          coinGeckoAssetPlatform: "ethereum",
           nativeCurrency: 'ETH',
           nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
           candideBalances: EthereumAddress.fromHex("0xdc1e0B26F8D92243A28087172b941A169C2B4354"),
@@ -193,7 +190,6 @@ class Networks {
           chainId: BigInt.from(11155111),
           explorerUrl: "https://sepolia.etherscan.io",
           //
-          coinGeckoAssetPlatform: "ethereum",
           candideBalances: EthereumAddress.fromHex("0xa5d1be20e7b73651416cc04c86d6e4f79a012960"),
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
@@ -245,7 +241,6 @@ class Network{
   Widget? extendedLogo;
   BigInt chainId;
   Map<String, String> explorers;
-  String coinGeckoAssetPlatform;
   String nativeCurrency;
   EthereumAddress nativeCurrencyAddress;
   EthereumAddress candideBalances;
@@ -274,7 +269,6 @@ class Network{
       this.extendedLogo,
       required this.chainId,
       required this.explorers,
-      required this.coinGeckoAssetPlatform,
       required this.nativeCurrency,
       required this.nativeCurrencyAddress,
       required this.candideBalances,

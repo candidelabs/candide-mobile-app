@@ -22,7 +22,7 @@ class _VerifyEndpointsDeialogState extends State<VerifyEndpointsDialog> {
     "ethereum-node-endpoints": ["scheduled", true],
     "bundler-endpoints": ["scheduled", true],
     "paymaster-endpoints": ["scheduled", true],
-    "coingecko": ["scheduled", false],
+    "mobula": ["scheduled", false],
     "cryptocompare": ["scheduled", false],
   };
 
@@ -67,14 +67,14 @@ class _VerifyEndpointsDeialogState extends State<VerifyEndpointsDialog> {
     }
   }
 
-  Future<bool> verifyCoingeckoEndpoint() async {
+  Future<bool> verifyMobulaEndpoint() async {
     try{
       int chainId = widget.network.chainId.toInt();
       if (widget.network.testnetData != null){
         chainId = widget.network.testnetData!.testnetForChainId;
       }
       EthereumAddress tokenAddress = TopTokens.getChainTokens(chainId)[1];
-      var response = await Dio().get("https://api.coingecko.com/api/v3/simple/token_price/${widget.network.coinGeckoAssetPlatform}?contract_addresses=$tokenAddress&vs_currencies=eth");
+      var response = await Dio().get("https://api.mobula.io/api/1/market/multi-data?assets=$tokenAddress");
       return response.data.toString().toLowerCase().contains(tokenAddress.hex.toLowerCase());
     } on DioException {
       return false;
@@ -88,8 +88,8 @@ class _VerifyEndpointsDeialogState extends State<VerifyEndpointsDialog> {
       return await verifyBundlerEndpoint();
     }else if (name == "paymaster-endpoints"){
       return await verifyPaymasterEndpoint();
-    }else if (name == "coingecko"){
-      return await verifyCoingeckoEndpoint();
+    }else if (name == "mobula"){
+      return await verifyMobulaEndpoint();
     }else if (name == "cryptocompare"){
       return (await BalanceService.getETHUSDPrice()) > 0;
     }

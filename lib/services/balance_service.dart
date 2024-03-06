@@ -8,6 +8,9 @@ import 'package:wallet_dart/wallet/account.dart';
 import 'package:web3dart/web3dart.dart';
 
 class BalanceService {
+  static int? _cachedTimestamp;
+  static int? _cachedQuotesChainId;
+  static Map _cachedQuotes = {};
 
   static Future<Map> fetchBalances({
     required Account account,
@@ -38,23 +41,40 @@ class BalanceService {
     //
     List<dynamic> _balancesResult = [];
     double ethUsdPrice = 0;
-    List<Response> responses = [];
+    List<Map<String, dynamic>> responses = [];
     List<Future<dynamic>> futures = [];
     //
-    var _tokenAddresses = tokenAddresses.split(",");
-    List<String> _tempTokenAddresses = [];
-    for (int i=0; i<_tokenAddresses.length; i++){
-      _tempTokenAddresses.add(_tokenAddresses[i]);
-      if (_tempTokenAddresses.length == 10 || i == _tokenAddresses.length-1){
-        var _addresses = _tempTokenAddresses.join(",");
-        futures.add(Dio().get(
-          "https://api.coingecko.com/api/v3/simple/token_price/${network.coinGeckoAssetPlatform}?contract_addresses=$_addresses&vs_currencies=eth"
-        ).then((value) => responses.add(value)).catchError((_){
-          print("Fetching quotes failed!");
-        }));
-        _tempTokenAddresses.clear();
+    int timestamp = DateTime.now().millisecondsSinceEpoch;
+    Map quotes = {};
+    if (_cachedQuotesChainId != network.chainId.toInt() || timestamp-(_cachedTimestamp ?? timestamp) > 5000){
+      var _tokenAddresses = tokenAddresses.split(",");
+      List<String> _tempTokenAddresses = [];
+      for (int i=0; i<_tokenAddresses.length; i++){
+        _tempTokenAddresses.add(_tokenAddresses[i]);
+        if (_tempTokenAddresses.length == 500 || i == _tokenAddresses.length-1){
+          var _addresses = _tempTokenAddresses.join(",");
+          try {
+            var response = await Dio().get("https://api.mobula.io/api/1/market/multi-data?assets=$_addresses");
+            responses.add(response.data["data"]);
+          } catch (e) {
+            print("Fetching quotes failed: $e");
+          }
+          _tempTokenAddresses.clear();
+          if (i != _tokenAddresses.length-1) {
+            await Future.delayed(const Duration(seconds: 2));
+          }
+        }
       }
+      for (var response in responses){
+        quotes.addAll(response);
+      }
+      _cachedQuotesChainId = network.chainId.toInt();
+      _cachedTimestamp = timestamp;
+      _cachedQuotes = quotes;
+    }else{
+      quotes = _cachedQuotes;
     }
+    //
     await Future.wait([
       network.client.call(
         contract: candideBalancesContract,
@@ -66,12 +86,6 @@ class BalanceService {
     ]);
     //
     List<BigInt> balances = (_balancesResult[0] as List<dynamic>).cast<BigInt>();
-    Map quotes = {};
-    //
-    for (var response in responses){
-      quotes.addAll(response.data);
-    }
-    //
     Map result = {};
     double totalQuote = 0;
     result["currencies"] = [];
@@ -97,8 +111,9 @@ class BalanceService {
         int? tokenDecimals = TopTokens.getTokenDecimals(network.chainId.toInt(), tokenAddress.hex);
         tokenDecimals ??= TokenInfoStorage.getTokenByAddress(tokenAddress.hex)?.decimals;
         if (tokenDecimals != null){
-          quoteInEth = double.parse(CurrencyUtils.formatUnits(balances[tokenIndex], tokenDecimals)) * quotes[quoteTokenAddress]["eth"];
-          quoteInUSD = quoteInEth * ethUsdPrice;
+          double price = quotes[quoteTokenAddress]["price"];
+          double amount = double.parse(CurrencyUtils.formatUnits(balances[tokenIndex], tokenDecimals));
+          quoteInUSD = amount * price;
           totalQuote += quoteInUSD;
         }
       }
