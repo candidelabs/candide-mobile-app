@@ -183,27 +183,6 @@ class PaymasterContract extends _i1.GeneratedContract {
       params,
     );
   }
-
-  /// Returns a live stream of all UserOperationSponsored events emitted by this contract.
-  Stream<UserOperationSponsored> userOperationSponsoredEvents({
-    _i1.BlockNum? fromBlock,
-    _i1.BlockNum? toBlock,
-  }) {
-    final event = self.event('UserOperationSponsored');
-    final filter = _i1.FilterOptions.events(
-      contract: self,
-      event: event,
-      fromBlock: fromBlock,
-      toBlock: toBlock,
-    );
-    return client.events(filter).map((_i1.FilterEvent result) {
-      final decoded = event.decodeResults(
-        result.topics!,
-        result.data!,
-      );
-      return UserOperationSponsored(decoded);
-    });
-  }
 }
 
 class UserOperationSponsored {

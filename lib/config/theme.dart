@@ -11,6 +11,7 @@ class AppThemes {
       onPrimary: Color(0xFF1F2546),
     ),
     fontFamily: "Gilroy",
+    useMaterial3: false
   );
 
   static Color getContrastColor(Color color){

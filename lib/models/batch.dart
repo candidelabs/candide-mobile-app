@@ -22,7 +22,7 @@ import 'package:wallet_dart/wallet/encode_function_data.dart';
 import 'package:wallet_dart/wallet/user_operation.dart';
 import 'package:web3dart/credentials.dart';
 import 'package:web3dart/crypto.dart';
-import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
+import 'package:web3dart/web3dart.dart';
 
 class Batch {
   Account account;

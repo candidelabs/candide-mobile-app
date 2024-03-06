@@ -67,10 +67,10 @@ class TransactionWatchdog {
     TransactionReceipt? txReceipt = await network.client.getTransactionReceipt(event.transactionHash!);
     UserOperationReceipt userOpReceipt = UserOperationReceipt(
         entryPoint: network.entrypoint,
-        userOpHash: hexToBytes(event.topics![1]),
-        sender: EthereumAddress(hexToBytes(event.topics![2]).sublist(12)),
+        userOpHash: hexToBytes(event.topics![1]!),
+        sender: EthereumAddress(hexToBytes(event.topics![2]!).sublist(12)),
         nonce: data[0],
-        paymaster: EthereumAddress(hexToBytes(event.topics![3]).sublist(12)),
+        paymaster: EthereumAddress(hexToBytes(event.topics![3]!).sublist(12)),
         actualGasCost: data[2],
         actualGasUsed: data[3],
         success: data[1],

@@ -203,9 +203,9 @@ class GuardianOperationsHelper {
         await magic.user.logout();
       }
       cancelLoad.call();
-      await magic.auth.loginWithMagicLink(email: email);
+      await magic.auth.loginWithEmailOTP(email: email);
       cancelLoad = Utils.showLoading();
-      var metadata = await magic.user.getMetadata();
+      var metadata = await magic.user.getInfo();
       cancelLoad.call();
       cancelLoad = null;
       if (metadata.publicAddress == null) return false;

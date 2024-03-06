@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 0.1.6+16
 
 environment:
-  sdk: ">=3.0.6 <4.0.0"
+  sdk: ">=3.2.0 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -28,40 +28,40 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   # Essential
-  web3dart: ^2.5.1
+  web3dart: 2.7.0
   wallet_dart:
     git:
       url: https://github.com/candidelabs/wallet-dart.git
-      ref: 247af6f807c259ff85e09803250e9ccb0889d8cd
-  magic_sdk: ^2.0.2
-  dio: ^5.1.2
-  web_socket_channel: ^2.4.0
-  http: ^0.13.5
+      ref: b0639ab3805e3916d16cb8255627df6f1bd91eab
+  magic_sdk: ^6.0.1
+  dio: ^5.4.1
+  web_socket_channel: ^2.4.4
+  http: ^1.2.1
   eth_sig_util: ^0.0.9
   walletconnect_dart: ^0.0.11
-  walletconnect_flutter_v2: ^2.1.3
+  walletconnect_flutter_v2: ^2.0.14
   # Auth
-  biometric_storage: ^5.0.0
+  biometric_storage: 5.0.0
   # State
-  get: ^4.6.5
+  get: ^4.6.6
   event_bus: ^2.0.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
-  flutter_secure_storage: ^8.0.0
+  flutter_secure_storage: ^9.0.0
   # UI
-  animations: ^2.0.3
+  animations: ^2.0.11
   pinput: ^2.2.31
   flutter_awesome_alert_box: ^2.1.1
-  bot_toast: ^4.0.2
+  bot_toast: ^4.1.3
   modal_bottom_sheet: ^3.0.0-pre
-  qr_flutter: ^4.0.0
+  qr_flutter: ^4.1.0
   lottie: ^2.0.0
-  salomon_bottom_bar: ^3.3.1
+  salomon_bottom_bar: ^3.3.2
   pull_to_refresh_flutter3: ^2.0.1
   blockies: ^0.1.2
   keyboard_actions: ^4.1.0
   onboarding: ^3.1.0
-  cached_network_image: ^3.2.3
+  cached_network_image: ^3.3.1
   expandable: ^5.0.1
   info_popup: ^2.4.6
   animated_emoji: ^1.0.1+2
@@ -78,10 +78,10 @@ dependencies:
   qr_code_scanner: ^1.0.0
   intl: ^0.17.0
   logger: ^1.1.0
-  package_info_plus: ^3.0.2
+  package_info_plus: ^4.2.0
   pausable_timer: ^1.0.0+6
   short_uuids: ^2.0.0
-  flutter_cache_manager: ^3.3.0
+  flutter_cache_manager: ^3.3.1
   permission_handler: ^10.2.0
   version: ^3.0.0
   device_info_plus: ^9.0.2
