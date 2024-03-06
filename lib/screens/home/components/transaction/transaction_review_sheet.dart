@@ -56,12 +56,17 @@ class _TransactionReviewSheetState extends State<TransactionReviewSheet> {
   FeeToken? selectDefaultFeeCurrency(List<FeeToken> feeCurrencies){
     FeeToken? result;
     double maxQuoteBalance = -1;
+    String? defaultFeeToken = PersistentData.defaultFeeTokens[widget.batch.network.normalizedName];
     for (FeeToken feeCurrency in feeCurrencies){
       CurrencyBalance? currencyBalance = PersistentData.currencies.firstWhereOrNull((element) => element.currencyAddress.toLowerCase() == feeCurrency.token.address.toLowerCase());
       if (currencyBalance == null) continue;
       if (feeCurrency.fee > currencyBalance.balance) continue;
       if (feeCurrency.token.address.toLowerCase() == widget.currency?.address.toLowerCase()){
         if (feeCurrency.fee + (widget.value ?? BigInt.zero) > currencyBalance.balance) continue;
+      }
+      if (defaultFeeToken != null && feeCurrency.token.address.toLowerCase() == defaultFeeToken.toLowerCase()){
+        result = feeCurrency;
+        break;
       }
       if (currencyBalance.currentBalanceInQuote > maxQuoteBalance){
         result = feeCurrency;

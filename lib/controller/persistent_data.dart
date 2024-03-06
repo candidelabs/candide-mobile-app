@@ -32,6 +32,9 @@ class PersistentData {
   // Load from Box called "state" at "hidden_networks"
   static List<int> hiddenNetworks = [];
 
+  // Load from Box called "state" at "default_fee_tokens", structure is {"network_name":"tokenAddress"}
+  static Map<String, String> defaultFeeTokens = {};
+
   // Load from Box called "state" at "address_data(accountAddress-chainId)"
   static late AccountStatus accountStatus;
   static late AccountBalance accountBalance;
@@ -302,6 +305,16 @@ class PersistentData {
 
   static Future<void> storeHiddenNetworks() async {
     await Hive.box("state").put("hidden_networks", hiddenNetworks);
+  }
+
+  static Future<Map<String, String>> loadDefaultFeeTokens() async {
+    defaultFeeTokens = (Hive.box("state").get("default_fee_tokens", defaultValue: {}) as Map).cast<String, String>();
+    return defaultFeeTokens;
+  }
+
+  static Future<void> setDefaultFeeToken(Network network, String tokenAddress) async {
+    defaultFeeTokens[network.normalizedName] = tokenAddress.toLowerCase();
+    await Hive.box("state").put("default_fee_tokens", defaultFeeTokens);
   }
 
   static BigInt getCurrencyBalance(String currencyAddress){

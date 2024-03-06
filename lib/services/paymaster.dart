@@ -109,12 +109,12 @@ class Paymaster {
     }
     try{
       var response = await jsonRpc!.call(
-          "pm_sponsorUserOperation",
-          [
-            userOperation.toJson(),
-            entrypoint.hex,
-            context,
-          ]
+        "pm_sponsorUserOperation",
+        [
+          userOperation.toJson(),
+          entrypoint.hex,
+          context,
+        ]
       );
       //
       SponsorResult sponsorResult = SponsorResult(

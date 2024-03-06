@@ -78,6 +78,9 @@ class TransactionConfirmController {
     );
     //
     RelayResponse? response = await network.bundler.sendUserOperation(signedUserOperation);
+    if (batch.selectedFeeToken != null){
+      await PersistentData.setDefaultFeeToken(network, batch.selectedFeeToken!.token.address.toLowerCase());
+    }
     if (response?.status.toLowerCase() == "pending"){
       Utils.showBottomStatus(
         "Transaction still pending",

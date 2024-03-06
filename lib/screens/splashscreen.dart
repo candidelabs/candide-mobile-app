@@ -71,7 +71,10 @@ class _SplashScreenState extends State<SplashScreen> {
     Networks.initialize();
     Networks.configureVisibility();
     PersistentData.loadSigners();
-    await PersistentData.loadAccounts();
+    await Future.wait([
+      PersistentData.loadAccounts(),
+      PersistentData.loadDefaultFeeTokens()
+    ]);
     SettingsData.loadFromJson(null);
     WalletConnectController.initUserOpListener();
     await WalletConnectV2Controller.initialize();
