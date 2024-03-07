@@ -33,7 +33,6 @@ dependencies:
     git:
       url: https://github.com/candidelabs/wallet-dart.git
       ref: b0639ab3805e3916d16cb8255627df6f1bd91eab
-  magic_sdk: ^6.0.1
   dio: ^5.4.1
   web_socket_channel: ^2.4.4
   http: ^1.2.1

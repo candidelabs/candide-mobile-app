@@ -21,7 +21,6 @@ import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
-import 'package:magic_sdk/magic_sdk.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:wallet_dart/contracts/account.dart';
 import 'package:wallet_dart/contracts/factories/CandideWallet.g.dart';
@@ -108,25 +107,14 @@ class GuardianOperationsHelper {
       },
     );
     if (refresh ?? false){
-      if (magicLinkData != null){
-        PersistentData.guardians.add(AccountGuardian(
-          index: friendsCount,
-          type: "magic-link",
-          address: guardian.hexEip55,
-          nickname: nickname,
-          email: magicLinkData["email"],
-          creationDate: DateTime.now(),
-        ));
-      }else{
-        PersistentData.guardians.add(AccountGuardian(
-          index: friendsCount,
-          type: type,
-          address: guardian.hexEip55,
-          nickname: nickname,
-          email: null,
-          creationDate: DateTime.now(),
-        ));
-      }
+      PersistentData.guardians.add(AccountGuardian(
+        index: friendsCount,
+        type: type,
+        address: guardian.hexEip55,
+        nickname: nickname,
+        email: null,
+        creationDate: DateTime.now(),
+      ));
       await PersistentData.storeGuardians(PersistentData.selectedAccount);
     }
     cancelLoad?.call();
@@ -191,33 +179,6 @@ class GuardianOperationsHelper {
     );
     cancelLoad?.call();
     return (refresh ?? false);
-  }
-
-  static Future<bool> setupMagicLinkGuardian(String email, String? nickname) async {
-    CancelFunc? cancelLoad = Utils.showLoading();
-    bool? refresh = false;
-    try {
-      Magic magic = Magic.instance;
-      var isLoggedIn = await magic.user.isLoggedIn();
-      if (isLoggedIn){
-        await magic.user.logout();
-      }
-      cancelLoad.call();
-      await magic.auth.loginWithEmailOTP(email: email);
-      cancelLoad = Utils.showLoading();
-      var metadata = await magic.user.getInfo();
-      cancelLoad.call();
-      cancelLoad = null;
-      if (metadata.publicAddress == null) return false;
-      refresh = await grantGuardian(PersistentData.selectedAccount, EthereumAddress.fromHex(metadata.publicAddress!), nickname, "magic-link", magicLinkData: {"email":email});
-    } on Exception catch (e) {
-      cancelLoad?.call();
-      print(e);
-      return false;
-    }
-    cancelLoad?.call();
-    Get.back();
-    return refresh;
   }
 }
 

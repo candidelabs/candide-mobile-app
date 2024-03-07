@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/theme.dart';
-import 'package:candide_mobile_app/screens/home/components/magic_relayer_widget.dart';
 import 'package:candide_mobile_app/screens/splashscreen.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
@@ -44,18 +43,13 @@ class CandideApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: Stack(
-        children: [
-          GetMaterialApp(
-            title: 'Candide',
-            builder: BotToastInit(),
-            navigatorObservers: [BotToastNavigatorObserver()],
-            debugShowCheckedModeBanner: false,
-            theme: AppThemes.darkTheme,
-            home: const SplashScreen(),
-          ),
-          const MagicRelayerWidget(),
-        ],
+      home: GetMaterialApp(
+        title: 'Candide',
+        builder: BotToastInit(),
+        navigatorObservers: [BotToastNavigatorObserver()],
+        debugShowCheckedModeBanner: false,
+        theme: AppThemes.darkTheme,
+        home: const SplashScreen(),
       ),
     );
   }

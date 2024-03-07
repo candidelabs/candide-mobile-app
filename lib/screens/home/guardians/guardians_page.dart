@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/controller/persistent_data.dart';
@@ -9,7 +8,6 @@ import 'package:candide_mobile_app/screens/home/activity/components/transaction_
 import 'package:candide_mobile_app/screens/home/guardians/components/guardian_details_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_address_sheet.dart';
 import 'package:candide_mobile_app/screens/home/guardians/guardian_system_onboarding.dart';
-import 'package:candide_mobile_app/screens/home/guardians/magic_email_sheet.dart';
 import 'package:candide_mobile_app/services/explorer.dart';
 import 'package:candide_mobile_app/utils/events.dart';
 import 'package:candide_mobile_app/utils/guardian_helpers.dart';
@@ -184,10 +182,6 @@ class _GuardiansPageState extends State<GuardiansPage> {
   }
 
   Widget noGuardiansWidget(bool showTitle){
-    bool magicLinkEnabled = Networks.selected().isFeatureEnabled("social-recovery.magic-link");
-    if (Env.magicApiKey.trim().isEmpty || Env.magicApiKey.trim() == "-"){
-      magicLinkEnabled = false;
-    }
     bool familyFriendsEnabled = Networks.selected().isFeatureEnabled("social-recovery.family-and-friends");
     bool hardwareWalletsEnabled = Networks.selected().isFeatureEnabled("social-recovery.hardware-wallet");
     return Column(
@@ -195,38 +189,6 @@ class _GuardiansPageState extends State<GuardiansPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 15,),
-        magicLinkEnabled ? Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          child: _GuardianAddCard(
-            type: "Email recovery",
-            description: "Through Magic Link",
-            logo: SizedBox(
-              width: 25,
-              height: 25,
-              child: SvgPicture.asset("assets/images/magic_link.svg")
-            ),
-            onPress: (){
-              showBarModalBottomSheet(
-                context: context,
-                backgroundColor: Get.theme.canvasColor,
-                builder: (context) => SingleChildScrollView(
-                  controller: ModalScrollController.of(context),
-                  child: MagicEmailSheet(
-                    onProceed: (String email, String? nickname) async {
-                      bool result = await GuardianOperationsHelper.setupMagicLinkGuardian(email, nickname);
-                      if (result){
-                        fetchGuardians();
-                      }
-                      if (!showTitle){
-                        Get.back();
-                      }
-                    },
-                  ),
-                ),
-              );
-            },
-          ),
-        ) : const SizedBox.shrink(),
         familyFriendsEnabled ? Container(
           margin: const EdgeInsets.only(bottom: 10),
           child: _GuardianAddCard(

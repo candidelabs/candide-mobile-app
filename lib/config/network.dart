@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
-import 'package:magic_sdk/magic_sdk.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:web_socket_channel/io.dart';
 
@@ -126,7 +125,7 @@ class Networks {
             },
             "social-recovery": {
               "family-and-friends": true,
-              "magic-link": true,
+              "magic-link": false,
               "hardware-wallet": false,
             },
           },
@@ -175,7 +174,7 @@ class Networks {
             },
             "social-recovery": {
               "family-and-friends": true,
-              "magic-link": true,
+              "magic-link": false,
               "hardware-wallet": false,
             },
           },
@@ -254,7 +253,6 @@ class Network{
   Web3Client client;
   Bundler bundler;
   Paymaster paymaster;
-  Magic? magicInstance;
   Map<String, dynamic> features;
   //
   bool visible;
