@@ -84,53 +84,6 @@ class Networks {
           },
         ),
         Network(
-          name: "Optimism Goerli",
-          testnetData: _TestnetData(testnetForChainId: 10),
-          visible: false,
-          color: const Color.fromARGB(255, 34, 115, 113),
-          chainId: BigInt.from(420),
-          explorers: {"etherscan":"https://goerli-optimism.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism-goerli"},
-          //
-          nativeCurrency: 'ETH',
-          nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
-          candideBalances: EthereumAddress.fromHex("0x97A8c45e8Da6608bAbf09eb1222292d7B389B1a1"),
-          //
-          safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
-          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x2a15DE4410d4c8af0A7b6c12803120f43C42B820"),
-          socialRecoveryModule: EthereumAddress.fromHex("0x831153c6b9537d0fF5b7DB830C2749DE3042e776"),
-          entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
-          multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
-          //
-          client: Web3Client(
-            Env.optimismGoerliRpcEndpoint,
-            Client(),
-            socketConnector: _hasWebsocketsChannel(420) ? () {
-              return IOWebSocketChannel.connect(Env.optimismGoerliWebsocketsRpcEndpoint).cast<String>();
-            } : null,
-          ),
-          bundler: Bundler(Env.optimismGoerliBundlerEndpoint, Client()),
-          paymaster: Paymaster(Env.optimismGoerliPaymasterEndpoint, Client()),
-          //
-          features: {
-            "deposit": {
-              "deposit-address": true,
-              "deposit-fiat": false,
-            },
-            "transfer": {
-              "basic": true
-            },
-            "swap": {
-              "basic": false
-            },
-            "social-recovery": {
-              "family-and-friends": true,
-              "magic-link": false,
-              "hardware-wallet": false,
-            },
-          },
-        ),
-        Network(
           name: "Görli",
           testnetData: _TestnetData(testnetForChainId: 1),
           visible: false,
@@ -179,47 +132,6 @@ class Networks {
             },
           },
         ),
-        /*Network(
-          name: "Sepolia",
-          testnetData: _TestnetData(testnetForChainId: 1),
-          visible: true,
-          color: Colors.green,
-          nativeCurrency: 'ETH',
-          nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
-          chainId: BigInt.from(11155111),
-          explorerUrl: "https://sepolia.etherscan.io",
-          //
-          candideBalances: EthereumAddress.fromHex("0xa5d1be20e7b73651416cc04c86d6e4f79a012960"),
-          //
-          safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
-          proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
-          fallbackHandler: EthereumAddress.fromHex("0x2a15DE4410d4c8af0A7b6c12803120f43C42B820"),
-          socialRecoveryModule: EthereumAddress.fromHex("0x831153c6b9537d0fF5b7DB830C2749DE3042e776"),
-          entrypoint: EthereumAddress.fromHex("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789"),
-          multiSendCall: EthereumAddress.fromHex("0xA1dabEF33b3B82c7814B6D82A79e50F4AC44102B"),
-          //
-          gasEstimator: L1GasEstimator(chainId: 11155111),
-          //
-          client: Web3Client(Env.sepoliaRpcEndpoint, Client()),
-          //
-          features: {
-            "deposit": {
-              "deposit-address": true,
-              "deposit-fiat": false,
-            },
-            "transfer": {
-              "basic": true
-            },
-            "swap": {
-              "basic": false
-            },
-            "social-recovery": {
-              "family-and-friends": true,
-              "magic-link": false,
-              "hardware-wallet": true,
-            },
-          },
-        ),*/
       ]
     );
     for (Network network in instances){

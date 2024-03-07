@@ -44,6 +44,8 @@ class PersistentData {
   // Temporary session values
   static final Map<int, List<dynamic>> _recoverableStatus = {}; // Map<Account HashCode, [bool recoverable, int expireAt]> temporarily store recoverable status of accounts instead of always fetching it
 
+  static final Set<int> _deprecatedChains = {420};
+
   static loadExplorerJson(Account account, Map? json) async {
     json ??= Hive.box("state").get("address_data(${account.address.hex}-${account.chainId})");
     if (json == null){
@@ -218,16 +220,14 @@ class PersistentData {
   }
 
   static Future<void> loadAccounts() async {
-    List<String> deprecatedVersions = ["0.0.0"];
+    Set<String> deprecatedVersions = {"0.0.0"};
     bool _deprecatedFlag = false;
     accounts.clear();
     List accountsAsJson = Hive.box("wallet").get("accounts") ?? []; // List<Json>
     for (var accountJson in accountsAsJson){
       var account = Account.fromJson(accountJson);
-      if (deprecatedVersions.contains(account.version)){
-        _deprecatedFlag = true;
-        continue;
-      }
+      _deprecatedFlag = _deprecatedChains.contains(account.chainId) || deprecatedVersions.contains(account.version);
+      if (_deprecatedFlag) continue;
       accounts.add(account);
     }
     if (_deprecatedFlag){
@@ -300,6 +300,7 @@ class PersistentData {
 
   static List<int> loadHiddenNetworks() {
     hiddenNetworks = Hive.box("state").get("hidden_networks", defaultValue: List.from(Networks.DEFAULT_HIDDEN_NETWORKS)).cast<int>();
+    hiddenNetworks.removeWhere((element) => _deprecatedChains.contains(element));
     return hiddenNetworks;
   }
 
