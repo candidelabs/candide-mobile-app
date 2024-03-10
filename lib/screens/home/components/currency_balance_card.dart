@@ -62,7 +62,7 @@ class CurrencyBalanceCard extends StatelessWidget {
               const SizedBox(width: 15,),
               RichText(
                 text: TextSpan(
-                  text: balanceVisible ? "\$${(currencyBalance?.currentBalanceInQuote ?? 0).toPrecision(3)}" : "••••••",
+                  text: balanceVisible ? "\$${(currencyBalance?.currentBalanceInQuote ?? 0).toPrecision(2)}" : "••••••",
                   style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, fontSize: 13),
                   children: [
                     (currencyBalance?.quoteCurrency ?? "USD") != "USD" ? TextSpan(

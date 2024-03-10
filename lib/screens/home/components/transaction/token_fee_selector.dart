@@ -125,7 +125,7 @@ class _TokenFeeDisplay extends StatelessWidget {
     return Column(
       children: [
         Text(batch.selectedFeeToken != null ? CurrencyUtils.formatCurrency(batch.selectedFeeToken!.fee, batch.selectedFeeToken!.token, formatSmallDecimals: true) : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.white)),
-        Text(batch.selectedFeeToken != null ? "\$${CurrencyUtils.convertToQuote(batch.selectedFeeToken!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, batch.selectedFeeToken!.fee).toPrecision(3)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
+        Text(batch.selectedFeeToken != null ? "\$${CurrencyUtils.convertToQuote(batch.selectedFeeToken!.token.address.toLowerCase(), PersistentData.accountBalance.quoteCurrency, batch.selectedFeeToken!.fee).toPrecision(2)}" : "-", style: TextStyle(fontFamily: AppThemes.fonts.gilroyBold, color: Colors.grey, fontSize: 12)),
       ],
     );
   }
