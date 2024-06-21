@@ -101,6 +101,7 @@ class Bundler {
           "eth_getUserOperationReceipt",
           [userOperationHash]
       );
+      if (response.result == null) return null;
       return UserOperationReceipt.fromMap(response.result);
     } on RPCError catch(e){
       print("Error occurred (${e.errorCode}, ${e.message})");

@@ -84,16 +84,16 @@ class Networks {
           },
         ),
         Network(
-          name: "Görli",
+          name: "Sepolia",
           testnetData: _TestnetData(testnetForChainId: 1),
           visible: false,
           color: const Color.fromARGB(255, 70, 127, 188),
-          chainId: BigInt.from(5),
-          explorers: {"etherscan":"https://goerli.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=optimism"},
+          chainId: BigInt.from(11155111),
+          explorers: {"etherscan":"https://sepolia.etherscan.io/{data}", "jiffyscan":"https://www.jiffyscan.xyz/{data}?network=sepolia"},
           //
           nativeCurrency: 'ETH',
           nativeCurrencyAddress: EthereumAddress.fromHex('0x0000000000000000000000000000000000000000'),
-          candideBalances: EthereumAddress.fromHex("0xdc1e0B26F8D92243A28087172b941A169C2B4354"),
+          candideBalances: EthereumAddress.fromHex("0xA6Fc0C988E80D40cC7D1261aCc5348606E825E63"),
           //
           safeSingleton: EthereumAddress.fromHex("0x3A0a17Bcc84576b099373ab3Eed9702b07D30402"),
           proxyFactory: EthereumAddress.fromHex("0xb73Eb505Abc30d0e7e15B73A492863235B3F4309"),
@@ -105,14 +105,14 @@ class Networks {
           ensRegistryWithFallback: EthereumAddress.fromHex("0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e"),
           //
           client: Web3Client(
-            Env.goerliRpcEndpoint,
+            Env.sepoliaRpcEndpoint,
             Client(),
-            socketConnector: _hasWebsocketsChannel(5) ? () {
-              return IOWebSocketChannel.connect(Env.goerliWebsocketsRpcEndpoint).cast<String>();
+            socketConnector: _hasWebsocketsChannel(11155111) ? () {
+              return IOWebSocketChannel.connect(Env.sepoliaWebsocketsRpcEndpoint).cast<String>();
             } : null,
           ),
-          bundler: Bundler(Env.goerliBundlerEndpoint, Client()),
-          paymaster: Paymaster(Env.goerliPaymasterEndpoint, Client()),
+          bundler: Bundler(Env.sepoliaBundlerEndpoint, Client()),
+          paymaster: Paymaster(Env.sepoliaPaymasterEndpoint, Client()),
           //
           features: {
             "deposit": {
@@ -123,7 +123,7 @@ class Networks {
               "basic": true
             },
             "swap": {
-              "basic": true
+              "basic": false
             },
             "social-recovery": {
               "family-and-friends": true,
