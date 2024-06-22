@@ -31,7 +31,7 @@ class UserOperationReceipt {
 
   UserOperationReceipt.fromMap(Map<String, dynamic> map)
       : userOpHash = hexToBytes(map['userOpHash'] as String),
-        entryPoint = EthereumAddress.fromHex(map['entryPoint'] as String),
+        entryPoint = EthereumAddress.fromHex((map['entryPoint'] ?? "") as String),
         sender = EthereumAddress.fromHex(map['sender'] as String),
         nonce = Utils.decodeBigInt(map['nonce'] as String, defaultsToZero: true)!,
         paymaster = EthereumAddress.fromHex(map['entryPoint'] as String),

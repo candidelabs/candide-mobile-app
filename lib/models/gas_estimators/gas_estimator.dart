@@ -46,7 +46,7 @@ class GasEstimator {
 
   Future<(BigInt, BigInt)?> getNetworkGasFees(Network network) async {
     int chainId = network.chainId.toInt();
-    if (chainId == 420 || chainId == 10){
+    if (chainId == 11155111 || chainId == 10){
       return _getNetworkFeesFromProvider(network);
     }
     try{

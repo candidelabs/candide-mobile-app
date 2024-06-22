@@ -66,10 +66,10 @@ class Paymaster {
       paymasterResponse.paymasterData.sponsoredEventTopic = response.result["paymasterMetadata"]["sponsoredEventTopic"];
       return paymasterResponse;
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Error occurred (p_set, ${e.errorCode}, ${e.message})");
       return paymasterResponse;
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Error occurred p_set, $e");
       return paymasterResponse;
     }
   }
@@ -93,10 +93,10 @@ class Paymaster {
       }
       return sponsorData;
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Error occurred (p_cse, ${e.errorCode}, ${e.message})");
       return null;
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Error occurred p_cse, $e");
       return null;
     }
   }
@@ -127,10 +127,10 @@ class Paymaster {
       );
       return sponsorResult;
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Error occurred (p_suo, ${e.errorCode}, ${e.message})");
       return null;
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Error occurred p_suo, $e");
       return null;
     }
   }

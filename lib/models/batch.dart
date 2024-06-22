@@ -251,7 +251,9 @@ class Batch {
     }
     var returns = await Future.wait(futures);
     _gasEstimate = returns[0];
-    _gasEstimateWithPaymaster = returns[1];
+    if (network.paymaster.jsonRpc != null) {
+      _gasEstimateWithPaymaster = returns[1];
+    }
     if (_gasEstimate == null) return false;
     double callGasLimitScalar = 2;
     double verificationGasLimitScalar = 2;
@@ -266,7 +268,7 @@ class Batch {
     }
     //
     if (_gasEstimateWithPaymaster != null){
-      _gasEstimateWithPaymaster.callGasLimit = _gasEstimateWithPaymaster.callGasLimit.scale(callGasLimitScalar);
+      _gasEstimateWithPaymaster.callGasLimit = (_gasEstimateWithPaymaster.callGasLimit + BigInt.from(30000)).scale(callGasLimitScalar); // we add 30k gas for the token approval
       _gasEstimateWithPaymaster.verificationGasLimit = _gasEstimateWithPaymaster.verificationGasLimit.scale(verificationGasLimitScalar);
       _gasEstimateWithPaymaster.preVerificationGas = _gasEstimateWithPaymaster.preVerificationGas.scale(preVerificationGasScalar);
     }

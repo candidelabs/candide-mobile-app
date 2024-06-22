@@ -30,10 +30,10 @@ class Bundler {
       var response = await jsonRpc.call("eth_chainId", []);
       return Utils.decodeBigInt(response.result);
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Error occurred (b_gci, ${e.errorCode}, ${e.message})");
       return null;
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Error occurred b_gci, $e");
       return null;
     }
   }
@@ -43,10 +43,10 @@ class Bundler {
       var response = await jsonRpc.call("eth_supportedEntryPoints", []);
       return (response.result as List<dynamic>).map((e) => EthereumAddress.fromHex(e)).toList();
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Error occurred (b_gsep, ${e.errorCode}, ${e.message})");
       return null;
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Error occurred b_gsep, $e");
       return null;
     }
   }
@@ -62,10 +62,10 @@ class Bundler {
       );
       return RelayResponse(status: "pending", hash: response.result);
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Bundler Error occurred (b_suo, ${e.errorCode}, ${e.message})");
       return RelayResponse(status: "failed-to-submit", reason: e.message, hash: null);
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Bundler Error occurred b_suo, $e");
       return RelayResponse(status: "failed-to-submit", hash: null);
     }
   }
@@ -87,10 +87,10 @@ class Bundler {
         maxPriorityFeePerGas: BigInt.zero,
       );
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Error occurred (b_euo, ${e.errorCode}, ${e.message})");
       return null;
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Bundler Error occurred b_euo, $e");
       return null;
     }
   }
@@ -104,10 +104,10 @@ class Bundler {
       if (response.result == null) return null;
       return UserOperationReceipt.fromMap(response.result);
     } on RPCError catch(e){
-      print("Error occurred (${e.errorCode}, ${e.message})");
+      print("Bundler Error occurred (b_guor, ${e.errorCode}, ${e.message})");
       return null;
     } on Exception catch(e){
-      print("Error occurred $e");
+      print("Bundler Error occurred b_guor, $e");
       return null;
     }
   }

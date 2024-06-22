@@ -7,75 +7,6 @@ class TokenInfoStorage {
   static List<TokenInfo> tokens = [];
 
   static Map<int, List<TokenInfo>> defaultTokens = {
-    5: [
-      TokenInfo(
-        name: "Ethereum",
-        symbol: "ETH",
-        address: "0x0000000000000000000000000000000000000000",
-        decimals: 18,
-        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/ethereum.svg",
-      ),
-      TokenInfo(
-        name: "Uniswap",
-        symbol: "UNI",
-        address: "0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984",
-        decimals: 18,
-        logoUri: "https://cryptologos.cc/logos/uniswap-uni-logo.png?v=023",
-      ),
-      TokenInfo(
-        name: "Candide Test Token",
-        symbol: "CTT",
-        address: "0x7DdEFA2f027691116D0a7aa6418246622d70B12A",
-        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/fee-coin2.svg",
-        decimals: 18,
-      ),
-      TokenInfo(
-        name: "Wrapped Ethereum",
-        symbol: "WETH",
-        address: "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6",
-        decimals: 18,
-        visible: false,
-      ),
-      TokenInfo(
-        name: "Tether",
-        symbol: "USDT",
-        address: "0x509Ee0d083DdF8AC028f2a56731412edD63223B9",
-        decimals: 6,
-        logoUri: "https://cryptologos.cc/logos/tether-usdt-logo.svg?v=023",
-        visible: false,
-      ),
-    ],
-    420: [
-      TokenInfo(
-        name: "Ethereum",
-        symbol: "ETH",
-        address: "0x0000000000000000000000000000000000000000",
-        decimals: 18,
-        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/ethereum.svg",
-      ),
-      TokenInfo(
-        name: "Candide Test Token",
-        symbol: "CTT",
-        address: "0x7DdEFA2f027691116D0a7aa6418246622d70B12A",
-        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/fee-coin2.svg",
-        decimals: 18,
-      ),
-      TokenInfo(
-        name: "Wrapped Ethereum",
-        symbol: "WETH",
-        address: "0x4200000000000000000000000000000000000006",
-        decimals: 18,
-        visible: false,
-      ),
-      TokenInfo(
-        name: "Optimism",
-        symbol: "OP",
-        address: "0x4200000000000000000000000000000000000042",
-        decimals: 18,
-        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/optimism.svg",
-        visible: false,
-      ),
-    ],
     10: [
       TokenInfo(
         name: "Ethereum",
@@ -116,6 +47,20 @@ class TokenInfoStorage {
         decimals: 18,
         logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/ethereum.svg",
         visible: true,
+      ),
+      TokenInfo(
+        name: "Candide Test Token",
+        symbol: "CTT",
+        address: "0xFa5854FBf9964330d761961F46565AB7326e5a3b",
+        logoUri: "https://raw.githubusercontent.com/candidelabs/candide-mobile-app/main/assets/images/fee-coin2.svg",
+        decimals: 18,
+      ),
+      TokenInfo(
+        name: "Wrapped Ethereum",
+        symbol: "WETH",
+        address: "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+        decimals: 18,
+        visible: false,
       ),
     ]
   };
