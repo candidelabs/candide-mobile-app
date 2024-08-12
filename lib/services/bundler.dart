@@ -54,11 +54,11 @@ class Bundler {
   Future<RelayResponse?> sendUserOperation(UserOperation userOp) async{
     try{
       var response = await jsonRpc.call(
-          "eth_sendUserOperation",
-          [
-            userOp.toJson(),
-            PersistentData.selectedAccount.entrypoint!.hexEip55,
-          ]
+        "eth_sendUserOperation",
+        [
+          userOp.toJson(),
+          PersistentData.selectedAccount.entrypoint!.hexEip55,
+        ]
       );
       return RelayResponse(status: "pending", hash: response.result);
     } on RPCError catch(e){

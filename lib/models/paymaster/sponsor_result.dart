@@ -1,3 +1,5 @@
+import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
+
 class SponsorResult {
   String paymasterAndData;
   BigInt? callGasLimit;
@@ -5,6 +7,7 @@ class SponsorResult {
   BigInt? preVerificationGas;
   BigInt? maxFeePerGas;
   BigInt? maxPriorityFeePerGas;
+  WCPeerMeta? sponsorMetadata;
 
   SponsorResult({
     required this.paymasterAndData,
@@ -12,6 +15,7 @@ class SponsorResult {
     this.verificationGasLimit,
     this.preVerificationGas,
     this.maxFeePerGas,
-    this.maxPriorityFeePerGas
+    this.maxPriorityFeePerGas,
+    this.sponsorMetadata,
   });
 }

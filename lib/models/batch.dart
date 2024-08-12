@@ -31,6 +31,7 @@ class Batch {
   late FeeToken? _selectedFeeToken;
   GasEstimate? gasEstimate;
   GasEstimate? gasEstimateWithPaymaster;
+  SponsorResult? sponsorResult;
   late PaymasterResponse paymasterResponse;
   GasBackData? gasBack;
   //
@@ -87,13 +88,20 @@ class Batch {
 
   FeeToken? get selectedFeeToken => _selectedFeeToken;
   bool get isGasBackApplied => gasBack?.gasBackApplied ?? false;
-  bool get isReverted => gasEstimate == null;
+  bool get isReverted => !paymasterResponse.sponsorData.sponsored && gasEstimate == null;
 
   Future<bool> prepare({bool checkSponsorshipEligibility = false}) async {
     bool userOpPreparationSuccess = await _prepareUserOperation();
-    bool paymasterResponseSuccess = await _fetchPaymasterResponse(checkSponsorshipEligibility: checkSponsorshipEligibility);
-    bool gasEstimationSuccess = await _estimateGas();
-    await _adjustPaymasterResponseAfterEstimation();
+    bool paymasterResponseSuccess = await _fetchPaymasterResponse();
+    bool userOpSponsored = false;
+    bool gasEstimationSuccess = true;
+    if (checkSponsorshipEligibility || true){
+      userOpSponsored = await _trySponsorUserOp();
+    }
+    if (!userOpSponsored){
+      gasEstimationSuccess = await _estimateGas();
+      await _adjustPaymasterResponseAfterEstimation();
+    }
     return userOpPreparationSuccess && paymasterResponseSuccess && gasEstimationSuccess;
   }
 
@@ -147,28 +155,28 @@ class Batch {
     return true;
   }
 
-  Future<bool> _fetchPaymasterResponse({bool checkSponsorshipEligibility = false}) async {
-    List<Future<dynamic>> futures = [];
-    futures.add(network.paymaster.supportedERC20Tokens(TokenInfoStorage.getNativeTokenForNetwork(network)));
-    if (checkSponsorshipEligibility){
-      futures.add(network.paymaster.checkSponsorshipEligibility(userOperation, network.entrypoint));
-    }
-    var returns = await Future.wait(futures);
-    PaymasterResponse _paymasterResponse = returns[0];
-    //
-    if (checkSponsorshipEligibility){
-      SponsorData? sponsorData = returns[1];
-      if (sponsorData != null){
-        _paymasterResponse.sponsorData = sponsorData;
-        if (sponsorData.sponsored){
-          if (_paymasterResponse.tokens.length > 1){
-            _paymasterResponse.tokens.removeRange(1, _paymasterResponse.tokens.length); // remove all tokens except native token which is always at index 0
-          }
-        }
-      }
-    }
+  Future<bool> _fetchPaymasterResponse() async {
+    PaymasterResponse _paymasterResponse = await network.paymaster.supportedERC20Tokens(TokenInfoStorage.getNativeTokenForNetwork(network));
     paymasterResponse = _paymasterResponse;
     //
+    _selectedFeeToken = paymasterResponse.tokens.first;
+    return true;
+  }
+
+  Future<bool> _trySponsorUserOp() async {
+    UserOperation dummyOp = UserOperation.fromJson(userOperation.toJson());
+    var dummySignature = List<int>.filled(64, 1, growable: true);
+    dummySignature.add(28);
+    dummyOp.signature = bytesToHex(Uint8List.fromList(dummySignature), include0x: true);
+    var sponsorResult = await network.paymaster.sponsorUserOperation(dummyOp, network.entrypoint, null);
+    if (sponsorResult == null) return false;
+    paymasterResponse.sponsorData = SponsorData(
+      sponsored: true,
+      sponsorMeta: sponsorResult.sponsorMetadata
+    );
+    if (paymasterResponse.tokens.length > 1){
+      paymasterResponse.tokens.removeRange(1, paymasterResponse.tokens.length); // remove all tokens except native token which is always at index 0
+    }
     _selectedFeeToken = paymasterResponse.tokens.first;
     return true;
   }
@@ -188,8 +196,8 @@ class Batch {
     setSelectedFeeToken(_selectedFeeToken);
     //
     if (gasEstimateWithPaymaster != null){
-      BigInt maxETHCost = paymasterResponse.tokens.last.calculateETHFee(gasEstimateWithPaymaster!, network, true);
-      gasBack = await GasBackData.getGasBackData(account, paymasterResponse.paymasterData.address, network, maxETHCost);
+      // BigInt maxETHCost = paymasterResponse.tokens.last.calculateETHFee(gasEstimateWithPaymaster!, network, true);
+      // gasBack = await GasBackData.getGasBackData(account, paymasterResponse.paymasterData.address, network, maxETHCost);
     }
     //
   }
@@ -286,28 +294,20 @@ class Batch {
       }
       if (selectedFeeToken?.token.address.toLowerCase() == network.nativeCurrencyAddress.hex.toLowerCase()) return true;
     }
-    SponsorResult? sponsorResult = await network.paymaster.sponsorUserOperation(
-      userOperation,
-      network.entrypoint,
-      paymasterResponse.sponsorData.sponsored ? null : _selectedFeeToken,
-    );
     if (sponsorResult == null){ // todo network: handle fetching errors
       userOperation.paymasterAndData = "0x";
       return false;
     }else{
-      userOperation.paymasterAndData = sponsorResult.paymasterAndData;
+      userOperation.paymasterAndData = sponsorResult!.paymasterAndData;
       if (paymasterResponse.sponsorData.sponsored){
-        userOperation.callGasLimit = sponsorResult.callGasLimit ?? userOperation.callGasLimit;
-        userOperation.verificationGasLimit = sponsorResult.verificationGasLimit ?? userOperation.verificationGasLimit;
-        userOperation.preVerificationGas = sponsorResult.preVerificationGas ?? userOperation.preVerificationGas;
-        userOperation.maxFeePerGas = sponsorResult.maxFeePerGas ?? userOperation.maxFeePerGas;
-        userOperation.maxPriorityFeePerGas = sponsorResult.maxPriorityFeePerGas ?? userOperation.maxPriorityFeePerGas;
+        userOperation.callGasLimit = sponsorResult?.callGasLimit ?? userOperation.callGasLimit;
+        userOperation.verificationGasLimit = sponsorResult?.verificationGasLimit ?? userOperation.verificationGasLimit;
+        userOperation.preVerificationGas = sponsorResult?.preVerificationGas ?? userOperation.preVerificationGas;
+        userOperation.maxFeePerGas = sponsorResult?.maxFeePerGas ?? userOperation.maxFeePerGas;
+        userOperation.maxPriorityFeePerGas = sponsorResult?.maxPriorityFeePerGas ?? userOperation.maxPriorityFeePerGas;
       }
     }
     return true;
   }
-
-
-
 
 }

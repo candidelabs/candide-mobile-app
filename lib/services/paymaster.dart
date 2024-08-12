@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
 import 'package:candide_mobile_app/controller/wallet_connect/wc_peer_meta.dart';
 import 'package:candide_mobile_app/models/paymaster/fee_token.dart';
@@ -45,7 +46,7 @@ class Paymaster {
     try{
       var response = await jsonRpc!.call(
           "pm_supportedERC20Tokens",
-          []
+          [Networks.selected().entrypoint.hex]
       );
       //
       for (Map tokenData in response.result["tokens"]){
@@ -89,7 +90,7 @@ class Paymaster {
         sponsored: response.result["sponsored"],
       );
       if (sponsorData.sponsored){
-        sponsorData.sponsorMeta = WCPeerMeta.fromJson(response.result["sponsorMeta"]);
+        sponsorData.sponsorMeta = WCPeerMeta.fromJson(response.result["sponsorMetadata"]);
       }
       return sponsorData;
     } on RPCError catch(e){
@@ -125,6 +126,9 @@ class Paymaster {
         maxFeePerGas: Utils.decodeBigInt(response.result["maxFeePerGas"]),
         maxPriorityFeePerGas: Utils.decodeBigInt(response.result["maxPriorityFeePerGas"]),
       );
+      if (response.result["sponsorMetadata"] != null){
+        sponsorResult.sponsorMetadata = WCPeerMeta.fromJson(response.result["sponsorMetadata"]);
+      }
       return sponsorResult;
     } on RPCError catch(e){
       print("Error occurred (p_suo, ${e.errorCode}, ${e.message})");
