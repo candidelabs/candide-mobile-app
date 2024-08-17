@@ -72,10 +72,14 @@ class Bundler {
 
   Future<GasEstimate?> estimateUserOperationGas(UserOperation userOp) async {
     try{
+      var _userop = UserOperation.fromJson(userOp.toJson());
+      _userop.callGasLimit = BigInt.zero;
+      _userop.verificationGasLimit = BigInt.zero;
+      _userop.preVerificationGas = BigInt.zero;
       var response = await jsonRpc.call(
           "eth_estimateUserOperationGas",
           [
-            userOp.toJson(),
+            _userop.toJson(),
             PersistentData.selectedAccount.entrypoint!.hexEip55,
           ]
       );

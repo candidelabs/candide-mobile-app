@@ -168,11 +168,12 @@ class Batch {
     var dummySignature = List<int>.filled(64, 1, growable: true);
     dummySignature.add(28);
     dummyOp.signature = bytesToHex(Uint8List.fromList(dummySignature), include0x: true);
-    var sponsorResult = await network.paymaster.sponsorUserOperation(dummyOp, network.entrypoint, null);
-    if (sponsorResult == null) return false;
+    var _sponsorResult = await network.paymaster.sponsorUserOperation(dummyOp, network.entrypoint, null);
+    if (_sponsorResult == null) return false;
+    sponsorResult = _sponsorResult;
     paymasterResponse.sponsorData = SponsorData(
       sponsored: true,
-      sponsorMeta: sponsorResult.sponsorMetadata
+      sponsorMeta: _sponsorResult.sponsorMetadata
     );
     if (paymasterResponse.tokens.length > 1){
       paymasterResponse.tokens.removeRange(1, paymasterResponse.tokens.length); // remove all tokens except native token which is always at index 0
