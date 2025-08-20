@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/config/top_tokens.dart';
@@ -74,7 +75,14 @@ class _VerifyEndpointsDeialogState extends State<VerifyEndpointsDialog> {
         chainId = widget.network.testnetData!.testnetForChainId;
       }
       EthereumAddress tokenAddress = TopTokens.getChainTokens(chainId)[1];
-      var response = await Dio().get("https://api.mobula.io/api/1/market/multi-data?assets=$tokenAddress");
+      var response = await Dio().get(
+        "https://api.mobula.io/api/1/market/multi-data?assets=$tokenAddress",
+        options: Options(
+          headers: {
+            "Authorization": Env.mobulaApiKey
+          }
+        )
+      );
       return response.data.toString().toLowerCase().contains(tokenAddress.hex.toLowerCase());
     } on DioException {
       return false;

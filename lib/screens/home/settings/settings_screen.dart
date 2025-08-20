@@ -70,7 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       promptText: "Choose a PIN to unlock your wallet",
       confirmText: "Confirm your chosen PIN",
       confirmMode: true,
-      showBiometricsToggle: true,
+      showBiometricsToggle: true, // todo should be true
       onPinEnter: (String _newPin, bool _useBiometrics) async {
         newPin = _newPin;
         useBiometrics = _useBiometrics;
@@ -122,12 +122,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   void initState() {
-    BiometricStorage().canAuthenticate().then((response) async {
+    /*BiometricStorage().canAuthenticate().then((response) async {
       if (response == CanAuthenticateResponse.success){
         biometricStorage = await BiometricStorage().getStorage('auth_data');
         setState(() => _showBiometricsToggle = true);
       }
-    });
+    });*/
+    _showBiometricsToggle = false; // todo remove
     super.initState();
   }
 

@@ -53,7 +53,6 @@ class _SendSheetState extends State<SendSheet> {
       ),
       Container(),
     ];
-    setState(() {});
   }
 
   @override

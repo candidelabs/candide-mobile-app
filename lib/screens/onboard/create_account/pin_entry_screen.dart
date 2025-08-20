@@ -70,6 +70,7 @@ class _PinEntryScreenState extends State<PinEntryScreen> {
   }
 
   Future<void> initBiometricsState() async {
+    return; // todo remove
     var response = await BiometricStorage().canAuthenticate();
     if (response != CanAuthenticateResponse.success) return;
     if (widget.showBiometricsToggle){

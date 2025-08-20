@@ -5,9 +5,9 @@ import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_cont
 import 'package:candide_mobile_app/controller/wallet_connect/wallet_connect_v2_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:walletconnect_flutter_v2/apis/sign_api/models/session_models.dart';
 
 class WCScanSheet extends StatefulWidget {
@@ -21,7 +21,7 @@ class WCScanSheet extends StatefulWidget {
 class _WCScanSheetState extends State<WCScanSheet> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   Barcode? result;
-  QRViewController? controller;
+  final MobileScannerController controller = MobileScannerController();
   bool? cameraPermissionDenied;
   int connectionsCount = 0;
 
@@ -33,26 +33,6 @@ class _WCScanSheetState extends State<WCScanSheet> with WidgetsBindingObserver {
       cameraPermissionDenied = false;
     }
     setState(() {});
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      if (scanData.code == null) return;
-      String uri = scanData.code!;
-      if (uri.startsWith("wc:")) {
-        controller.dispose();
-        Get.back();
-        widget.onScanResult(uri);
-      }else{
-        BotToast.showText(
-          text: "Invalid wallet connect URI",
-          contentColor: Colors.red,
-          align: Alignment.topCenter,
-          textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
-        );
-      }
-    });
   }
 
   @override
@@ -123,17 +103,34 @@ class _WCScanSheetState extends State<WCScanSheet> with WidgetsBindingObserver {
                         )
                       ],
                     ),
-                  ) : QRView(
+                  ) : MobileScanner(
                     key: _qrKey,
-                    overlay: QrScannerOverlayShape(
+                    controller: controller,
+                    /*overlay: QrScannerOverlayShape(
                       borderColor: Get.theme.colorScheme.primary,
                       overlayColor: Colors.black.withOpacity(0.8),
                       borderRadius: 25,
                       borderLength: 30,
                       borderWidth: 10,
                       cutOutSize: Get.width * 0.8
-                    ),
-                    onQRViewCreated: _onQRViewCreated,
+                    ),*/
+                    onDetect: (result){
+                      var scanData = result.barcodes.first;
+                      if (scanData.rawValue == null) return;
+                      String uri = scanData.rawValue!;
+                      if (uri.startsWith("wc:")) {
+                        controller.dispose();
+                        Get.back();
+                        widget.onScanResult(uri);
+                      }else{
+                        BotToast.showText(
+                          text: "Invalid wallet connect URI",
+                          contentColor: Colors.red,
+                          align: Alignment.topCenter,
+                          textStyle: TextStyle(fontFamily: AppThemes.fonts.gilroyBold),
+                        );
+                      }
+                    },
                   ),
                   Positioned(
                     top: 0,

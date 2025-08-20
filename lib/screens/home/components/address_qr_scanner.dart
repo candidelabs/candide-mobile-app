@@ -4,9 +4,9 @@ import 'package:candide_mobile_app/config/theme.dart';
 import 'package:candide_mobile_app/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 
 class AddressQRScanner extends StatefulWidget {
   final Function(String) onScanAddress;
@@ -20,7 +20,7 @@ class AddressQRScanner extends StatefulWidget {
 class _AddressQRScannerState extends State<AddressQRScanner> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   Barcode? result;
-  QRViewController? controller;
+  MobileScannerController? controller;
   bool? cameraPermissionDenied;
 
   _permissionRequest() async {
@@ -33,20 +33,26 @@ class _AddressQRScannerState extends State<AddressQRScanner> with WidgetsBinding
     setState(() {});
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.resumeCamera();
-    controller.scannedDataStream.listen((scanData) {
-      if (scanData.code == null) return;
+  _initController() async {
+    controller = MobileScannerController(
+      autoStart: true,
+      formats: [BarcodeFormat.qrCode],
+    );
+    controller!.barcodes.listen((scanEvent) async {
+      if (scanEvent.barcodes.isEmpty) return;
+      var scanData = scanEvent.barcodes.first;
+      if (scanData.rawValue == null) return;
+      var scannedCode = scanData.rawValue!;
       var address = "";
-      if (scanData.code!.contains(':')) {
-        address = scanData.code!.split(":")[1];
+      if (scannedCode.contains(':')) {
+        address = scannedCode.split(":")[1];
       } else {
-        address = scanData.code!;
+        address = scannedCode;
       }
 
       if (Utils.isValidAddress(address)) {
-        controller.dispose();
+        await controller!.stop();
+        await controller!.dispose();
         Get.back();
         widget.onScanAddress(address);
       }else{
@@ -135,11 +141,22 @@ class _AddressQRScannerState extends State<AddressQRScanner> with WidgetsBinding
                           )
                         ],
                       ),
-                    ) : Expanded(
-                      child: QRView(
-                        key: _qrKey,
-                        onQRViewCreated: _onQRViewCreated,
-                      ),
+                    ) : FutureBuilder(
+                      future: _initController(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return SizedBox();
+                        }
+                        return SizedBox(
+                          width: MediaQuery.of(context).size.width,
+                          height: MediaQuery.of(context).size.height * 0.75,
+                          child: MobileScanner(
+                            key: _qrKey,
+                            controller: controller,
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      }
                     ),
                     !(cameraPermissionDenied ?? true) ? widget.alertWidget : const SizedBox.shrink(),
                   ],

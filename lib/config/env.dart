@@ -4,18 +4,18 @@ class Env {
   static late String explorerUri;
   static late String securityUri;
   //
-  static late String optimismBundlerEndpoint;
+  static late String sepoliaRpcEndpoint;
+  static late String sepoliaWebsocketsRpcEndpoint;
   static late String sepoliaBundlerEndpoint;
-  //
-  static late String optimismPaymasterEndpoint;
   static late String sepoliaPaymasterEndpoint;
   //
-  static late String mainnetRpcEndpoint;
   static late String optimismRpcEndpoint;
-  static late String sepoliaRpcEndpoint;
-  //
   static late String optimismWebsocketsRpcEndpoint;
-  static late String sepoliaWebsocketsRpcEndpoint;
+  static late String optimismBundlerEndpoint;
+  static late String optimismPaymasterEndpoint;
+  //
+  static late String mainnetRpcEndpoint;
+  static late String mobulaApiKey;
   //
   static late String walletConnectProjectId;
   static late String magicApiKey;
@@ -31,7 +31,7 @@ class Env {
 
   static initialize() async {
     await dotenv.load(fileName: ".env");
-    explorerUri = dotenv.get('EXPLORER_URL', fallback: 'http://192.168.1.3:3000');
+    explorerUri = dotenv.get('EXPLORER_URL', fallback: '-');
     securityUri = dotenv.get('SECURITY_URL', fallback: 'http://192.168.1.3:3004');
     //
     optimismRpcEndpoint = dotenv.get('OPTIMISM_NODE_HTTP_RPC_ENDPOINT', fallback: '-');
@@ -45,6 +45,7 @@ class Env {
     sepoliaPaymasterEndpoint = dotenv.get('SEPOLIA_PAYMASTER', fallback: '-');
     //
     mainnetRpcEndpoint = dotenv.get('MAINNET_NODE_HTTP_RPC_ENDPOINT', fallback: '-');
+    mobulaApiKey = dotenv.get('MOBULA_API_KEY', fallback: '-');
     //
     magicApiKey = dotenv.get('MAGIC_API_KEY', fallback: '-');
     walletConnectProjectId = dotenv.get('WALLET_CONNECT_PROJECT_ID', fallback: '-');

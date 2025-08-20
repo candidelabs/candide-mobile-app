@@ -128,7 +128,7 @@ class _CreateAccountMainScreenState extends State<CreateAccountMainScreen> {
         promptText: "Choose a PIN to unlock your wallet",
         confirmText: "Confirm your chosen PIN",
         confirmMode: true,
-        showBiometricsToggle: true,
+        showBiometricsToggle: false, // todo should be true
         onPinEnter: onRegisterConfirm,
         onBack: onBackPress,
       ),

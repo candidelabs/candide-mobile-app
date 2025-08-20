@@ -101,7 +101,7 @@ class _RecoverAccountSheetState extends State<RecoverAccountSheet> {
                           promptText: "Choose a PIN to unlock your wallet",
                           confirmText: "Confirm your chosen PIN",
                           confirmMode: true,
-                          showBiometricsToggle: true,
+                          showBiometricsToggle: false, // todo should be true
                           onPinEnter: (String password, bool useBiometrics){
                             widget.onNext.call(_lostAccountAddress, chainId, password, useBiometrics, widget.method);
                           },

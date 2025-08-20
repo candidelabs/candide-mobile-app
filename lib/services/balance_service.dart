@@ -1,3 +1,4 @@
+import 'package:candide_mobile_app/config/env.dart';
 import 'package:candide_mobile_app/config/network.dart';
 import 'package:candide_mobile_app/config/top_tokens.dart';
 import 'package:candide_mobile_app/controller/token_info_storage.dart';
@@ -54,7 +55,14 @@ class BalanceService {
         if (_tempTokenAddresses.length == 500 || i == _tokenAddresses.length-1){
           var _addresses = _tempTokenAddresses.join(",");
           try {
-            var response = await Dio().get("https://api.mobula.io/api/1/market/multi-data?assets=$_addresses");
+            var response = await Dio().get(
+              "https://api.mobula.io/api/1/market/multi-data?assets=$_addresses",
+              options: Options(
+                headers: {
+                  "Authorization": Env.mobulaApiKey
+                }
+              )
+            );
             responses.add(response.data["data"]);
           } catch (e) {
             print("Fetching quotes failed: $e");
